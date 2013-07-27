@@ -14,6 +14,11 @@
 {
 	[self setWindow:[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]]];
 	[[self window] setBackgroundColor:[UIColor whiteColor]];
+
+	RAUserListViewController *userList = [[RAUserListViewController alloc] init];
+	UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:userList];
+	[[self window] setRootViewController:navigation];
+
 	[[self window] makeKeyAndVisible];
 }
 

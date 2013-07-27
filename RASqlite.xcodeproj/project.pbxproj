@@ -19,6 +19,8 @@
 		2D4160C717A43C3600D485FA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2D4160C517A43C3600D485FA /* InfoPlist.strings */; };
 		2D4160CA17A43C3600D485FA /* RASqliteTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D4160C917A43C3600D485FA /* RASqliteTests.m */; };
 		2D4160D517A43FD000D485FA /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D4160D417A43FD000D485FA /* libsqlite3.dylib */; };
+		2D4160D817A4406B00D485FA /* RAUserListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D4160D717A4406B00D485FA /* RAUserListViewController.m */; };
+		2D4160DB17A4462A00D485FA /* RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D4160DA17A4462A00D485FA /* RASqlite.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +51,10 @@
 		2D4160C817A43C3600D485FA /* RASqliteTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RASqliteTests.h; sourceTree = "<group>"; };
 		2D4160C917A43C3600D485FA /* RASqliteTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RASqliteTests.m; sourceTree = "<group>"; };
 		2D4160D417A43FD000D485FA /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		2D4160D617A4406B00D485FA /* RAUserListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RAUserListViewController.h; sourceTree = "<group>"; };
+		2D4160D717A4406B00D485FA /* RAUserListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RAUserListViewController.m; sourceTree = "<group>"; };
+		2D4160D917A4462A00D485FA /* RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RASqlite.h; sourceTree = "<group>"; };
+		2D4160DA17A4462A00D485FA /* RASqlite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RASqlite.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,7 +117,8 @@
 		2D4160A417A43C3500D485FA /* RASqlite */ = {
 			isa = PBXGroup;
 			children = (
-				2D4160A517A43C3500D485FA /* Supporting Files */,
+				2D4160D917A4462A00D485FA /* RASqlite.h */,
+				2D4160DA17A4462A00D485FA /* RASqlite.m */,
 			);
 			path = RASqlite;
 			sourceTree = "<group>";
@@ -127,6 +134,7 @@
 				2D4160AC17A43C3500D485FA /* RASqlite-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			path = ../RASqlite;
 			sourceTree = "<group>";
 		};
 		2D4160C217A43C3600D485FA /* RASqliteTests */ = {
@@ -151,6 +159,9 @@
 		2D4160D317A43E8B00D485FA /* RASqliteSample */ = {
 			isa = PBXGroup;
 			children = (
+				2D4160D617A4406B00D485FA /* RAUserListViewController.h */,
+				2D4160D717A4406B00D485FA /* RAUserListViewController.m */,
+				2D4160A517A43C3500D485FA /* Supporting Files */,
 			);
 			path = RASqliteSample;
 			sourceTree = "<group>";
@@ -264,6 +275,8 @@
 			files = (
 				2D4160AB17A43C3500D485FA /* main.m in Sources */,
 				2D4160AF17A43C3500D485FA /* RAAppDelegate.m in Sources */,
+				2D4160D817A4406B00D485FA /* RAUserListViewController.m in Sources */,
+				2D4160DB17A4462A00D485FA /* RASqlite.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

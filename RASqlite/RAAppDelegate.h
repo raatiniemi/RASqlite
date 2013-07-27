@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+#import "RAUserListViewController.h"
+
 @interface RAAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;

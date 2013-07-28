@@ -85,6 +85,116 @@
 	}
 }
 
+- (void)create
+{
+	NSDictionary *tables = [self structure];
+	if ( tables != nil ) {
+		for ( NSString *table in tables ) {
+			[self createTable:table withColumns:[tables objectForKey:table]];
+		}
+	} else {
+		// TODO: Handle non-existing structure.
+	}
+}
+
+- (void)createTable:(NSString *)table withColumns:(NSDictionary *)columns
+{
+	if ( table == nil ) {
+		// TODO: Handle error.
+	}
+
+	if ( columns == nil ) {
+		// TODO: Handle error.
+	}
+
+	if ( [self error] == nil ) {
+		NSMutableString *sql = [[NSMutableString alloc] init];
+		[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
+
+		unsigned int index = 0;
+		for ( NSString *column in columns ) {
+			if ( index > 0 ) {
+				[sql appendString:@","];
+			}
+			[sql appendFormat:@"%@ ", column];
+
+			NSString *type = [columns objectForKey:column];
+			if ( [type isEqualToString:RASqliteNull] ) {
+				[sql appendString:type];
+			} else if ( [type isEqualToString:RASqliteInteger] ) {
+				[sql appendString:type];
+
+				if ( [column isEqualToString:@"id"] ) {
+					[sql appendString:@" PRIMARY KEY"];
+				} else {
+					[sql appendString:@" DEFAULT 0"];
+				}
+			} else if ( [type isEqualToString:RASqliteReal] ) {
+				[sql appendString:type];
+			} else if ( [type isEqualToString:RASqliteText] ) {
+				[sql appendString:type];
+			} else if ( [type isEqualToString:RASqliteBlob] ) {
+				[sql appendString:type];
+			} else {
+				// TODO: Handle error.
+				NSLog(@"Unhandled data type: %@", type);
+			}
+
+			index++;
+		}
+		[sql appendString:@");"];
+
+		[self execute:sql];
+	}
+}
+
+- (void)check
+{
+	NSDictionary *tables = [self structure];
+	if ( tables != nil ) {
+		for ( NSString *table in tables ) {
+			[self checkTable:table withColumns:[tables objectForKey:table]];
+		}
+	} else {
+		// TODO: Handle non-existing structure.
+	}
+}
+
+- (void)checkTable:(NSString *)table withColumns:(NSDictionary *)columns
+{
+	if ( table == nil ) {
+		// TODO: Handle error.
+	}
+
+	if ( columns == nil ) {
+		// TODO: Handle error.
+	}
+
+	if ( [self error] == nil ) {
+		NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
+
+		if ( [tColumns count] == [columns count] ) {
+			unsigned int index = 0;
+			for ( NSString *column in columns ) {
+				NSDictionary *tColumn = [tColumns objectAtIndex:index];
+				if ( ![[tColumn objectForKey:@"name"] isEqualToString:column] ) {
+					// TODO: Properly handle column missmatch.
+					NSLog(@"Column missmatch");
+					break;
+				}
+
+				NSString *type = [columns objectForKey:column];
+				if ( ![[tColumn objectForKey:@"type"] isEqualToString:type] ) {
+					// TODO: Properly handle column missmatch.
+					NSLog(@"Column data type missmatch");
+					break;
+				}
+				index++;
+			}
+		}
+	}
+}
+
 - (void)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement
 {
 	if ( [columns count] > 0 ) {
@@ -106,6 +216,8 @@
 				} else {
 					NSLog(@"Unhandled NSNumber type: %s", type);
 				}
+			} else {
+				NSLog(@"Unhandled SQLite data type: %@", [column class]);
 			}
 			index++;
 		}
@@ -189,7 +301,7 @@
 			sqlite3_finalize(statement);
 		} else {
 			// TODO: Better error handling.
-			NSLog(@"An error occurred, retrieved code: %s (%i)", sqlite3_errmsg([self database]), code);
+			NSLog(@"An error occurred: %s (%i)", sqlite3_errmsg([self database]), code);
 		}
 	}
 
@@ -227,7 +339,7 @@
 			sqlite3_finalize(statement);
 		} else {
 			// TODO: Better error handling.
-			NSLog(@"An error occurred, retrieved code: %s (%i)", sqlite3_errmsg([self database]), code);
+			NSLog(@"An error occurred: %s (%i)", sqlite3_errmsg([self database]), code);
 		}
 	}
 
@@ -261,7 +373,7 @@
 			sqlite3_finalize(statement);
 		} else {
 			// TODO: Better error handling.
-			NSLog(@"An error occurred, retrieved code: %s (%i)", sqlite3_errmsg([self database]), code);
+			NSLog(@"An error occurred: %s (%i)", sqlite3_errmsg([self database]), code);
 		}
 	}
 }

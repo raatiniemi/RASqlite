@@ -9,6 +9,12 @@
 #import <Foundation/Foundation.h>
 #import "sqlite3.h"
 
+#define RASqliteNull	@"NULL"
+#define RASqliteInteger	@"INTEGER"
+#define RASqliteReal	@"REAL"
+#define RASqliteText	@"TEXT"
+#define RASqliteBlob	@"BLOB"
+
 @interface RASqlite : NSObject {
 @protected
 	sqlite3 *_database;
@@ -18,9 +24,19 @@
 
 @property (nonatomic, readwrite) sqlite3 *database;
 
+@property (nonatomic, readonly, strong) NSDictionary *structure;
+
 @property (nonatomic, readwrite, strong) NSError *error;
 
 - (id)initWithName:(NSString *)name;
+
+- (void)create;
+
+- (void)createTable:(NSString *)table withColumns:(NSDictionary *)columns;
+
+- (void)check;
+
+- (void)checkTable:(NSString *)table withColumns:(NSDictionary *)columns;
 
 - (NSArray *)fetch:(NSString *)sql;
 

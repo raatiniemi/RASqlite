@@ -61,53 +61,71 @@
 	if ( database == nil ) {
 		int code = sqlite3_open_v2([[self path] UTF8String], &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE, NULL);
 		if ( code == SQLITE_OK ) {
-			NSLog(@"Database has been opened.");
-
+			RASqliteLog(@"Database have been successfully opened.");
 			[self setDatabase:database];
 		} else {
-			// TODO: Better error handling.
-			NSLog(@"An error has occurred when attempting to open the database: %s (%i)", sqlite3_errmsg([self database]), code);
+			NSString *description = [NSString stringWithFormat:@"Unable to open database: `%s`", sqlite3_errmsg([self database])];
+			[self setError:[self errorWithDescription:description code:code]];
 		}
 	} else {
-		NSLog(@"Database is already open!");
+		RASqliteLog(@"Database `%s` is already open.", sqlite3_db_filename([self database], NULL));
 	}
 }
 
-- (void)close
+- (NSError *)close
 {
+	NSError *error;
+
 	if ( [self database] != nil ) {
 		int code = sqlite3_close([self database]);
 		if ( code == SQLITE_OK ) {
+			RASqliteLog(@"Database have been successfully closed.");
 			[self setDatabase:nil];
 		} else if ( code == SQLITE_BUSY ) {
 			// TODO: Handle database with active statements.
+			// TODO: Handle error code correctly.
+			error = [self errorWithDescription:@"Database is currently busy and cannot be closed." code:0];
 		}
 	}
+
+	return error;
 }
 
-- (void)create
+- (NSError *)create
 {
+	NSError *error;
+
 	NSDictionary *tables = [self structure];
 	if ( tables != nil ) {
 		for ( NSString *table in tables ) {
-			[self createTable:table withColumns:[tables objectForKey:table]];
+			error = [self createTable:table withColumns:[tables objectForKey:table]];
+			if ( error != nil ) {
+				break;
+			}
 		}
 	} else {
-		// TODO: Handle non-existing structure.
+		// TODO: Handle error code correctly.
+		error = [self errorWithDescription:@"No structure have been supplied for the database." code:0];
 	}
+
+	return error;
 }
 
-- (void)createTable:(NSString *)table withColumns:(NSDictionary *)columns
+- (NSError *)createTable:(NSString *)table withColumns:(NSDictionary *)columns
 {
+	NSError *error;
+
 	if ( table == nil ) {
-		// TODO: Handle error.
+		// TODO: Handle error code correctly.
+		error = [self errorWithDescription:@"Unable to create table without valid table name." code:0];
 	}
 
 	if ( columns == nil ) {
-		// TODO: Handle error.
+		// TODO: Handle error code correctly.
+		error = [self errorWithDescription:@"Unable to create table without columns." code:0];
 	}
 
-	if ( [self error] == nil ) {
+	if ( [self error] == nil && error == nil ) {
 		NSMutableString *sql = [[NSMutableString alloc] init];
 		[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
 
@@ -136,16 +154,22 @@
 			} else if ( [type isEqualToString:kRASqliteBlob] ) {
 				[sql appendString:type];
 			} else {
-				// TODO: Handle error.
-				NSLog(@"Unhandled data type: %@", type);
+				// TODO: Handle error code correctly.
+				NSString *message = [NSString stringWithFormat:@"Unrecognized SQLite data type: %@", type];
+				error = [self errorWithDescription:message code:0];
+				break;
 			}
 
 			index++;
 		}
 		[sql appendString:@");"];
 
-		[self execute:sql];
+		if ( error == nil ) {
+			[self execute:sql];
+		}
 	}
+
+	return error;
 }
 
 - (void)deleteTable:(NSString *)table
@@ -208,30 +232,31 @@
 
 - (void)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement
 {
-	if ( [columns count] > 0 ) {
-		unsigned int index = 1;
-		for ( id column in columns ) {
-			if ( [column isKindOfClass:[NSString class]] ) {
-				sqlite3_bind_text(*statement, index, [column UTF8String], -1, SQLITE_TRANSIENT);
-			} else if ( [column isKindOfClass:[NSNumber class]] ) {
-				const char *type = [column objCType];
-				if ( strncmp(type, "i", 1) == 0 ) {
-					sqlite3_bind_int(*statement, index, [column intValue]);
-				} else if ( strncmp(type, "d", 1) == 0 || strncmp(type, "f", 1) == 0 ) {
-					// Both double and float should be binded as double.
-					sqlite3_bind_double(*statement, index, [column doubleValue]);
-				} else if ( strncmp(type, "c", 1) == 0 || strncmp(type, "s", 1) == 0 ) {
-					// Characters (both signed and unsigned) and bool values should
-					// just be binded as an integer.
-					sqlite3_bind_int(*statement, index, [column intValue]);
-				} else {
-					NSLog(@"Unhandled NSNumber type: %s", type);
-				}
+	unsigned int index = 1;
+	for ( id column in columns ) {
+		if ( [column isKindOfClass:[NSString class]] ) {
+			sqlite3_bind_text(*statement, index, [column UTF8String], -1, SQLITE_TRANSIENT);
+		} else if ( [column isKindOfClass:[NSNumber class]] ) {
+			const char *type = [column objCType];
+			if ( strncmp(type, "i", 1) == 0 ) {
+				sqlite3_bind_int(*statement, index, [column intValue]);
+			} else if ( strncmp(type, "d", 1) == 0 || strncmp(type, "f", 1) == 0 ) {
+				// Both double and float should be binded as double.
+				sqlite3_bind_double(*statement, index, [column doubleValue]);
+			} else if ( strncmp(type, "c", 1) == 0 || strncmp(type, "s", 1) == 0 ) {
+				// Characters (both signed and unsigned) and bool values should
+				// just be binded as an integer.
+				sqlite3_bind_int(*statement, index, [column intValue]);
 			} else {
-				NSLog(@"Unhandled SQLite data type: %@", [column class]);
+				RASqliteLog(@"Unrecognized type for NSNumber: %s", type);
+				break;
 			}
-			index++;
+		} else {
+			// TODO: Implement support for more object types.
+			RASqliteLog(@"Incomplete implementation of `bindColumns:toStatement:` for type: %@", [column class]);
+			break;
 		}
+		index++;
 	}
 }
 
@@ -259,8 +284,8 @@
 			}
 
 			case SQLITE_BLOB: {
-				// TODO: Handle blob type.
-				NSLog(@"Unhandled column type.");
+				// TODO: Handle the SQLITE_BLOB.
+				RASqliteLog(@"Incomplete implementation of `fetchColumns:` for `SQLITE_BLOB`.");
 				break;
 			}
 
@@ -387,6 +412,14 @@
 			NSLog(@"An error occurred: %s (%i)", sqlite3_errmsg([self database]), code);
 		}
 	}
+}
+
+- (NSError *)errorWithDescription:(NSString *)description code:(NSInteger)code
+{
+	RASqliteLog(@"%@ (%i)", description, code);
+
+	NSDictionary *userInfo = [NSDictionary dictionaryWithObject:description forKey:NSLocalizedDescriptionKey];
+	return [NSError errorWithDomain:@"RASqlite Error" code:code userInfo:userInfo];
 }
 
 @end

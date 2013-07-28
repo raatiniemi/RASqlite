@@ -21,6 +21,7 @@
 		2D4160D517A43FD000D485FA /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D4160D417A43FD000D485FA /* libsqlite3.dylib */; };
 		2D4160D817A4406B00D485FA /* RAUserListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D4160D717A4406B00D485FA /* RAUserListViewController.m */; };
 		2D4160DB17A4462A00D485FA /* RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D4160DA17A4462A00D485FA /* RASqlite.m */; };
+		2D4160DF17A46A3C00D485FA /* RAUserModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D4160DE17A46A3C00D485FA /* RAUserModel.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,8 @@
 		2D4160D717A4406B00D485FA /* RAUserListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RAUserListViewController.m; sourceTree = "<group>"; };
 		2D4160D917A4462A00D485FA /* RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RASqlite.h; sourceTree = "<group>"; };
 		2D4160DA17A4462A00D485FA /* RASqlite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RASqlite.m; sourceTree = "<group>"; };
+		2D4160DD17A46A3C00D485FA /* RAUserModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RAUserModel.h; sourceTree = "<group>"; };
+		2D4160DE17A46A3C00D485FA /* RAUserModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RAUserModel.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,11 +162,21 @@
 		2D4160D317A43E8B00D485FA /* RASqliteSample */ = {
 			isa = PBXGroup;
 			children = (
+				2D4160DC17A46A1F00D485FA /* Model */,
 				2D4160D617A4406B00D485FA /* RAUserListViewController.h */,
 				2D4160D717A4406B00D485FA /* RAUserListViewController.m */,
 				2D4160A517A43C3500D485FA /* Supporting Files */,
 			);
 			path = RASqliteSample;
+			sourceTree = "<group>";
+		};
+		2D4160DC17A46A1F00D485FA /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				2D4160DD17A46A3C00D485FA /* RAUserModel.h */,
+				2D4160DE17A46A3C00D485FA /* RAUserModel.m */,
+			);
+			name = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -277,6 +290,7 @@
 				2D4160AF17A43C3500D485FA /* RAAppDelegate.m in Sources */,
 				2D4160D817A4406B00D485FA /* RAUserListViewController.m in Sources */,
 				2D4160DB17A4462A00D485FA /* RASqlite.m in Sources */,
+				2D4160DF17A46A3C00D485FA /* RAUserModel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

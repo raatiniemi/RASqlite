@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+#import "RAUserModel.h"
+
 @interface RAUserListViewController : UITableViewController
 
 @end

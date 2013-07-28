@@ -11,15 +11,29 @@
 @interface RAUserListViewController () {
 @private
 	NSArray *_data;
+
+	RAUserModel *_userModel;
 }
 
 @property (nonatomic, readwrite, strong) NSArray *data;
+
+@property (nonatomic, readwrite, strong) RAUserModel *userModel;
 
 @end
 
 @implementation RAUserListViewController
 
 @synthesize data = _data;
+
+@synthesize userModel = _userModel;
+
+- (id)init
+{
+	if ( self = [super init] ) {
+		[self setUserModel:[[RAUserModel alloc] init]];
+	}
+	return self;
+}
 
 - (void)viewDidLoad
 {
@@ -37,10 +51,15 @@
 
 - (void)update
 {
+	[self setData:[[self userModel] getUsers]];
+	[[self tableView] reloadData];
 }
 
 - (void)addUser:(id)sender
 {
+	[[self userModel] addUser:@"User"];
+
+	[self update];
 }
 
 #pragma mark - Table view data source
@@ -52,17 +71,19 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+	NSDictionary *user = [[self data] objectAtIndex:[indexPath row]];
+
 	NSString *cellIdentifier = @"cell";
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
 	if ( cell == nil ) {
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
 
-		[[cell textLabel] setFont:[UIFont systemFontOfSize:14.0]];
+		[[cell textLabel] setFont:[UIFont boldSystemFontOfSize:14.0]];
 		[[cell textLabel] setTextColor:[UIColor darkGrayColor]];
 	}
 
-	NSDictionary *user = [[self data] objectAtIndex:[indexPath row]];
-	[[cell textLabel] setText:[user objectForKey:@"name"]];
+	NSString *text = [NSString stringWithFormat:@"%@ #%@", [user objectForKey:@"username"], [user objectForKey:@"id"]];
+	[[cell textLabel] setText:text];
 
 	return cell;
 }
@@ -74,12 +95,19 @@
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
+	if ( UITableViewCellEditingStyleDelete == editingStyle ) {
+		NSDictionary *user = [[self data] objectAtIndex:[indexPath row]];
+		[[self userModel] removeUser:[user objectForKey:@"id"]];
+
+		[self update];
+	}
 }
 
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+	[tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 @end

@@ -47,9 +47,9 @@
 
 - (id)initWithName:(NSString *)name;
 
-- (void)create;
+- (NSError *)create;
 
-- (void)createTable:(NSString *)table withColumns:(NSDictionary *)columns;
+- (NSError *)createTable:(NSString *)table withColumns:(NSDictionary *)columns;
 
 - (void)deleteTable:(NSString *)table;
 
@@ -68,5 +68,7 @@
 - (void)execute:(NSString *)sql;
 
 - (void)execute:(NSString *)sql withParams:(NSArray *)params;
+
+- (NSError *)errorWithDescription:(NSString *)description code:(NSInteger)code;
 
 @end

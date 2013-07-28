@@ -29,21 +29,33 @@ static sqlite3 *user;
 	user = database;
 }
 
+- (NSDictionary *)structure
+{
+	NSMutableDictionary *users = [[NSMutableDictionary alloc] init];
+	[users setObject:@"INTEGER" forKey:@"id"];
+	[users setObject:@"TEXT" forKey:@"username"];
+
+	NSMutableDictionary *tables = [[NSMutableDictionary alloc] init];
+	[tables setObject:users forKey:@"Users"];
+
+	return tables;
+}
+
 - (NSArray *)getUsers
 {
-	return [self fetch:@"SELECT id, username FROM users"];
+	return [self fetch:@"SELECT id, username FROM Users"];
 }
 
 - (void)addUser:(NSString *)username
 {
 	NSArray *params = [NSArray arrayWithObject:username];
-	[self execute:@"INSERT INTO users(username) VALUES(?)" withParams:params];
+	[self execute:@"INSERT INTO Users(username) VALUES(?)" withParams:params];
 }
 
 - (void)removeUser:(NSNumber *)userId
 {
 	NSArray *params = [NSArray arrayWithObject:userId];
-	[self execute:@"DELETE FROM users WHERE id = ?" withParams:params];
+	[self execute:@"DELETE FROM Users WHERE id = ?" withParams:params];
 }
 
 @end

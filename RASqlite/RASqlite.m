@@ -75,6 +75,14 @@
 
 - (void)close
 {
+	if ( [self database] != nil ) {
+		int code = sqlite3_close([self database]);
+		if ( code == SQLITE_OK ) {
+			[self setDatabase:nil];
+		} else if ( code == SQLITE_BUSY ) {
+			// TODO: Handle database with active statements.
+		}
+	}
 }
 
 - (void)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement

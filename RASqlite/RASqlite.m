@@ -148,6 +148,17 @@
 	}
 }
 
+- (void)deleteTable:(NSString *)table
+{
+	if ( table == nil ) {
+		// TODO: Handle error.
+	}
+
+	if ( [self error] == nil ) {
+		[self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]];
+	}
+}
+
 - (void)check
 {
 	NSDictionary *tables = [self structure];

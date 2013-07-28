@@ -39,6 +39,8 @@
 
 - (void)createTable:(NSString *)table withColumns:(NSDictionary *)columns;
 
+- (void)deleteTable:(NSString *)table;
+
 - (void)check;
 
 - (void)checkTable:(NSString *)table withColumns:(NSDictionary *)columns;

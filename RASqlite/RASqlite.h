@@ -9,6 +9,11 @@
 #import <Foundation/Foundation.h>
 #import "sqlite3.h"
 
+// Debug is always enabled unless otherwise instructed by application.
+#ifndef RASqliteDebug
+#define RASqliteDebug 1
+#endif
+
 #define RASqliteNull	@"NULL"
 #define RASqliteInteger	@"INTEGER"
 #define RASqliteReal	@"REAL"

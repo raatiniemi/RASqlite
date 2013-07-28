@@ -9,16 +9,28 @@
 #import <Foundation/Foundation.h>
 #import "sqlite3.h"
 
+#define kRASqliteNull		@"NULL"
+#define kRASqliteInteger	@"INTEGER"
+#define kRASqliteReal		@"REAL"
+#define kRASqliteText		@"TEXT"
+#define kRASqliteBlob		@"BLOB"
+
 // Debug is always enabled unless otherwise instructed by application.
-#ifndef RASqliteDebug
-#define RASqliteDebug 1
+#ifndef kRASqliteDebugEnabled
+#define kRASqliteDebugEnabled 1
 #endif
 
-#define RASqliteNull	@"NULL"
-#define RASqliteInteger	@"INTEGER"
-#define RASqliteReal	@"REAL"
-#define RASqliteText	@"TEXT"
-#define RASqliteBlob	@"BLOB"
+#if kRASqliteDebugEnabled
+#define RASqliteLog(format, ...)\
+	NSLog(\
+		(@"<%@:(%d)> " format),\
+		[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
+		__LINE__,\
+		##__VA_ARGS__\
+	);
+#else
+#define RASqliteLog(...)
+#endif
 
 @interface RASqlite : NSObject {
 @protected

@@ -119,9 +119,9 @@
 			[sql appendFormat:@"%@ ", column];
 
 			NSString *type = [columns objectForKey:column];
-			if ( [type isEqualToString:RASqliteNull] ) {
+			if ( [type isEqualToString:kRASqliteNull] ) {
 				[sql appendString:type];
-			} else if ( [type isEqualToString:RASqliteInteger] ) {
+			} else if ( [type isEqualToString:kRASqliteInteger] ) {
 				[sql appendString:type];
 
 				if ( [column isEqualToString:@"id"] ) {
@@ -129,11 +129,11 @@
 				} else {
 					[sql appendString:@" DEFAULT 0"];
 				}
-			} else if ( [type isEqualToString:RASqliteReal] ) {
+			} else if ( [type isEqualToString:kRASqliteReal] ) {
 				[sql appendString:type];
-			} else if ( [type isEqualToString:RASqliteText] ) {
+			} else if ( [type isEqualToString:kRASqliteText] ) {
 				[sql appendString:type];
-			} else if ( [type isEqualToString:RASqliteBlob] ) {
+			} else if ( [type isEqualToString:kRASqliteBlob] ) {
 				[sql appendString:type];
 			} else {
 				// TODO: Handle error.

@@ -61,14 +61,16 @@
 	if ( database == nil ) {
 		int code = sqlite3_open_v2([[self path] UTF8String], &database, SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE, NULL);
 		if ( code == SQLITE_OK ) {
-			RASqliteLog(@"Database have been successfully opened.");
+			NSString *filename = [NSString stringWithCString:sqlite3_db_filename(database, NULL) encoding:NSUTF8StringEncoding];
+			RASqliteLog(@"Database `%@` have been successfully opened.", [filename lastPathComponent]);
 			[self setDatabase:database];
 		} else {
-			NSString *description = [NSString stringWithFormat:@"Unable to open database: `%s`", sqlite3_errmsg([self database])];
-			[self setError:[self errorWithDescription:description code:code]];
+			NSString *description = @"Unable to open database: `%s`";
+			[self setError:[self errorWithDescription:[NSString stringWithFormat:description, sqlite3_errmsg([self database])] code:code]];
 		}
 	} else {
-		RASqliteLog(@"Database `%s` is already open.", sqlite3_db_filename([self database], NULL));
+		NSString *filename = [NSString stringWithCString:sqlite3_db_filename(database, NULL) encoding:NSUTF8StringEncoding];
+		RASqliteLog(@"Database `%@` is already open.", [filename lastPathComponent]);
 	}
 }
 
@@ -76,16 +78,20 @@
 {
 	NSError *error;
 
-	if ( [self database] != nil ) {
-		int code = sqlite3_close([self database]);
+	sqlite3 *database = [self database];
+	if ( database != nil ) {
+		int code = sqlite3_close(database);
 		if ( code == SQLITE_OK ) {
 			RASqliteLog(@"Database have been successfully closed.");
 			[self setDatabase:nil];
 		} else if ( code == SQLITE_BUSY ) {
 			// TODO: Handle database with active statements.
-			// TODO: Handle error code correctly.
-			error = [self errorWithDescription:@"Database is currently busy and cannot be closed." code:0];
+			NSString *description = @"Database `%@` is currently busy and cannot be closed.";
+			NSString *filename = [NSString stringWithCString:sqlite3_db_filename(database, NULL) encoding:NSUTF8StringEncoding];
+			error = [self errorWithDescription:[NSString stringWithFormat:description, [filename lastPathComponent]] code:code];
 		}
+	} else {
+		RASqliteLog(@"Database is already closed.");
 	}
 
 	return error;
@@ -155,8 +161,8 @@
 				[sql appendString:type];
 			} else {
 				// TODO: Handle error code correctly.
-				NSString *message = [NSString stringWithFormat:@"Unrecognized SQLite data type: %@", type];
-				error = [self errorWithDescription:message code:0];
+				NSString *description = @"Unrecognized SQLite data type: %@";
+				error = [self errorWithDescription:[NSString stringWithFormat:description, type] code:0];
 				break;
 			}
 
@@ -165,7 +171,7 @@
 		[sql appendString:@");"];
 
 		if ( error == nil ) {
-			[self execute:sql];
+			error = [self execute:sql];
 		}
 	}
 
@@ -195,7 +201,8 @@
 	NSDictionary *tables = [self structure];
 	if ( tables != nil ) {
 		for ( NSString *table in tables ) {
-			if ( [self checkTable:table withColumns:[tables objectForKey:table]] != nil ) {
+			error = [self checkTable:table withColumns:[tables objectForKey:table]];
+			if ( error != nil ) {
 				break;
 			}
 		}
@@ -230,20 +237,23 @@
 				NSDictionary *tColumn = [tColumns objectAtIndex:index];
 				if ( ![[tColumn objectForKey:@"name"] isEqualToString:column] ) {
 					// TODO: Handle error code correctly.
-					NSString *message = [NSString stringWithFormat:@"Column name `%@` do not match index `%i` for the given structure.", column, index];
-					error = [self errorWithDescription:message code:0];
+					NSString *description = @"Column name `%@` do not match index `%i` for the given structure.";
+					error = [self errorWithDescription:[NSString stringWithFormat:description, column, index] code:0];
 					break;
 				}
 
 				NSString *type = [columns objectForKey:column];
 				if ( ![[tColumn objectForKey:@"type"] isEqualToString:type] ) {
 					// TODO: Handle error code correctly.
-					NSString *message = [NSString stringWithFormat:@"Column type `%@` do not match index `%i` for the given structure.", type, index];
-					error = [self errorWithDescription:message code:0];
+					NSString *description = @"Column type `%@` do not match index `%i` for the given structure.";
+					error = [self errorWithDescription:[NSString stringWithFormat:description, type, index] code:0];
 					break;
 				}
 				index++;
 			}
+		} else {
+			// TODO: Handle error code correctly.
+			error = [self errorWithDescription:@"Number of specified columns do not match table columns." code:0];
 		}
 	}
 
@@ -271,15 +281,15 @@
 				sqlite3_bind_int(*statement, index, [column intValue]);
 			} else {
 				// TODO: Handle error code correctly.
-				NSString *message = [NSString stringWithFormat:@"Unrecognized type of NSNumber: %s", type];
-				error = [self errorWithDescription:message code:0];
+				NSString *description = @"Unrecognized type of NSNumber: %s";
+				error = [self errorWithDescription:[NSString stringWithFormat:description, type] code:0];
 				break;
 			}
 		} else {
 			// TODO: Implement support for more object types.
 			// TODO: Handle error code correctly.
-			NSString *message = [NSString stringWithFormat:@"Incomplete implementation of `bindColumns:toStatement:` for type: %@", [column class]];
-			error = [self errorWithDescription:message code:0];
+			NSString *description = @"Incomplete implementation of `bindColumns:toStatement:` for type: %@";
+			error = [self errorWithDescription:[NSString stringWithFormat:description, [column class]] code:0];
 			break;
 		}
 		index++;
@@ -305,25 +315,22 @@
 				[row setObject:[NSNumber numberWithInt:value] forKey:column];
 				break;
 			}
-
 			case SQLITE_FLOAT: {
 				double value = sqlite3_column_double(*statement, index);
 				[row setObject:[NSNumber numberWithDouble:value] forKey:column];
 				break;
 			}
-
 			case SQLITE_BLOB: {
 				// TODO: Handle the SQLITE_BLOB.
-				RASqliteLog(@"Incomplete implementation of `fetchColumns:` for `SQLITE_BLOB`.");
+				// TODO: Handle error code correctly.
+				[self setError:[self errorWithDescription:@"Incomplete implementation of `fetchColumns:` for `SQLITE_BLOB`." code:0]];
 				row = nil;
 				break;
 			}
-
 			case SQLITE_NULL: {
 				[row setObject:[NSNull null] forKey:column];
 				break;
 			}
-
 			case SQLITE_TEXT:
 			default: {
 				const char *value = (const char *)sqlite3_column_text(*statement, index);
@@ -355,18 +362,26 @@
 
 		if ( code == SQLITE_OK ) {
 			if ( params != nil ) {
-				[self bindColumns:params toStatement:&statement];
+				[self setError:[self bindColumns:params toStatement:&statement]];
 			}
 
-			// TODO: Better error handling, incase something is wrong.
-			results = [[NSMutableArray alloc] initWithCapacity:[params count]];
-			while ( sqlite3_step(statement) == SQLITE_ROW ) {
-				NSDictionary *row = [self fetchColumns:&statement];
-				[results addObject:row];
+			if ( [self error] == nil ) {
+				// TODO: Better error handling, incase something is wrong.
+				results = [[NSMutableArray alloc] initWithCapacity:[params count]];
+				while ( sqlite3_step(statement) == SQLITE_ROW ) {
+					NSDictionary *row = [self fetchColumns:&statement];
+					[results addObject:row];
+				}
+			} else {
+				// Reset the result value.
+				results = nil;
 			}
 			sqlite3_finalize(statement);
 		} else {
-			RASqliteLog(@"An error occured when trying to `fetch:withParams`: %i `%s`", code, sqlite3_errmsg([self database]));
+			NSString *description = @"An error occured when trying to `fetch:withParams`: `%s`";
+			[self setError:[self errorWithDescription:[NSString stringWithFormat:description, sqlite3_errmsg([self database])] code:code]];
+
+			// Reset the result value.
 			results = nil;
 		}
 	}
@@ -393,19 +408,30 @@
 
 		if ( code == SQLITE_OK ) {
 			if ( params != nil ) {
-				[self bindColumns:params toStatement:&statement];
+				[self setError:[self bindColumns:params toStatement:&statement]];
 			}
 
-			code = sqlite3_step(statement);
-			if ( code == SQLITE_ROW ) {
-				results = [self fetchColumns:&statement];
+			if ( [self error] == nil ) {
+				code = sqlite3_step(statement);
+				if ( code == SQLITE_ROW ) {
+					results = [self fetchColumns:&statement];
+				} else {
+					NSString *description = @"Failed to retrieve row: `%s`";
+					[self setError:[self errorWithDescription:[NSString stringWithFormat:description, sqlite3_errmsg([self database])] code:code]];
+
+					// Reset the result value.
+					results = nil;
+				}
 			} else {
-				RASqliteLog(@"Failed to retrieve row: %i `%s`", code, sqlite3_errmsg([self database]));
+				// Reset the result value.
 				results = nil;
 			}
 			sqlite3_finalize(statement);
 		} else {
-			RASqliteLog(@"An error occured when trying to `fetchRow:withParams`: %i `%s`", code, sqlite3_errmsg([self database]));
+			NSString *description = @"An error occured when trying to `fetchRow:withParams`: `%s`";
+			[self setError:[self errorWithDescription:[NSString stringWithFormat:description, sqlite3_errmsg([self database])] code:code]];
+
+			// Reset the result value.
 			results = nil;
 		}
 	}
@@ -432,20 +458,20 @@
 
 		if ( code == SQLITE_OK ) {
 			if ( params != nil ) {
-				[self bindColumns:params toStatement:&statement];
+				error = [self bindColumns:params toStatement:&statement];
 			}
 
-			code = sqlite3_step(statement);
-			if ( code != SQLITE_DONE ) {
-				// TODO: Handle error code correctly.
-				NSString *message = [NSString stringWithFormat:@"Unable to execute query: %i `%s`", code, sqlite3_errmsg([self database])];
-				error = [self errorWithDescription:message code:0];
+			if ( error == nil ) {
+				code = sqlite3_step(statement);
+				if ( code != SQLITE_DONE ) {
+					NSString *description = @"Unable to execute query: `%s`";
+					error = [self errorWithDescription:[NSString stringWithFormat:description, sqlite3_errmsg([self database])] code:code];
+				}
 			}
 			sqlite3_finalize(statement);
 		} else {
-			// TODO: Handle error code correctly.
-			NSString *message = [NSString stringWithFormat:@"An error occured when trying to `execute:withParams`: %i `%s`", code, sqlite3_errmsg([self database])];
-			error = [self errorWithDescription:message code:0];
+			NSString *description = @"An error occured when trying to `execute:withParams`: `%s`";
+			error = [self errorWithDescription:[NSString stringWithFormat:description, sqlite3_errmsg([self database])] code:code];
 		}
 	}
 

@@ -86,4 +86,6 @@ typedef enum {
 
 - (NSError *)commit;
 
+- (NSNumber *)lastInsertId;
+
 @end

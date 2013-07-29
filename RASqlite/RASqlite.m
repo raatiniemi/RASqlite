@@ -544,4 +544,15 @@
 	return error;
 }
 
+- (NSNumber *)lastInsertId
+{
+	NSNumber *lastInsertId;
+
+	if ( [self error] == nil ) {
+		[NSNumber numberWithInt:sqlite3_last_insert_rowid([self database])];
+	}
+
+	return lastInsertId;
+}
+
 @end

@@ -9,13 +9,14 @@
 #import <Foundation/Foundation.h>
 #import "sqlite3.h"
 
+// Available SQLite data types.
 #define kRASqliteNull		@"NULL"
 #define kRASqliteInteger	@"INTEGER"
 #define kRASqliteReal		@"REAL"
 #define kRASqliteText		@"TEXT"
 #define kRASqliteBlob		@"BLOB"
 
-// Debug is always enabled unless otherwise instructed by application.
+// Debug is always enabled unless otherwise instructed by the application.
 #ifndef kRASqliteDebugEnabled
 #define kRASqliteDebugEnabled 1
 #endif
@@ -51,11 +52,11 @@
 
 - (NSError *)createTable:(NSString *)table withColumns:(NSDictionary *)columns;
 
-- (void)deleteTable:(NSString *)table;
+- (NSError *)deleteTable:(NSString *)table;
 
-- (void)check;
+- (NSError *)check;
 
-- (void)checkTable:(NSString *)table withColumns:(NSDictionary *)columns;
+- (NSError *)checkTable:(NSString *)table withColumns:(NSDictionary *)columns;
 
 - (NSArray *)fetch:(NSString *)sql;
 
@@ -65,9 +66,9 @@
 
 - (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params;
 
-- (void)execute:(NSString *)sql;
+- (NSError *)execute:(NSString *)sql;
 
-- (void)execute:(NSString *)sql withParams:(NSArray *)params;
+- (NSError *)execute:(NSString *)sql withParams:(NSArray *)params;
 
 - (NSError *)errorWithDescription:(NSString *)description code:(NSInteger)code;
 

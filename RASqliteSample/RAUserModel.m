@@ -48,8 +48,13 @@ static sqlite3 *user;
 
 - (void)addUser:(NSString *)username
 {
+	[self beginTransaction];
 	NSArray *params = [NSArray arrayWithObject:username];
-	[self execute:@"INSERT INTO Users(username) VALUES(?)" withParams:params];
+	if ( [self execute:@"INSERT INTO Users(username) VALUES(?)" withParams:params] == nil ) {
+		[self commit];
+	} else {
+		[self rollBack];
+	}
 }
 
 - (void)removeUser:(NSNumber *)userId

@@ -33,6 +33,12 @@
 #define RASqliteLog(...)
 #endif
 
+typedef enum {
+	RASqliteTransactionDeferred,
+	RASqliteTransactionImmediate,
+	RASqliteTransactionExclusive,
+} RASqliteTransaction;
+
 @interface RASqlite : NSObject {
 @protected
 	sqlite3 *_database;
@@ -71,5 +77,13 @@
 - (NSError *)execute:(NSString *)sql withParams:(NSArray *)params;
 
 - (NSError *)errorWithDescription:(NSString *)description code:(NSInteger)code;
+
+- (NSError *)beginTransaction:(RASqliteTransaction)type;
+
+- (NSError *)beginTransaction;
+
+- (NSError *)rollBack;
+
+- (NSError *)commit;
 
 @end

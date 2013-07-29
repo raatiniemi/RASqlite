@@ -486,4 +486,62 @@
 	return [NSError errorWithDomain:@"RASqlite Error" code:code userInfo:userInfo];
 }
 
+- (NSError *)beginTransaction:(RASqliteTransaction)type
+{
+	NSError *error;
+
+	const char *sql;
+	switch (type) {
+		case RASqliteTransactionExclusive:
+			sql = "BEGIN EXCLUSIVE TRANSACTION";
+			break;
+		case RASqliteTransactionImmediate:
+			sql = "BEGIN IMMEDIATE TRANSACTION";
+			break;
+		case RASqliteTransactionDeferred:
+		default:
+			sql = "BEGIN DEFERRED TRANSACTION";
+			break;
+	}
+
+	char *message;
+	int code = sqlite3_exec([self database], sql, 0, 0, &message);
+	if ( code != SQLITE_OK ) {
+		error = [self errorWithDescription:[NSString stringWithCString:message encoding:NSUTF8StringEncoding] code:code];
+	}
+
+	return error;
+}
+
+- (NSError *)beginTransaction
+{
+	return [self beginTransaction:RASqliteTransactionDeferred];
+}
+
+- (NSError *)rollBack
+{
+	NSError *error;
+
+	char *message;
+	int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &message);
+	if ( code != SQLITE_OK ) {
+		error = [self errorWithDescription:[NSString stringWithCString:message encoding:NSUTF8StringEncoding] code:code];
+	}
+
+	return error;
+}
+
+- (NSError *)commit
+{
+	NSError *error;
+
+	char *message;
+	int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &message);
+	if ( code != SQLITE_OK ) {
+		error = [self errorWithDescription:[NSString stringWithCString:message encoding:NSUTF8StringEncoding] code:code];
+	}
+
+	return error;
+}
+
 @end

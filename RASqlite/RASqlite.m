@@ -272,19 +272,14 @@
 			code = sqlite3_bind_text(*statement, index, [column UTF8String], -1, SQLITE_TRANSIENT);
 		} else if ( [column isKindOfClass:[NSNumber class]] ) {
 			const char *type = [column objCType];
-			if ( strncmp(type, "i", 1) == 0 ) {
-				code = sqlite3_bind_int(*statement, index, [column intValue]);
-			} else if ( strncmp(type, "d", 1) == 0 || strncmp(type, "f", 1) == 0 ) {
+			if ( strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0 ) {
 				// Both double and float should be binded as double.
 				code = sqlite3_bind_double(*statement, index, [column doubleValue]);
-			} else if ( strncmp(type, "c", 1) == 0 || strncmp(type, "s", 1) == 0 ) {
-				// Characters (both signed and unsigned) and bool values should
-				// just be binded as an integer.
-				code = sqlite3_bind_int(*statement, index, [column intValue]);
+			} else if ( strcmp(type, @encode(long)) == 0 || strcmp(type, @encode(long long)) == 0 ) {
+				code = sqlite3_bind_int64(*statement, index, [column longLongValue]);
 			} else {
-				// TODO: Handle error code correctly.
-				description = @"Unrecognized type of NSNumber: %s";
-				error = [self errorWithDescription:[NSString stringWithFormat:description, type] code:0];
+				// Every data type that is not specified should be binded as int.
+				code = sqlite3_bind_int(*statement, index, [column intValue]);
 			}
 		} else if ( [column isKindOfClass:[NSNull class]] ) {
 			code = sqlite3_bind_null(*statement, index);
@@ -323,6 +318,7 @@
 		int type = sqlite3_column_type(*statement, index);
 		switch ( type ) {
 			case SQLITE_INTEGER: {
+				// TODO: Handle fetching of int64.
 				int value = sqlite3_column_int(*statement, index);
 				[row setObject:[NSNumber numberWithInt:value] forKey:column];
 				break;

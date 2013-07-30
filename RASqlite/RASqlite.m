@@ -262,34 +262,46 @@
 
 - (NSError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement
 {
+	NSString *description;
 	NSError *error;
 
 	unsigned int index = 1;
 	for ( id column in columns ) {
+		int code = SQLITE_OK;
 		if ( [column isKindOfClass:[NSString class]] ) {
-			sqlite3_bind_text(*statement, index, [column UTF8String], -1, SQLITE_TRANSIENT);
+			code = sqlite3_bind_text(*statement, index, [column UTF8String], -1, SQLITE_TRANSIENT);
 		} else if ( [column isKindOfClass:[NSNumber class]] ) {
 			const char *type = [column objCType];
 			if ( strncmp(type, "i", 1) == 0 ) {
-				sqlite3_bind_int(*statement, index, [column intValue]);
+				code = sqlite3_bind_int(*statement, index, [column intValue]);
 			} else if ( strncmp(type, "d", 1) == 0 || strncmp(type, "f", 1) == 0 ) {
 				// Both double and float should be binded as double.
-				sqlite3_bind_double(*statement, index, [column doubleValue]);
+				code = sqlite3_bind_double(*statement, index, [column doubleValue]);
 			} else if ( strncmp(type, "c", 1) == 0 || strncmp(type, "s", 1) == 0 ) {
 				// Characters (both signed and unsigned) and bool values should
 				// just be binded as an integer.
-				sqlite3_bind_int(*statement, index, [column intValue]);
+				code = sqlite3_bind_int(*statement, index, [column intValue]);
 			} else {
 				// TODO: Handle error code correctly.
-				NSString *description = @"Unrecognized type of NSNumber: %s";
+				description = @"Unrecognized type of NSNumber: %s";
 				error = [self errorWithDescription:[NSString stringWithFormat:description, type] code:0];
-				break;
 			}
+		} else if ( [column isKindOfClass:[NSNull class]] ) {
+			code = sqlite3_bind_null(*statement, index);
 		} else {
 			// TODO: Implement support for more object types.
 			// TODO: Handle error code correctly.
-			NSString *description = @"Incomplete implementation of `bindColumns:toStatement:` for type: %@";
+			description = @"Incomplete implementation of `bindColumns:toStatement:` for type: %@";
 			error = [self errorWithDescription:[NSString stringWithFormat:description, [column class]] code:0];
+		}
+
+		if ( code != SQLITE_OK ) {
+			description = @"Unable to bind value for column: %@";
+			error = [self errorWithDescription:[NSString stringWithFormat:description, sqlite3_errmsg([self database])] code:code];
+		}
+
+		// If an error has occured we should break free from the loop.
+		if ( error != nil ) {
 			break;
 		}
 		index++;

@@ -55,7 +55,7 @@
 	return [NSString stringWithFormat:@"%@/%@", path, [self name]];
 }
 
-- (void)open
+- (NSError *)open
 {
 	sqlite3 *database = [self database];
 	if ( database == nil ) {
@@ -72,6 +72,7 @@
 		NSString *filename = [NSString stringWithCString:sqlite3_db_filename(database, NULL) encoding:NSUTF8StringEncoding];
 		RASqliteLog(@"Database `%@` is already open.", [filename lastPathComponent]);
 	}
+	return [self error];
 }
 
 - (NSError *)close

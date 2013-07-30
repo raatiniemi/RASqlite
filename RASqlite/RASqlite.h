@@ -54,6 +54,10 @@ typedef enum {
 
 - (id)initWithName:(NSString *)name;
 
+- (NSError *)open;
+
+- (NSError *)close;
+
 - (NSError *)create;
 
 - (NSError *)createTable:(NSString *)table withColumns:(NSDictionary *)columns;

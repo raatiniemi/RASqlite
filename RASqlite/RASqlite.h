@@ -41,10 +41,14 @@ typedef enum {
 
 @interface RASqlite : NSObject {
 @protected
+	NSString *_name;
+
 	sqlite3 *_database;
 
 	NSError *_error;
 }
+
+@property (nonatomic, readonly, strong) NSString *name;
 
 @property (nonatomic, readwrite) sqlite3 *database;
 

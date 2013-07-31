@@ -10,7 +10,6 @@
 
 @interface RASqlite () {
 @private
-	NSString *_name;
 	NSString *_path;
 }
 

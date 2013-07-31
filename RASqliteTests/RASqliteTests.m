@@ -47,12 +47,28 @@
 	[super tearDown];
 }
 
+#pragma mark - Init
+
+- (void)testInit
+{
+	STAssertThrows([[RASqlite alloc] init], @"Expected raised exception, none was thrown.");
+}
+
+- (void)testInitWithName
+{
+	NSString *name = @"testInitWithName.db";
+	RASqlite *db = [[RASqlite alloc] initWithName:name];
+
+	STAssertEquals([db name], name, @"Database name `%@` as expected, `%@` was recived", name, [db name]);
+}
+
 #pragma mark - Open
 
 - (void)testOpen
 {
 	RASqlite *db = [[RASqlite alloc] initWithName:@"testOpen.db"];
-	STAssertNil([db open], @"An error has occured during [db open].");
+	NSError *openError = [db open];
+	STAssertNil(openError, @"Expected `nil`, recived an `%@` with message `%@`.", [openError class], [openError localizedDescription]);
 }
 
 - (void)testOpenFailed
@@ -83,10 +99,11 @@
 - (void)testCreateFailed
 {
 	RASqlite *db = [[RASqlite alloc] initWithName:@"testCreate.db"];
-	STAssertNil([db open], @"An error has occured during [db open].");
+	NSError *openError = [db open];
+	STAssertNil(openError, @"Expected `nil`, recived an `%@` with message `%@`.", [openError class], [openError localizedDescription]);
 
-	// TODO: Write error-message.
-	STAssertEquals([[db create] class], [NSError class], @"");
+	NSError *error = [db create];
+	STAssertEquals([error class], [NSError class], @"Expected `%@`, recived `%@`.", [NSError class], [error class]);
 }
 
 #pragma mark -- Create table
@@ -94,53 +111,47 @@
 - (void)testCreateTable
 {
 	RASqlite *db = [[RASqlite alloc] initWithName:@"testCreateTable.db"];
-	STAssertNil([db open], @"An error has occured during [db open].");
+	NSError *openError = [db open];
+	STAssertNil(openError, @"Expected `nil`, recived an `%@` with message `%@`.", [openError class], [openError localizedDescription]);
 
 	NSDictionary *columns;
 	NSError *error;
 
-	// TODO: Write error-message.
 	columns = [NSDictionary dictionaryWithObject:kRASqliteNull forKey:@"Field"];
 	error = [db createTable:@"Table1" withColumns:columns];
-	STAssertNil(error, @"");
+	STAssertNil(error, @"Expected `nil`, recived `%@`", [error class]);
 
-	// TODO: Write error-message.
 	columns = [NSDictionary dictionaryWithObject:kRASqliteInteger forKey:@"Field"];
 	error = [db createTable:@"Table2" withColumns:columns];
-	STAssertNil(error, @"");
+	STAssertNil(error, @"Expected `nil`, recived `%@`", [error class]);
 
-	// TODO: Write error-message.
 	columns = [NSDictionary dictionaryWithObject:kRASqliteReal forKey:@"Field"];
 	error = [db createTable:@"Table3" withColumns:columns];
-	STAssertNil(error, @"");
+	STAssertNil(error, @"Expected `nil`, recived `%@`", [error class]);
 
-	// TODO: Write error-message.
 	columns = [NSDictionary dictionaryWithObject:kRASqliteText forKey:@"Field"];
 	error = [db createTable:@"Table4" withColumns:columns];
-	STAssertNil(error, @"");
+	STAssertNil(error, @"Expected `nil`, recived `%@`", [error class]);
 
-	// TODO: Write error-message.
 	columns = [NSDictionary dictionaryWithObject:kRASqliteBlob forKey:@"Field"];
 	error = [db createTable:@"Table5" withColumns:columns];
-	STAssertNil(error, @"");
+	STAssertNil(error, @"Expected `nil`, recived `%@`", [error class]);
 }
 
 - (void)testCreateTableFailed
 {
 	RASqlite *db = [[RASqlite alloc] initWithName:@"testCreateTableFailed.db"];
-	STAssertNil([db open], @"An error has occured during [db open].");
+	NSError *openError = [db open];
+	STAssertNil(openError, @"Expected `nil`, recived an `%@` with message `%@`.", [openError class], [openError localizedDescription]);
 
-	// TODO: Write error-message.
 	NSError *error = [db createTable:nil withColumns:nil];
-	STAssertEquals([error class], [NSError class], @"");
+	STAssertEquals([error class], [NSError class], @"Expected `%@`, recived `%@`.", [NSError class], [error class]);
 
-	// TODO: Write error-message.
 	error = [db createTable:@"Table" withColumns:nil];
-	STAssertEquals([error class], [NSError class], @"");
+	STAssertEquals([error class], [NSError class], @"Expected `%@`, recived `%@`.", [NSError class], [error class]);
 
-	// TODO: Write error-message.
 	error = [db createTable:@"Table" withColumns:[NSDictionary dictionaryWithObject:@"Foo" forKey:@"Field"]];
-	STAssertEquals([error class], [NSError class], @"");
+	STAssertEquals([error class], [NSError class], @"Expected `%@`, recived `%@`.", [NSError class], [error class]);
 }
 
 #pragma mark - Execute
@@ -148,7 +159,8 @@
 - (void)testExecute
 {
 	RASqlite *db = [[RASqlite alloc] initWithName:@"testExecute.db"];
-	STAssertNil([db open], @"An error has occured during [db open].");
+	NSError *openError = [db open];
+	STAssertNil(openError, @"Expected `nil`, recived an `%@` with message `%@`.", [openError class], [openError localizedDescription]);
 }
 
 @end

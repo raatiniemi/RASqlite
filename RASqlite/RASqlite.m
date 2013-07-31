@@ -424,6 +424,9 @@
 				code = sqlite3_step(statement);
 				if ( code == SQLITE_ROW ) {
 					results = [self fetchColumns:&statement];
+				} else if ( code == SQLITE_DONE ) {
+					//  No rows were found.
+					results = nil;
 				} else {
 					NSString *description = @"Failed to retrieve row: `%s`";
 					[self setError:[self errorWithDescription:[NSString stringWithFormat:description, sqlite3_errmsg([self database])] code:code]];

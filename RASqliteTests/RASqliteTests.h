@@ -8,6 +8,8 @@
 
 #import <SenTestingKit/SenTestingKit.h>
 
+#import "RASqlite.h"
+
 @interface RASqliteTests : SenTestCase
 
 @end

@@ -12,21 +12,143 @@
 
 - (void)setUp
 {
-    [super setUp];
-    
-    // Set-up code here.
+	[super setUp];
 }
 
 - (void)tearDown
 {
-    // Tear-down code here.
-    
-    [super tearDown];
+	// -- -- Remove created database files.
+
+	NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *path = [directories objectAtIndex:0];
+
+	NSError *error;
+	NSArray *files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:path error:&error];
+	if ( error == nil ) {
+		NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"\\b([A-Z0-9]+\\.db)\\b" options:NSRegularExpressionCaseInsensitive error:&error];
+		NSTextCheckingResult *match;
+		if ( error == nil ) {
+			for ( NSString *file in files ) {
+				match = [regexp firstMatchInString:file options:0 range:NSMakeRange(0, [file length])];
+				if ( match ) {
+					[[NSFileManager defaultManager] removeItemAtPath:[path stringByAppendingFormat:@"/%@", file] error:&error];
+					if ( error != nil ) {
+						STFail(@"%@", [error localizedDescription]);
+					}
+				}
+			}
+		} else {
+			STFail(@"%@", [error localizedDescription]);
+		}
+	} else {
+		STFail(@"%@", [error localizedDescription]);
+	}
+
+	[super tearDown];
 }
 
-- (void)testExample
+#pragma mark - Open
+
+- (void)testOpen
 {
-    STFail(@"Unit tests are not implemented yet in RASqliteTests");
+	RASqlite *db = [[RASqlite alloc] initWithName:@"testOpen.db"];
+	STAssertNil([db open], @"An error has occured during [db open].");
+}
+
+- (void)testOpenFailed
+{
+	// TODO: Implement failed database open.
+}
+
+#pragma mark - Close
+
+- (void)testClose
+{
+	RASqlite *db = [[RASqlite alloc] initWithName:@"testClose.db"];
+	STAssertNil([db close], @"An error has occured during [db close].");
+}
+
+- (void)testCloseFailed
+{
+	// TODO: Implement database close.
+}
+
+#pragma mark - Create
+
+- (void)testCreate
+{
+	// TODO: Setup table creation.
+}
+
+- (void)testCreateFailed
+{
+	RASqlite *db = [[RASqlite alloc] initWithName:@"testCreate.db"];
+	STAssertNil([db open], @"An error has occured during [db open].");
+
+	// TODO: Write error-message.
+	STAssertEquals([[db create] class], [NSError class], @"");
+}
+
+#pragma mark -- Create table
+
+- (void)testCreateTable
+{
+	RASqlite *db = [[RASqlite alloc] initWithName:@"testCreateTable.db"];
+	STAssertNil([db open], @"An error has occured during [db open].");
+
+	NSDictionary *columns;
+	NSError *error;
+
+	// TODO: Write error-message.
+	columns = [NSDictionary dictionaryWithObject:kRASqliteNull forKey:@"Field"];
+	error = [db createTable:@"Table1" withColumns:columns];
+	STAssertNil(error, @"");
+
+	// TODO: Write error-message.
+	columns = [NSDictionary dictionaryWithObject:kRASqliteInteger forKey:@"Field"];
+	error = [db createTable:@"Table2" withColumns:columns];
+	STAssertNil(error, @"");
+
+	// TODO: Write error-message.
+	columns = [NSDictionary dictionaryWithObject:kRASqliteReal forKey:@"Field"];
+	error = [db createTable:@"Table3" withColumns:columns];
+	STAssertNil(error, @"");
+
+	// TODO: Write error-message.
+	columns = [NSDictionary dictionaryWithObject:kRASqliteText forKey:@"Field"];
+	error = [db createTable:@"Table4" withColumns:columns];
+	STAssertNil(error, @"");
+
+	// TODO: Write error-message.
+	columns = [NSDictionary dictionaryWithObject:kRASqliteBlob forKey:@"Field"];
+	error = [db createTable:@"Table5" withColumns:columns];
+	STAssertNil(error, @"");
+}
+
+- (void)testCreateTableFailed
+{
+	RASqlite *db = [[RASqlite alloc] initWithName:@"testCreateTableFailed.db"];
+	STAssertNil([db open], @"An error has occured during [db open].");
+
+	// TODO: Write error-message.
+	NSError *error = [db createTable:nil withColumns:nil];
+	STAssertEquals([error class], [NSError class], @"");
+
+	// TODO: Write error-message.
+	error = [db createTable:@"Table" withColumns:nil];
+	STAssertEquals([error class], [NSError class], @"");
+
+	// TODO: Write error-message.
+	error = [db createTable:@"Table" withColumns:[NSDictionary dictionaryWithObject:@"Foo" forKey:@"Field"]];
+	STAssertEquals([error class], [NSError class], @"");
+}
+
+#pragma mark - Execute
+
+- (void)testExecute
+{
+	RASqlite *db = [[RASqlite alloc] initWithName:@"testExecute.db"];
+	STAssertNil([db open], @"An error has occured during [db open].");
 }
 
 @end

@@ -120,7 +120,7 @@
 
 - (NSError *)createTable:(NSString *)table withColumns:(NSDictionary *)columns
 {
-	NSError *error;
+	NSError *error = [self error];
 
 	if ( table == nil ) {
 		// TODO: Handle error code correctly.
@@ -132,7 +132,7 @@
 		error = [self errorWithDescription:@"Unable to create table without columns." code:0];
 	}
 
-	if ( [self error] == nil && error == nil ) {
+	if ( error == nil ) {
 		NSMutableString *sql = [[NSMutableString alloc] init];
 		[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
 
@@ -181,14 +181,14 @@
 
 - (NSError *)deleteTable:(NSString *)table
 {
-	NSError *error;
+	NSError *error = [self error];
 
 	if ( table == nil ) {
 		// TODO: Handle error code correctly.
 		error = [self errorWithDescription:@"Unable to delete table without valid table name." code:0];
 	}
 
-	if ( [self error] == nil && error == nil ) {
+	if ( error == nil ) {
 		[self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]];
 	}
 
@@ -217,7 +217,7 @@
 
 - (NSError *)checkTable:(NSString *)table withColumns:(NSDictionary *)columns
 {
-	NSError *error;
+	NSError *error = [self error];
 
 	if ( table == nil ) {
 		// TODO: Handle error code correctly.
@@ -229,7 +229,7 @@
 		error = [self errorWithDescription:@"Unable to check table without columns." code:0];
 	}
 
-	if ( [self error] == nil && error == nil ) {
+	if ( error == nil ) {
 		NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
 
 		if ( [tColumns count] == [columns count] ) {

@@ -560,7 +560,7 @@
 	NSNumber *lastInsertId;
 
 	if ( [self error] == nil ) {
-		[NSNumber numberWithInt:sqlite3_last_insert_rowid([self database])];
+		lastInsertId = [NSNumber numberWithInt:sqlite3_last_insert_rowid([self database])];
 	}
 
 	return lastInsertId;

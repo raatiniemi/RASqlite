@@ -9,8 +9,7 @@
 #import "RASqlite.h"
 
 @interface RASqlite () {
-@private
-	NSString *_path;
+@private NSString *_path;
 }
 
 @property (nonatomic, readwrite, strong) NSString *name;
@@ -493,7 +492,7 @@
 {
 	RASqliteLog(@"%@ (%i)", description, code);
 
-	NSDictionary *userInfo = [NSDictionary dictionaryWithObject:description forKey:NSLocalizedDescriptionKey];
+	NSDictionary *userInfo = @{NSLocalizedDescriptionKey:description};
 	return [NSError errorWithDomain:@"RASqlite Error" code:code userInfo:userInfo];
 }
 

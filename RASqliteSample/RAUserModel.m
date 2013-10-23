@@ -15,6 +15,9 @@ static sqlite3 *user;
 - (id)init
 {
 	if ( self = [super initWithName:@"User.db"] ) {
+		if ( [self check] != nil ) {
+			[self create];
+		}
 	}
 	return self;
 }

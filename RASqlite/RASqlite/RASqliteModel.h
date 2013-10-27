@@ -64,6 +64,10 @@
 
  @return `nil` if database was successfully opened, otherwise an error object.
 
+ @code
+ RASqliteError *error = [model openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE];
+ @endcode
+
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
 
  @note

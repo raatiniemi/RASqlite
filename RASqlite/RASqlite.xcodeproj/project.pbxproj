@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		2D5992AB181D1B780006A177 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992AA181D1B780006A177 /* Foundation.framework */; };
 		2D5992AE181D1B780006A177 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992AD181D1B780006A177 /* main.m */; };
+		2D5992B7181D1C080006A177 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992B6181D1C080006A177 /* libsqlite3.dylib */; };
+		2D5992BC181D26610006A177 /* RASqliteModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992BB181D26610006A177 /* RASqliteModel.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +30,10 @@
 		2D5992AA181D1B780006A177 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2D5992AD181D1B780006A177 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		2D5992B0181D1B780006A177 /* Terminal-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Terminal-Prefix.pch"; sourceTree = "<group>"; };
+		2D5992B6181D1C080006A177 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		2D5992B8181D25C40006A177 /* RASqlite.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RASqlite.h; path = RASqlite/RASqlite.h; sourceTree = "<group>"; };
+		2D5992BA181D26610006A177 /* RASqliteModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RASqliteModel.h; path = RASqlite/RASqliteModel.h; sourceTree = "<group>"; };
+		2D5992BB181D26610006A177 /* RASqliteModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RASqliteModel.m; path = RASqlite/RASqliteModel.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2D5992B7181D1C080006A177 /* libsqlite3.dylib in Frameworks */,
 				2D5992AB181D1B780006A177 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -45,6 +52,7 @@
 		2D59929C181D1B470006A177 = {
 			isa = PBXGroup;
 			children = (
+				2D5992B9181D25DE0006A177 /* RASqlite */,
 				2D5992AC181D1B780006A177 /* Terminal */,
 				2D5992A9181D1B780006A177 /* Frameworks */,
 				2D5992A8181D1B780006A177 /* Products */,
@@ -62,6 +70,7 @@
 		2D5992A9181D1B780006A177 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2D5992B6181D1C080006A177 /* libsqlite3.dylib */,
 				2D5992AA181D1B780006A177 /* Foundation.framework */,
 			);
 			name = Frameworks;
@@ -82,6 +91,16 @@
 				2D5992B0181D1B780006A177 /* Terminal-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		2D5992B9181D25DE0006A177 /* RASqlite */ = {
+			isa = PBXGroup;
+			children = (
+				2D5992B8181D25C40006A177 /* RASqlite.h */,
+				2D5992BA181D26610006A177 /* RASqliteModel.h */,
+				2D5992BB181D26610006A177 /* RASqliteModel.m */,
+			);
+			name = RASqlite;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -136,6 +155,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2D5992BC181D26610006A177 /* RASqliteModel.m in Sources */,
 				2D5992AE181D1B780006A177 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

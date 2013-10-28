@@ -13,6 +13,9 @@
 #import "RASqliteError.h"
 
 @interface RASqliteModel : NSObject {
+/**
+ Queue on which the queries will be executing.
+ */
 @protected dispatch_queue_t _queue;
 }
 
@@ -95,14 +98,71 @@
  */
 - (RASqliteError *)open;
 
+/**
+ Close the database.
+ 
+ @return `nil` if database was successfully closed, otherwise an error object.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (RASqliteError *)close;
 
-#pragma mark - Query
+#pragma mark - Table
 
+// TODO: Implement methods for creating, checking and deleting tables.
+
+#pragma mark - Query
+#pragma mark -- Fetch
+
+/**
+ Fetch a result set from the database, with parameters.
+ 
+ @param sql Query to perform against the database.
+ @param params Parameters to bind to the query.
+ 
+ @code
+ [self fetch:@"SELECT foo FROM bar WHERE id = ? AND baz = ?" withParams:@[@53, @"qux"]];
+ @endcode
+
+ @return Result from query, or `nil` if nothing was found or an error has occurred.
+
+ @autor Tobias Raatiniemi <raatiniemi@gmail.com>
+ 
+ @note
+ The first index within the params array will bind against the first question mark
+ within the SQL query. The second, to the second question mark, etc.
+ */
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params;
 
+/**
+ Fetch a result set from the database, with a parameter.
+
+ @param sql Query to perform against the database.
+ @param param Parameter to bind to the query.
+
+ @code
+ [self fetch:@"SELECT foo FROM bar WHERE id = ?" withParam:@53];
+ @endcode
+
+ @return Result from query, or `nil` if nothing was found or an error has occurred.
+
+ @autor Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (NSArray *)fetch:(NSString *)sql withParam:(id)param;
 
+/**
+ Fetch a result set from the database, without parameters.
+
+ @param sql Query to perform against the database.
+
+ @code
+ [self fetch:@"SELECT foo FROM bar"];
+ @endcode
+
+ @return Result from query, or `nil` if nothing was found or an error has occurred.
+
+ @autor Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (NSArray *)fetch:(NSString *)sql;
 
 - (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params;
@@ -110,6 +170,8 @@
 - (NSDictionary *)fetchRow:(NSString *)sql withParam:(id)param;
 
 - (NSDictionary *)fetchRow:(NSString *)sql;
+
+#pragma mark -- Update
 
 - (RASqliteError *)execute:(NSString *)sql withParams:(NSArray *)params;
 

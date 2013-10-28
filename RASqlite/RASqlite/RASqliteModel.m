@@ -16,16 +16,50 @@ static sqlite3 *_database;
 @private RASqliteError *_error;
 }
 
+/**
+ Stores the name of the database file.
+ */
 @property (nonatomic, readwrite, strong) NSString *name;
 
 #pragma mark - Database
 
+/**
+ Set the database instance.
+
+ @param database Database instance.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)setDatabase:(sqlite3 *)database;
 
 #pragma mark - Query
 
+/**
+ Bind the parameters to the statement.
+
+ @param columns Parameters to bind to the statement.
+ @param statement Statement on which the parameters will be binded.
+ 
+ @return `nil` if binding is successful, otherwise an error object.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (RASqliteError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement;
 
+/**
+ Fetch the retrieved columns from the SQL query.
+
+ @param statement Statement from which to retrieve the columns.
+ @param error If an error occurred, variable will be populated (pass-by-reference).
+
+ @return Dictionary with the column names and their values.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ The dictionary will contain the Foundation representations of the SQLite data types,
+ e.g. `SQLITE_INTEGER` will be `NSNumber`, `SQLITE_NULL` will be `NSNull`, etc.
+ */
 - (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement withError:(RASqliteError **)error;
 
 @end
@@ -254,6 +288,8 @@ static sqlite3 *_database;
 	return row;
 }
 
+#pragma mark -- Fetch
+
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params
 {
 	RASqliteError __block *error = [self error];
@@ -261,12 +297,12 @@ static sqlite3 *_database;
 
 	// If an error already have occurred, we should not attempt to execute query.
 	if ( !error ) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
 		dispatch_sync(_queue, ^{
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
+			}
+
 			sqlite3_stmt *statement;
 			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -341,12 +377,12 @@ static sqlite3 *_database;
 
 	// If an error already have occurred, we should not attempt to execute query.
 	if ( !error ) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
 		dispatch_sync(_queue, ^{
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
+			}
+
 			sqlite3_stmt *statement;
 			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -403,18 +439,20 @@ static sqlite3 *_database;
 	return [self fetchRow:sql withParams:nil];
 }
 
+#pragma mark -- Update
+
 - (RASqliteError *)execute:(NSString *)sql withParams:(NSArray *)params
 {
 	RASqliteError __block *error = [self error];
 
 	// If an error already have occurred, we should not attempt to execute query.
 	if ( !error ) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
 		dispatch_sync(_queue, ^{
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
+			}
+
 			sqlite3_stmt *statement;
 			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
 

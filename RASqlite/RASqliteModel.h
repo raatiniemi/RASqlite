@@ -69,6 +69,9 @@
 
  @code
  RASqliteError *error = [model openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE];
+ if ( error ) {
+	// An error has occurred, handle it.
+ }
  @endcode
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
@@ -121,7 +124,16 @@
  @param params Parameters to bind to the query.
  
  @code
- [self fetch:@"SELECT foo FROM bar WHERE id = ? AND baz = ?" withParams:@[@53, @"qux"]];
+ NSArray *results = [self fetch:@"SELECT foo FROM bar WHERE id = ? AND baz = ?" withParams:@[@53, @"qux"]];
+ if ( results ) {
+	// Do something with the results.
+ } else if ( ![self error] ) {
+	// Nothing was found.
+ } else {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
  @endcode
 
  @return Result from query, or `nil` if nothing was found or an error has occurred.
@@ -129,8 +141,8 @@
  @autor Tobias Raatiniemi <raatiniemi@gmail.com>
  
  @note
- The first index within the params array will bind against the first question mark
- within the SQL query. The second, to the second question mark, etc.
+ The first index within the params array will bind against the first question
+ mark within the SQL query. The second, to the second question mark, etc.
  */
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params;
 
@@ -141,7 +153,16 @@
  @param param Parameter to bind to the query.
 
  @code
- [self fetch:@"SELECT foo FROM bar WHERE id = ?" withParam:@53];
+ NSArray *results = [self fetch:@"SELECT foo FROM bar WHERE id = ?" withParam:@53];
+ if ( results ) {
+	// Do something with the results.
+ } else if ( ![self error] ) {
+	// Nothing was found.
+ } else {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
  @endcode
 
  @return Result from query, or `nil` if nothing was found or an error has occurred.
@@ -156,7 +177,16 @@
  @param sql Query to perform against the database.
 
  @code
- [self fetch:@"SELECT foo FROM bar"];
+ NSArray *results = [self fetch:@"SELECT foo FROM bar"];
+ if ( results ) {
+	// Do something with the results.
+ } else if ( ![self error] ) {
+	// Nothing was found.
+ } else {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
  @endcode
 
  @return Result from query, or `nil` if nothing was found or an error has occurred.
@@ -165,22 +195,156 @@
  */
 - (NSArray *)fetch:(NSString *)sql;
 
+/**
+ Fetch a row from the database, with parameters.
+
+ @param sql Query to perform against the database.
+ @param params Parameters to bind to the query.
+
+ @code
+ NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE id = ? AND baz = ? LIMIT 1" withParams:@[@53, @"qux"]];
+ if ( row ) {
+	// Do something with the results.
+ } else if ( ![self error] ) {
+	// Nothing was found.
+ } else {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
+ @endcode
+ 
+ @return Result from query, or `nil` if nothing was found or an error has occurred.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ The first index within the params array will bind against the first question
+ mark within the SQL query. The second, to the second question mark, etc.
+ */
 - (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params;
 
+/**
+ Fetch a row from the database, with a parameter.
+
+ @param sql Query to perform against the database.
+ @param param Parameter to bind to the query.
+
+ @code
+ NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE id = ? LIMIT 1" withParam:@53];
+ if ( row ) {
+	// Do something with the results.
+ } else if ( ![self error] ) {
+	// Nothing was found.
+ } else {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
+ @endcode
+
+ @return Result from query, or `nil` if nothing was found or an error has occurred.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (NSDictionary *)fetchRow:(NSString *)sql withParam:(id)param;
 
+/**
+ Fetch a row from the database, without parameters.
+
+ @param sql Query to perform against the database.
+
+ @code
+ NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar ORDER BY baz ASC LIMIT 1"];
+ if ( row ) {
+	// Do something with the results.
+ } else if ( ![self error] ) {
+	// Nothing was found.
+ } else {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
+ @endcode
+
+ @return Result from query, or `nil` if nothing was found or an error has occurred.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (NSDictionary *)fetchRow:(NSString *)sql;
 
 #pragma mark -- Update
 
+/**
+ Execute update query, with parameters.
+
+ @param sql Query to perform against the database.
+ @param params Parameters to bind to the query.
+
+ @code
+ BOOL updated = [self execute:@"UPDATE foo SET bar='baz' WHERE id = ? AND qux = ?" withParams:@[@13, @37]];
+ if ( !updated ) {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
+ @endcode
+
+ @return `YES` if query executed successfully, otherwise `NO`.
+
+ @todo Change the return type to `BOOL`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (RASqliteError *)execute:(NSString *)sql withParams:(NSArray *)params;
 
+/**
+ Execute update query, with a parameter.
+
+ @param sql Query to perform against the database.
+ @param param Parameter to bind to the query.
+
+ @code
+ BOOL updated = [self execute:@"UPDATE foo SET bar='baz' WHERE id = ?" withParam:@35];
+ if ( !updated ) {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
+ @endcode
+
+ @return `YES` if query executed successfully, otherwise `NO`.
+
+ @todo Change the return type to `BOOL`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (RASqliteError *)execute:(NSString *)sql withParam:(id)param;
 
+/**
+ Execute update query, without parameters.
+
+ @param sql Query to perform against the database.
+
+ @code
+ if ( ![self execute:@"UPDATE foo SET bar='baz'"] ) {
+	// An error has occurred. Handle the error, and reset the error variable.
+	// Otherwise, the error will block any futher queries with the instanisated model.
+	[self setError:nil];
+ }
+ @endcode
+
+ @return `YES` if query executed successfully, otherwise `NO`.
+
+ @todo Change the return type to `BOOL`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (RASqliteError *)execute:(NSString *)sql;
 
 #pragma mark - Transaction
 
 // TODO: Implement support for handling transactions.
+// TODO: Handle threading with transactions.
 
 @end

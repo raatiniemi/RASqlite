@@ -12,8 +12,6 @@ static sqlite3 *_database;
 
 @interface RASqlite () {
 @private NSString *_name;
-
-@private RASqliteError *_error;
 }
 
 /**

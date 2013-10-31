@@ -18,6 +18,8 @@
  Queue on which the queries will be executing.
  */
 @protected dispatch_queue_t _queue;
+
+@protected RASqliteError *_error;
 }
 
 /**

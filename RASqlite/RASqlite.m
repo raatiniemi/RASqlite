@@ -1,16 +1,16 @@
 //
-//  RASqliteModel.m
+//  RASqlite.m
 //  RASqlite
 //
 //  Created by Tobias Raatiniemi on 2013-10-27.
 //  Copyright (c) 2013 Raatiniemi. All rights reserved.
 //
 
-#import "RASqliteModel.h"
+#import "RASqlite.h"
 
 static sqlite3 *_database;
 
-@interface RASqliteModel () {
+@interface RASqlite () {
 @private NSString *_name;
 
 @private RASqliteError *_error;
@@ -64,7 +64,7 @@ static sqlite3 *_database;
 
 @end
 
-@implementation RASqliteModel
+@implementation RASqlite
 
 @synthesize name = _name;
 

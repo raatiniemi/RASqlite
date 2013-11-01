@@ -12,13 +12,9 @@
 // -- -- RASqlite
 
 #import "RASqliteError.h"
+#import "RASqliteQueue.h"
 
 @interface RASqlite : NSObject {
-/**
- Queue on which the queries will be executing.
- */
-@protected dispatch_queue_t _queue;
-
 @protected RASqliteError *_error;
 }
 
@@ -40,8 +36,22 @@
  @param name Name of the database file.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ Method is mainly design for iOS development. It will create the absolute path
+ for the database to the applications document directory, the name will be used
+ as the database filename.
  */
-- (id)initWithName:(NSString *)name;
+- (instancetype)initWithName:(NSString *)name;
+
+/**
+ Initialize with the absolute path for the database file.
+
+ @param path Absolute path for the database file.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (instancetype)initWithPath:(NSString *)path;
 
 #pragma mark - Database
 
@@ -295,11 +305,9 @@
 
  @return `YES` if query executed successfully, otherwise `NO`.
 
- @todo Change the return type to `BOOL`.
-
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (RASqliteError *)execute:(NSString *)sql withParams:(NSArray *)params;
+- (BOOL)execute:(NSString *)sql withParams:(NSArray *)params;
 
 /**
  Execute update query, with a parameter.
@@ -318,11 +326,9 @@
 
  @return `YES` if query executed successfully, otherwise `NO`.
 
- @todo Change the return type to `BOOL`.
-
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (RASqliteError *)execute:(NSString *)sql withParam:(id)param;
+- (BOOL)execute:(NSString *)sql withParam:(id)param;
 
 /**
  Execute update query, without parameters.
@@ -339,11 +345,9 @@
 
  @return `YES` if query executed successfully, otherwise `NO`.
 
- @todo Change the return type to `BOOL`.
-
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (RASqliteError *)execute:(NSString *)sql;
+- (BOOL)execute:(NSString *)sql;
 
 #pragma mark - Transaction
 

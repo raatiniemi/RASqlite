@@ -11,13 +11,13 @@
 static sqlite3 *_database;
 
 @interface RASqlite () {
-@private NSString *_name;
+@private NSString *_path;
 }
 
 /**
- Stores the name of the database file.
+ Stores the path for the database file.
  */
-@property (nonatomic, readwrite, strong) NSString *name;
+@property (nonatomic, readwrite, strong) NSString *path;
 
 #pragma mark - Database
 
@@ -64,7 +64,7 @@ static sqlite3 *_database;
 
 @implementation RASqlite
 
-@synthesize name = _name;
+@synthesize path = _path;
 
 @synthesize error = _error;
 
@@ -80,17 +80,24 @@ static sqlite3 *_database;
 	return nil;
 }
 
-- (id)initWithName:(NSString *)name
+- (instancetype)initWithName:(NSString *)name
 {
 	if ( self = [super init] ) {
-		[self setName:name];
-
-		// Assemble the thread name for the database queue.
-		// TODO: Migrate thread format to constant.
-		NSString *thread = [NSString stringWithFormat:@"me.raatiniemi.rasqlite.%@", [self name]];
-		_queue = dispatch_queue_create([thread UTF8String], NULL);
+		// Setup the correct path for the iOS document folder.
+		NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+		[self setPath:[NSString stringWithFormat:@"%@/%@", [directories objectAtIndex:0], name]];
 	}
 	return self;
+}
+
+- (instancetype)initWithPath:(NSString *)path
+{
+	// Incomplete implementation warning.
+	[NSException raise:@"Incomplete implementation"
+				format:@"Use of the `initWithPath:` method have not fully been implemented."];
+
+	// Return nil, takes care of the return warning.
+	return nil;
 }
 
 #pragma mark - Database
@@ -105,39 +112,26 @@ static sqlite3 *_database;
 	return _database;
 }
 
-- (NSString *)path
-{
-	// TODO: Implement support for custom paths for OS X, `initWithPath:`.
-	// Current implementation is aimed at iOS development. On OS X this puts the
-	// database file within the User documents folder.
-	NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-	return [NSString stringWithFormat:@"%@/%@", [directories objectAtIndex:0], [self name]];
-}
-
 - (RASqliteError *)openWithFlags:(int)flags
 {
-	RASqliteError __block *error;
+	RASqliteError *error;
 
-	// TODO: Migrate thread name to constant.
-	// TODO: Make thread unique for database.
-	dispatch_sync(dispatch_queue_create("me.raatiniemi.rasqlite.open", NULL), ^{
-		sqlite3 *database = [self database];
-		if ( !database ) {
-			int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
-			if ( code == SQLITE_OK ) {
-				// TODO: Debug message, database have successfully been opened.
-				NSLog(@"Database have successfully been opened.");
+	sqlite3 *database = [self database];
+	if ( !database ) {
+		int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
+		if ( code == SQLITE_OK ) {
+			// TODO: Debug message, database have successfully been opened.
+			NSLog(@"Database have successfully been opened.");
 
-				[self setDatabase:database];
-			} else {
-				error = [RASqliteError code:RASqliteErrorOpen
-									message:@"Unable to open database, received code `%i`.", code];
-			}
+			[self setDatabase:database];
 		} else {
-			// TODO: Debug message, database is already open.
-			NSLog(@"Database is already open.");
+			error = [RASqliteError code:RASqliteErrorOpen
+								message:@"Unable to open database, received code `%i`.", code];
 		}
-	});
+	} else {
+		// TODO: Debug message, database is already open.
+		NSLog(@"Database is already open.");
+	}
 
 	return error;
 }
@@ -149,38 +143,34 @@ static sqlite3 *_database;
 
 - (RASqliteError *)close
 {
-	RASqliteError __block *error;
+	RASqliteError *error;
 
-	// TODO: Migrate thread name to constant.
-	// TODO: Make thread unique for database.
-	dispatch_sync(dispatch_queue_create("me.raatiniemi.rasqlite.close", NULL), ^{
-		sqlite3 *database = [self database];
-		if ( database ) {
-			BOOL retry;
-			int code;
+	sqlite3 *database = [self database];
+	if ( database ) {
+		BOOL retry;
+		int code;
 
-			do {
-				// Reset the retry control and attempt to close the database.
-				retry = NO;
-				code = sqlite3_close(database);
+		do {
+			// Reset the retry control and attempt to close the database.
+			retry = NO;
+			code = sqlite3_close(database);
 
-				// TODO: Check if database is locked or busy and attempt a retry.
-				// TODO: Handle retry infinite loop.
-				if ( code != SQLITE_OK ) {
-					error = [RASqliteError code:RASqliteErrorClose
-										message:@"Unable to close database, received code `%i`.", code];
-				} else {
-					// TODO: Debug message, database have successfully been closed.
-					NSLog(@"Database have successfully been closed.");
+			// TODO: Check if database is locked or busy and attempt a retry.
+			// TODO: Handle retry infinite loop.
+			if ( code != SQLITE_OK ) {
+				error = [RASqliteError code:RASqliteErrorClose
+									message:@"Unable to close database, received code `%i`.", code];
+			} else {
+				// TODO: Debug message, database have successfully been closed.
+				NSLog(@"Database have successfully been closed.");
 
-					[self setDatabase:nil];
-				}
-			} while (retry);
-		} else {
-			// TODO: Debug message, database is already closed.
-			NSLog(@"Database is already closed.");
-		}
-	});
+				[self setDatabase:nil];
+			}
+		} while (retry);
+	} else {
+		// TODO: Debug message, database is already closed.
+		NSLog(@"Database is already closed.");
+	}
 
 	return error;
 }
@@ -189,7 +179,7 @@ static sqlite3 *_database;
 
 - (RASqliteError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement
 {
-	RASqliteError __block *error;
+	RASqliteError *error;
 
 	int code = SQLITE_OK;
 	unsigned int index = 1;
@@ -240,6 +230,7 @@ static sqlite3 *_database;
 
 	unsigned int index;
 	int type;
+	// Loop through the columns, or until an error is encountered.
 	for ( index = 0; !*error && index < count; index++ ) {
 		name = sqlite3_column_name(*statement, index);
 		column = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
@@ -290,66 +281,64 @@ static sqlite3 *_database;
 
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError __block *error = [self error];
-	NSMutableArray __block *results;
+	RASqliteError *error = [self error];
+	NSMutableArray *results;
 
 	// If an error already have occurred, we should not attempt to execute query.
 	if ( !error ) {
-		dispatch_sync(_queue, ^{
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
+		// If database is not open, attempt to open it.
+		if ( ![self database] ) {
+			error = [self open];
+		}
+
+		sqlite3_stmt *statement;
+		int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+
+		if ( code == SQLITE_OK ) {
+			if ( params ) {
+				error = [self bindColumns:params toStatement:&statement];
 			}
 
-			sqlite3_stmt *statement;
-			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+			if ( !error ) {
+				NSDictionary *row;
+				results = [[NSMutableArray alloc] init];
 
-			if ( code == SQLITE_OK ) {
-				if ( params ) {
-					error = [self bindColumns:params toStatement:&statement];
-				}
+				// Looping through the results, until an error occurres or
+				// the query is done.
+				do {
+					code = sqlite3_step(statement);
 
-				if ( !error ) {
-					NSDictionary *row;
-					results = [[NSMutableArray alloc] init];
-
-					// Looping through the results, until an error occurres or
-					// the query is done.
-					do {
-						code = sqlite3_step(statement);
-
-						if ( code == SQLITE_ROW ) {
-							row = [self fetchColumns:&statement withError:&error];
-							[results addObject:row];
-						} else if ( code == SQLITE_DONE ) {
-							// Results have been fetch, leave the loop.
-							break;
-						} else {
-							// Something has gone wrong, leave the loop.
-							error = [RASqliteError code:RASqliteErrorQuery
-												message:@"Unable to fetch row, received code `%i`.", code];
-							break;
-						}
-					} while ( !error );
-
-					// If the error variable have been populated, something
-					// has gone wrong and we need to reset the results variable.
-					if ( error ) {
-						results = nil;
+					if ( code == SQLITE_ROW ) {
+						row = [self fetchColumns:&statement withError:&error];
+						[results addObject:row];
+					} else if ( code == SQLITE_DONE ) {
+						// Results have been fetch, leave the loop.
+						break;
+					} else {
+						// Something has gone wrong, leave the loop.
+						error = [RASqliteError code:RASqliteErrorQuery
+											message:@"Unable to fetch row, received code `%i`.", code];
+						break;
 					}
-				}
-			} else {
-				error = [RASqliteError code:RASqliteErrorQuery
-									message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
-			}
-			sqlite3_finalize(statement);
+				} while ( !error );
 
-			// If an error occurred performing the query set the error. However,
-			// do not override the existing error, if it exists.
-			if ( ![self error] && error ) {
-				[self setError:error];
+				// If the error variable have been populated, something
+				// has gone wrong and we need to reset the results variable.
+				if ( error ) {
+					results = nil;
+				}
 			}
-		});
+		} else {
+			error = [RASqliteError code:RASqliteErrorQuery
+								message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+		}
+		sqlite3_finalize(statement);
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
 	} else {
 		// TODO: Debug message, existing error has not been cleared.
 		NSLog(@"Existing error has not been cleared, aborting...");
@@ -370,55 +359,53 @@ static sqlite3 *_database;
 
 - (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError __block *error = [self error];
-	NSDictionary __block *row;
+	RASqliteError *error = [self error];
+	NSDictionary *row;
 
 	// If an error already have occurred, we should not attempt to execute query.
 	if ( !error ) {
-		dispatch_sync(_queue, ^{
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
+		// If database is not open, attempt to open it.
+		if ( ![self database] ) {
+			error = [self open];
+		}
+
+		sqlite3_stmt *statement;
+		int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+
+		if ( code == SQLITE_OK ) {
+			if ( params ) {
+				error = [self bindColumns:params toStatement:&statement];
 			}
 
-			sqlite3_stmt *statement;
-			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+			if ( !error ) {
+				code = sqlite3_step(statement);
+				if ( code == SQLITE_ROW ) {
+					row = [self fetchColumns:&statement withError:&error];
 
-			if ( code == SQLITE_OK ) {
-				if ( params ) {
-					error = [self bindColumns:params toStatement:&statement];
-				}
-
-				if ( !error ) {
-					code = sqlite3_step(statement);
-					if ( code == SQLITE_ROW ) {
-						row = [self fetchColumns:&statement withError:&error];
-
-						// If the error variable have been populated, something
-						// has gone wrong and we need to reset the row variable.
-						if ( error || [row count] == 0 ) {
-							row = nil;
-						}
-					} else if ( code == SQLITE_DONE ) {
-						// TODO: Debug message, no rows were found.
-						NSLog(@"No rows were found with query: `%@`", sql);
-					} else {
-						error = [RASqliteError code:RASqliteErrorQuery
-											message:@"Failed to retrieve result, received code: `%i`", code];
+					// If the error variable have been populated, something
+					// has gone wrong and we need to reset the row variable.
+					if ( error || [row count] == 0 ) {
+						row = nil;
 					}
+				} else if ( code == SQLITE_DONE ) {
+					// TODO: Debug message, no rows were found.
+					NSLog(@"No rows were found with query: `%@`", sql);
+				} else {
+					error = [RASqliteError code:RASqliteErrorQuery
+										message:@"Failed to retrieve result, received code: `%i`", code];
 				}
-			} else {
-				error = [RASqliteError code:RASqliteErrorQuery
-									message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
 			}
-			sqlite3_finalize(statement);
+		} else {
+			error = [RASqliteError code:RASqliteErrorQuery
+								message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+		}
+		sqlite3_finalize(statement);
 
-			// If an error occurred performing the query set the error. However,
-			// do not override the existing error, if it exists.
-			if ( ![self error] && error ) {
-				[self setError:error];
-			}
-		});
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
 	} else {
 		// TODO: Debug message, existing error has not been cleared.
 		NSLog(@"Existing error has not been cleared, aborting...");
@@ -439,59 +426,57 @@ static sqlite3 *_database;
 
 #pragma mark -- Update
 
-- (RASqliteError *)execute:(NSString *)sql withParams:(NSArray *)params
+- (BOOL)execute:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError __block *error = [self error];
+	RASqliteError *error = [self error];
 
 	// If an error already have occurred, we should not attempt to execute query.
 	if ( !error ) {
-		dispatch_sync(_queue, ^{
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
+		// If database is not open, attempt to open it.
+		if ( ![self database] ) {
+			error = [self open];
+		}
+
+		sqlite3_stmt *statement;
+		int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+
+		if ( code == SQLITE_OK ) {
+			if ( params ) {
+				error = [self bindColumns:params toStatement:&statement];
 			}
 
-			sqlite3_stmt *statement;
-			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
-
-			if ( code == SQLITE_OK ) {
-				if ( params ) {
-					error = [self bindColumns:params toStatement:&statement];
+			if ( !error ) {
+				code = sqlite3_step(statement);
+				if ( code != SQLITE_DONE ) {
+					error = [RASqliteError code:RASqliteErrorQuery
+										message:@"Failed to retrieve result, received code: `%i`", code];
 				}
-
-				if ( !error ) {
-					code = sqlite3_step(statement);
-					if ( code != SQLITE_DONE ) {
-						error = [RASqliteError code:RASqliteErrorQuery
-											message:@"Failed to retrieve result, received code: `%i`", code];
-					}
-				}
-			} else {
-				error = [RASqliteError code:RASqliteErrorQuery
-									message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
 			}
-			sqlite3_finalize(statement);
+		} else {
+			error = [RASqliteError code:RASqliteErrorQuery
+								message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
+		}
+		sqlite3_finalize(statement);
 
-			// If an error occurred performing the query set the error. However,
-			// do not override the existing error, if it exists.
-			if ( ![self error] && error ) {
-				[self setError:error];
-			}
-		});
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
 	} else {
 		// TODO: Debug message, existing error has not been cleared.
 		NSLog(@"Existing error has not been cleared, aborting...");
 	}
 
-	return error;
+	return error == nil;
 }
 
-- (RASqliteError *)execute:(NSString *)sql withParam:(id)param
+- (BOOL)execute:(NSString *)sql withParam:(id)param
 {
 	return [self execute:sql withParams:@[param]];
 }
 
-- (RASqliteError *)execute:(NSString *)sql
+- (BOOL)execute:(NSString *)sql
 {
 	return [self execute:sql withParams:nil];
 }

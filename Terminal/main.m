@@ -15,47 +15,85 @@
 int main(int argc, const char * argv[])
 {
 	@autoreleasepool {
-		RASqlite *db = [[RASqlite alloc] initWithName:@"user.db"];
-		NSDictionary *user = [db fetchRow:@"SELECT id FROM users WHERE name = ? LIMIT 1" withParam:@"raatiniemi"];
+		// TODO: References from the queue to the database error object?
+		// As of now the database have to be around any time a query will be
+		// executed to get the error message, if any occurred.
 
+		RASqlite *database = [[RASqlite alloc] initWithName:@"user.db"];
+		RASqliteQueue *queue = [[RASqliteQueue alloc] initWithDatabase:database];
+
+		// TODO: Check table structure and create it, if necessary.
+
+		NSDictionary __block *user;
+		[queue queueWithBlock:^(RASqlite *db) {
+			user = [db fetchRow:@"SELECT id FROM users WHERE name = ? LIMIT 1" withParam:@"raatiniemi"];
+		}];
+
+		// Check if we were able to find the specified user.
 		if ( user ) {
-			if ( [db execute:@"DELETE FROM users WHERE id = ?" withParam:[user objectForKey:@"id"]] ) {
-				NSLog(@"User could not be removed.");
-			} else {
+			// User have been found, time to do something with it.
+			BOOL __block success = NO;
+			[queue queueWithBlock:^(RASqlite *db) {
+				success = [db execute:@"DELETE FROM users WHERE id = ?" withParam:[user objectForKey:@"id"]];
+			}];
+
+			// Check if the user could be removed.
+			if ( success ) {
 				NSLog(@"User have been removed.");
 
-				NSArray *users = [db fetch:@"SELECT id, name FROM users"];
-				if ( users != nil ) {
-					if ( [users count] > 0 ) {
-						NSLog(@"Users exists.");
-					} else {
-						NSLog(@"No users exists.");
-					}
+				NSArray __block *users;
+				[queue queueWithBlock:^(RASqlite *db) {
+					users = [db fetch:@"SELECT id, name FROM users"];
+				}];
+
+				// Check if there are any users left.
+				if ( users ) {
+					NSLog(@"Users still exists.");
+				} else if ( ![database error] ) {
+					NSLog(@"No users exists.");
 				} else {
-					if ( [db error] ) {
-						// Print the error message to the log and reset. If we do not
-						// reset we'll be unable to perform any additional queries with
-						// the instantiated db.
-						NSLog(@"An error occurred: %@", [[db error] localizedDescription]);
-						[db setError:nil];
-					}
+					NSLog(@"An error occurred: %@", [[database error] localizedDescription]);
+
+					// We have to reset the error variable, if an error occurres,
+					// after we have handled it. Otherwise, the database instance
+					// won't be able to execute any more queries.
+					[database setError:nil];
 				}
+			} else {
+				NSLog(@"User could not be removed.");
+				NSLog(@"An error occurred: %@", [[database error] localizedDescription]);
+
+				// We have to reset the error variable, if an error occurres,
+				// after we have handled it. Otherwise, the database instance
+				// won't be able to execute any more queries.
+				[database setError:nil];
+			}
+		} else if ( ![database error] ) {
+			// No user were found, we should create it.
+			BOOL __block success = NO;
+			[queue queueWithBlock:^(RASqlite *db) {
+				success = [db execute:@"INSERT INTO users(name) VALUES(?)" withParam:@"raatiniemi"];
+			}];
+
+			if ( success ) {
+				NSLog(@"User have been created.");
+			} else {
+				NSLog(@"User could not be created.");
+				NSLog(@"An error occurred: %@", [[database error] localizedDescription]);
+
+				// We have to reset the error variable, if an error occurres,
+				// after we have handled it. Otherwise, the database instance
+				// won't be able to execute any more queries.
+				[database setError:nil];
 			}
 		} else {
-			// Check if an error has occurred with the query.
-			if ( [db error] ) {
-				// Print the error message to the log and reset. If we do not
-				// reset we'll be unable to perform any additional queries with
-				// the instantiated db.
-				NSLog(@"An error occurred: %@", [[db error] localizedDescription]);
-				[db setError:nil];
-			} else {
-				if ( [db execute:@"INSERT INTO users(name) VALUES(?)" withParams:@[@"raatiniemi"]] ) {
-					NSLog(@"User could not be created.");
-				} else {
-					NSLog(@"User have been created.");
-				}
-			}
+			// An error occurred and we couldn't retrieve the user, handle it.
+			NSLog(@"An error occurred: %@", [[database error] localizedDescription]);
+
+			// We have to reset the error variable, if an error occurres, after
+			// we have handled it. Otherwise, the database instance won't be able
+			// to execute any more queries.
+			[database setError:nil];
 		}
 	}
     return 0;

@@ -86,6 +86,10 @@ static sqlite3 *_database;
 		// Setup the correct path for the iOS document folder.
 		NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 		[self setPath:[NSString stringWithFormat:@"%@/%@", [directories objectAtIndex:0], name]];
+
+		// Create the thread for running queries, using the name for the database file.
+		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, name];
+		_queue = dispatch_queue_create([thread UTF8String], NULL);
 	}
 	return self;
 }
@@ -95,6 +99,8 @@ static sqlite3 *_database;
 	// Incomplete implementation warning.
 	[NSException raise:@"Incomplete implementation"
 				format:@"Use of the `initWithPath:` method have not fully been implemented."];
+
+	// TODO: Create the query thread for `initWithPath:`.
 
 	// Return nil, takes care of the return warning.
 	return nil;
@@ -479,6 +485,31 @@ static sqlite3 *_database;
 - (BOOL)execute:(NSString *)sql
 {
 	return [self execute:sql withParams:nil];
+}
+
+#pragma mark -- Queue
+
+- (void)queueWithBlock:(void (^)(RASqlite *db))block
+{
+	dispatch_sync(_queue, ^{
+		block(self);
+	});
+}
+
+- (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block
+{
+	// TODO: Start transaction.
+	dispatch_sync(_queue, ^{
+		BOOL *commit;
+
+		block(self, &commit);
+
+		if ( commit ) {
+//			[self commit];
+		} else {
+//			[self rollBack];
+		}
+	});
 }
 
 @end

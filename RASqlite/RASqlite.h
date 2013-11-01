@@ -9,12 +9,20 @@
 #import <Foundation/Foundation.h>
 #import <sqlite3.h>
 
+// -- -- Constants
+
+/**
+ Format for the name of the query threads.
+ */
+#define kRASqliteThreadFormat @"me.raatiniemi.rasqlite.%@"
+
 // -- -- RASqlite
 
 #import "RASqliteError.h"
-#import "RASqliteQueue.h"
 
 @interface RASqlite : NSObject {
+@protected dispatch_queue_t _queue;
+
 @protected RASqliteError *_error;
 }
 
@@ -137,7 +145,7 @@
  @param params Parameters to bind to the query.
  
  @code
- NSArray *results = [self fetch:@"SELECT foo FROM bar WHERE id = ? AND baz = ?" withParams:@[@53, @"qux"]];
+ NSArray *results = [self fetch:@"SELECT foo FROM bar WHERE baz = ? AND qux = ?" withParams:@[@53, @"id"]];
  if ( results ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -166,7 +174,7 @@
  @param param Parameter to bind to the query.
 
  @code
- NSArray *results = [self fetch:@"SELECT foo FROM bar WHERE id = ?" withParam:@53];
+ NSArray *results = [self fetch:@"SELECT foo FROM bar WHERE baz = ?" withParam:@"qux"];
  if ( results ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -215,7 +223,7 @@
  @param params Parameters to bind to the query.
 
  @code
- NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE id = ? AND baz = ? LIMIT 1" withParams:@[@53, @"qux"]];
+ NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE baz = ? AND qux = ? LIMIT 1" withParams:@[@53, @"id"]];
  if ( row ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -244,7 +252,7 @@
  @param param Parameter to bind to the query.
 
  @code
- NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE id = ? LIMIT 1" withParam:@53];
+ NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE qux = ? LIMIT 1" withParam:@53];
  if ( row ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -316,7 +324,7 @@
  @param param Parameter to bind to the query.
 
  @code
- BOOL updated = [self execute:@"UPDATE foo SET bar='baz' WHERE id = ?" withParam:@35];
+ BOOL updated = [self execute:@"UPDATE foo SET bar='baz' WHERE qux = ?" withParam:@35];
  if ( !updated ) {
 	// An error has occurred. Handle the error, and reset the error variable.
 	// Otherwise, the error will block any futher queries with the instanisated model.
@@ -349,9 +357,45 @@
  */
 - (BOOL)execute:(NSString *)sql;
 
+#pragma mark -- Queue
+
+/**
+ Execute a block within the query thread.
+
+ @param block Block to be executed.
+
+ @code
+ NSDictionary __block *row;
+ [self queueWithBlock:^(RASqlite *db) {
+	row = [db fetchRow:@"SELECT foo FROM bar WHERE baz = ?" withParam:@"qux"];
+ }];
+ // Do something with row.
+ @endcode
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)queueWithBlock:(void (^)(RASqlite *db))block;
+
+/**
+ Execute a transaction block on the query thread.
+
+ @param block Block to be executed.
+
+ @code
+ [database queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
+	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+	if ( commit ) {
+		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
+	}
+ }];
+ @endcode
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block;
+
 #pragma mark - Transaction
 
-// TODO: Implement support for handling transactions.
-// TODO: Handle threading with transactions.
+// TODO: Implement methods for commit, rollback and transaction types.
 
 @end

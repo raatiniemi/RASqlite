@@ -15,17 +15,12 @@
 int main(int argc, const char * argv[])
 {
 	@autoreleasepool {
-		// TODO: References from the queue to the database error object?
-		// As of now the database have to be around any time a query will be
-		// executed to get the error message, if any occurred.
-
 		RASqlite *database = [[RASqlite alloc] initWithName:@"user.db"];
-		RASqliteQueue *queue = [[RASqliteQueue alloc] initWithDatabase:database];
 
 		// TODO: Check table structure and create it, if necessary.
 
 		NSDictionary __block *user;
-		[queue queueWithBlock:^(RASqlite *db) {
+		[database queueWithBlock:^(RASqlite *db) {
 			user = [db fetchRow:@"SELECT id FROM users WHERE name = ? LIMIT 1" withParam:@"raatiniemi"];
 		}];
 
@@ -33,7 +28,7 @@ int main(int argc, const char * argv[])
 		if ( user ) {
 			// User have been found, time to do something with it.
 			BOOL __block success = NO;
-			[queue queueWithBlock:^(RASqlite *db) {
+			[database queueWithBlock:^(RASqlite *db) {
 				success = [db execute:@"DELETE FROM users WHERE id = ?" withParam:[user objectForKey:@"id"]];
 			}];
 
@@ -42,7 +37,7 @@ int main(int argc, const char * argv[])
 				NSLog(@"User have been removed.");
 
 				NSArray __block *users;
-				[queue queueWithBlock:^(RASqlite *db) {
+				[database queueWithBlock:^(RASqlite *db) {
 					users = [db fetch:@"SELECT id, name FROM users"];
 				}];
 
@@ -71,7 +66,7 @@ int main(int argc, const char * argv[])
 		} else if ( ![database error] ) {
 			// No user were found, we should create it.
 			BOOL __block success = NO;
-			[queue queueWithBlock:^(RASqlite *db) {
+			[database queueWithBlock:^(RASqlite *db) {
 				success = [db execute:@"INSERT INTO users(name) VALUES(?)" withParam:@"raatiniemi"];
 			}];
 

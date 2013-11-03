@@ -110,7 +110,11 @@ static sqlite3 *_database;
 
 - (void)setDatabase:(sqlite3 *)database
 {
-	_database = database;
+	// Protection from rewriting the database pointer mid execution. The pointer
+	// have to be resetted before setting a new instance.
+	if ( _database == nil || database == nil ) {
+		_database = database;
+	}
 }
 
 - (sqlite3 *)database

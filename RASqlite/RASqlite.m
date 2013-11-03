@@ -122,7 +122,7 @@ static sqlite3 *_database;
 {
 	RASqliteError __block *error;
 
-	void (^open)(void) = ^(void) {
+	void (^blockOpen)(void) = ^(void) {
 		sqlite3 *database = [self database];
 		if ( !database ) {
 			int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
@@ -144,9 +144,9 @@ static sqlite3 *_database;
 	// TODO: Documentation.
 	// Reminder: The strcmp function returns zero if the strings are equal.
 	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		open();
+		blockOpen();
 	} else {
-		dispatch_sync(_queue, open);
+		dispatch_sync(_queue, blockOpen);
 	}
 
 	return error;
@@ -161,7 +161,7 @@ static sqlite3 *_database;
 {
 	RASqliteError __block *error;
 
-	void (^close)(void) = ^(void) {
+	void (^blockClose)(void) = ^(void) {
 		sqlite3 *database = [self database];
 		if ( database ) {
 			BOOL retry;
@@ -193,13 +193,15 @@ static sqlite3 *_database;
 	// TODO: Documentation.
 	// Reminder: The strcmp function returns zero if the strings are equal.
 	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		close();
+		blockClose();
 	} else {
-		dispatch_sync(_queue, close);
+		dispatch_sync(_queue, blockClose);
 	}
 
 	return error;
 }
+
+#pragma mark - Table
 
 #pragma mark - Query
 
@@ -310,7 +312,7 @@ static sqlite3 *_database;
 	RASqliteError __block *error = [self error];
 	NSMutableArray __block *results;
 
-	void (^fetch)(void) = ^(void) {
+	void (^blockFetch)(void) = ^(void) {
 		// If an error already have occurred, we should not attempt to execute query.
 		if ( !error ) {
 			// If database is not open, attempt to open it.
@@ -375,9 +377,9 @@ static sqlite3 *_database;
 	// TODO: Documentation.
 	// Reminder: The strcmp function returns zero if the strings are equal.
 	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		fetch();
+		blockFetch();
 	} else {
-		dispatch_sync(_queue, fetch);
+		dispatch_sync(_queue, blockFetch);
 	}
 
 	return results;
@@ -398,7 +400,7 @@ static sqlite3 *_database;
 	RASqliteError __block *error = [self error];
 	NSDictionary __block *row;
 
-	void (^fetchRow)(void) = ^(void) {
+	void (^blockFetchRow)(void) = ^(void) {
 		// If an error already have occurred, we should not attempt to execute query.
 		if ( !error ) {
 			// If database is not open, attempt to open it.
@@ -452,9 +454,9 @@ static sqlite3 *_database;
 	// TODO: Documentation.
 	// Reminder: The strcmp function returns zero if the strings are equal.
 	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		fetchRow();
+		blockFetchRow();
 	} else {
-		dispatch_sync(_queue, fetchRow);
+		dispatch_sync(_queue, blockFetchRow);
 	}
 
 	return row;
@@ -476,7 +478,7 @@ static sqlite3 *_database;
 {
 	RASqliteError __block *error = [self error];
 
-	void (^execute)(void) = ^(void) {	// If an error already have occurred, we should not attempt to execute query.
+	void (^blockExecute)(void) = ^(void) {	// If an error already have occurred, we should not attempt to execute query.
 		if ( !error ) {
 			// If database is not open, attempt to open it.
 			if ( ![self database] ) {
@@ -518,9 +520,9 @@ static sqlite3 *_database;
 	// TODO: Documentation.
 	// Reminder: The strcmp function returns zero if the strings are equal.
 	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		execute();
+		blockExecute();
 	} else {
-		dispatch_sync(_queue, execute);
+		dispatch_sync(_queue, blockExecute);
 	}
 
 	return error == nil;

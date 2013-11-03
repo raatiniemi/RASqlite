@@ -16,6 +16,15 @@
  */
 #define kRASqliteThreadFormat @"me.raatiniemi.rasqlite.%@"
 
+/**
+ Retrieves the name of the currently executed thread.
+ 
+ @note
+ Will be used to determind whether we need to dispatch a sync thread for the
+ queries, or if the sync thread already have been dispatched.
+ */
+#define RASqliteQueueLabel dispatch_queue_get_label(dispatch_get_current_queue())
+
 // -- -- RASqlite
 
 #import "RASqliteError.h"
@@ -164,6 +173,11 @@
  @note
  The first index within the params array will bind against the first question
  mark within the SQL query. The second, to the second question mark, etc.
+ 
+ @par
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params;
 
@@ -189,6 +203,11 @@
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @autor Tobias Raatiniemi <raatiniemi@gmail.com>
+ 
+ @note
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (NSArray *)fetch:(NSString *)sql withParam:(id)param;
 
@@ -213,6 +232,11 @@
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @autor Tobias Raatiniemi <raatiniemi@gmail.com>
+ 
+ @note
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (NSArray *)fetch:(NSString *)sql;
 
@@ -242,6 +266,11 @@
  @note
  The first index within the params array will bind against the first question
  mark within the SQL query. The second, to the second question mark, etc.
+ 
+ @par
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params;
 
@@ -267,6 +296,11 @@
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ 
+ @note
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (NSDictionary *)fetchRow:(NSString *)sql withParam:(id)param;
 
@@ -291,6 +325,11 @@
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ 
+ @note
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (NSDictionary *)fetchRow:(NSString *)sql;
 
@@ -314,6 +353,11 @@
  @return `YES` if query executed successfully, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ 
+ @note
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (BOOL)execute:(NSString *)sql withParams:(NSArray *)params;
 
@@ -335,6 +379,11 @@
  @return `YES` if query executed successfully, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ 
+ @note
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (BOOL)execute:(NSString *)sql withParam:(id)param;
 
@@ -354,6 +403,11 @@
  @return `YES` if query executed successfully, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ 
+ @note
+ The method will determind whether it'll need to dispatch to the queue, or if
+ it's already executing on the query queue. I.e. the method can be called from
+ within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
 - (BOOL)execute:(NSString *)sql;
 

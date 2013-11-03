@@ -19,29 +19,20 @@ int main(int argc, const char * argv[])
 
 		// TODO: Check table structure and create it, if necessary.
 
-		NSDictionary __block *user;
-		[database queueWithBlock:^(RASqlite *db) {
-			user = [db fetchRow:@"SELECT id FROM users WHERE name = ? LIMIT 1" withParam:@"raatiniemi"];
-		}];
+		NSDictionary *user = [database fetchRow:@"SELECT id FROM users WHERE name = ? LIMIT 1" withParam:@"raatiniemi"];
 
 		// Check if we were able to find the specified user.
 		if ( user ) {
 			// User have been found, time to do something with it.
-			BOOL __block success = NO;
-			[database queueWithBlock:^(RASqlite *db) {
-				success = [db execute:@"DELETE FROM users WHERE id = ?" withParam:[user objectForKey:@"id"]];
-			}];
+			BOOL success = NO;
+			success = [database execute:@"DELETE FROM users WHERE id = ?" withParam:[user objectForKey:@"id"]];
 
 			// Check if the user could be removed.
 			if ( success ) {
 				NSLog(@"User have been removed.");
 
-				NSArray __block *users;
-				[database queueWithBlock:^(RASqlite *db) {
-					users = [db fetch:@"SELECT id, name FROM users"];
-				}];
-
 				// Check if there are any users left.
+				NSArray *users = [database fetch:@"SELECT id, name FROM users"];
 				if ( users ) {
 					NSLog(@"Users still exists.");
 				} else if ( ![database error] ) {
@@ -65,11 +56,7 @@ int main(int argc, const char * argv[])
 			}
 		} else if ( ![database error] ) {
 			// No user were found, we should create it.
-			BOOL __block success = NO;
-			[database queueWithBlock:^(RASqlite *db) {
-				success = [db execute:@"INSERT INTO users(name) VALUES(?)" withParam:@"raatiniemi"];
-			}];
-
+			BOOL success = [database execute:@"INSERT INTO users(name) VALUES(?)" withParam:@"raatiniemi"];
 			if ( success ) {
 				NSLog(@"User have been created.");
 			} else {

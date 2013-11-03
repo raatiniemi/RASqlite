@@ -120,23 +120,33 @@ static sqlite3 *_database;
 
 - (RASqliteError *)openWithFlags:(int)flags
 {
-	RASqliteError *error;
+	RASqliteError __block *error;
 
-	sqlite3 *database = [self database];
-	if ( !database ) {
-		int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
-		if ( code == SQLITE_OK ) {
-			// TODO: Debug message, database have successfully been opened.
-			NSLog(@"Database have successfully been opened.");
+	void (^open)(void) = ^(void) {
+		sqlite3 *database = [self database];
+		if ( !database ) {
+			int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
+			if ( code == SQLITE_OK ) {
+				// TODO: Debug message, database have successfully been opened.
+				NSLog(@"Database have successfully been opened.");
 
-			[self setDatabase:database];
+				[self setDatabase:database];
+			} else {
+				error = [RASqliteError code:RASqliteErrorOpen
+									message:@"Unable to open database, received code `%i`.", code];
+			}
 		} else {
-			error = [RASqliteError code:RASqliteErrorOpen
-								message:@"Unable to open database, received code `%i`.", code];
+			// TODO: Debug message, database is already open.
+			NSLog(@"Database is already open.");
 		}
+	};
+
+	// TODO: Documentation.
+	// Reminder: The strcmp function returns zero if the strings are equal.
+	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		open();
 	} else {
-		// TODO: Debug message, database is already open.
-		NSLog(@"Database is already open.");
+		dispatch_sync(_queue, open);
 	}
 
 	return error;
@@ -149,33 +159,43 @@ static sqlite3 *_database;
 
 - (RASqliteError *)close
 {
-	RASqliteError *error;
+	RASqliteError __block *error;
 
-	sqlite3 *database = [self database];
-	if ( database ) {
-		BOOL retry;
-		int code;
+	void (^close)(void) = ^(void) {
+		sqlite3 *database = [self database];
+		if ( database ) {
+			BOOL retry;
+			int code;
 
-		do {
-			// Reset the retry control and attempt to close the database.
-			retry = NO;
-			code = sqlite3_close(database);
+			do {
+				// Reset the retry control and attempt to close the database.
+				retry = NO;
+				code = sqlite3_close(database);
 
-			// TODO: Check if database is locked or busy and attempt a retry.
-			// TODO: Handle retry infinite loop.
-			if ( code != SQLITE_OK ) {
-				error = [RASqliteError code:RASqliteErrorClose
-									message:@"Unable to close database, received code `%i`.", code];
-			} else {
-				// TODO: Debug message, database have successfully been closed.
-				NSLog(@"Database have successfully been closed.");
+				// TODO: Check if database is locked or busy and attempt a retry.
+				// TODO: Handle retry infinite loop.
+				if ( code != SQLITE_OK ) {
+					error = [RASqliteError code:RASqliteErrorClose
+										message:@"Unable to close database, received code `%i`.", code];
+				} else {
+					// TODO: Debug message, database have successfully been closed.
+					NSLog(@"Database have successfully been closed.");
 
-				[self setDatabase:nil];
-			}
-		} while (retry);
+					[self setDatabase:nil];
+				}
+			} while (retry);
+		} else {
+			// TODO: Debug message, database is already closed.
+			NSLog(@"Database is already closed.");
+		}
+	};
+
+	// TODO: Documentation.
+	// Reminder: The strcmp function returns zero if the strings are equal.
+	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		close();
 	} else {
-		// TODO: Debug message, database is already closed.
-		NSLog(@"Database is already closed.");
+		dispatch_sync(_queue, close);
 	}
 
 	return error;
@@ -287,67 +307,77 @@ static sqlite3 *_database;
 
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError *error = [self error];
-	NSMutableArray *results;
+	RASqliteError __block *error = [self error];
+	NSMutableArray __block *results;
 
-	// If an error already have occurred, we should not attempt to execute query.
-	if ( !error ) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
-		sqlite3_stmt *statement;
-		int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
-
-		if ( code == SQLITE_OK ) {
-			if ( params ) {
-				error = [self bindColumns:params toStatement:&statement];
+	void (^fetch)(void) = ^(void) {
+		// If an error already have occurred, we should not attempt to execute query.
+		if ( !error ) {
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
 			}
 
-			if ( !error ) {
-				NSDictionary *row;
-				results = [[NSMutableArray alloc] init];
+			sqlite3_stmt *statement;
+			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
 
-				// Looping through the results, until an error occurres or
-				// the query is done.
-				do {
-					code = sqlite3_step(statement);
-
-					if ( code == SQLITE_ROW ) {
-						row = [self fetchColumns:&statement withError:&error];
-						[results addObject:row];
-					} else if ( code == SQLITE_DONE ) {
-						// Results have been fetch, leave the loop.
-						break;
-					} else {
-						// Something has gone wrong, leave the loop.
-						error = [RASqliteError code:RASqliteErrorQuery
-											message:@"Unable to fetch row, received code `%i`.", code];
-						break;
-					}
-				} while ( !error );
-
-				// If the error variable have been populated, something
-				// has gone wrong and we need to reset the results variable.
-				if ( error ) {
-					results = nil;
+			if ( code == SQLITE_OK ) {
+				if ( params ) {
+					error = [self bindColumns:params toStatement:&statement];
 				}
+
+				if ( !error ) {
+					NSDictionary *row;
+					results = [[NSMutableArray alloc] init];
+
+					// Looping through the results, until an error occurres or
+					// the query is done.
+					do {
+						code = sqlite3_step(statement);
+
+						if ( code == SQLITE_ROW ) {
+							row = [self fetchColumns:&statement withError:&error];
+							[results addObject:row];
+						} else if ( code == SQLITE_DONE ) {
+							// Results have been fetch, leave the loop.
+							break;
+						} else {
+							// Something has gone wrong, leave the loop.
+							error = [RASqliteError code:RASqliteErrorQuery
+												message:@"Unable to fetch row, received code `%i`.", code];
+							break;
+						}
+					} while ( !error );
+
+					// If the error variable have been populated, something
+					// has gone wrong and we need to reset the results variable.
+					if ( error ) {
+						results = nil;
+					}
+				}
+			} else {
+				error = [RASqliteError code:RASqliteErrorQuery
+									message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+			}
+			sqlite3_finalize(statement);
+
+			// If an error occurred performing the query set the error. However,
+			// do not override the existing error, if it exists.
+			if ( ![self error] && error ) {
+				[self setError:error];
 			}
 		} else {
-			error = [RASqliteError code:RASqliteErrorQuery
-								message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+			// TODO: Debug message, existing error has not been cleared.
+			NSLog(@"Existing error has not been cleared, aborting...");
 		}
-		sqlite3_finalize(statement);
+	};
 
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
-		}
+	// TODO: Documentation.
+	// Reminder: The strcmp function returns zero if the strings are equal.
+	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		fetch();
 	} else {
-		// TODO: Debug message, existing error has not been cleared.
-		NSLog(@"Existing error has not been cleared, aborting...");
+		dispatch_sync(_queue, fetch);
 	}
 
 	return results;
@@ -365,56 +395,66 @@ static sqlite3 *_database;
 
 - (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError *error = [self error];
-	NSDictionary *row;
+	RASqliteError __block *error = [self error];
+	NSDictionary __block *row;
 
-	// If an error already have occurred, we should not attempt to execute query.
-	if ( !error ) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
-		sqlite3_stmt *statement;
-		int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
-
-		if ( code == SQLITE_OK ) {
-			if ( params ) {
-				error = [self bindColumns:params toStatement:&statement];
+	void (^fetchRow)(void) = ^(void) {
+		// If an error already have occurred, we should not attempt to execute query.
+		if ( !error ) {
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
 			}
 
-			if ( !error ) {
-				code = sqlite3_step(statement);
-				if ( code == SQLITE_ROW ) {
-					row = [self fetchColumns:&statement withError:&error];
+			sqlite3_stmt *statement;
+			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
 
-					// If the error variable have been populated, something
-					// has gone wrong and we need to reset the row variable.
-					if ( error || [row count] == 0 ) {
-						row = nil;
-					}
-				} else if ( code == SQLITE_DONE ) {
-					// TODO: Debug message, no rows were found.
-					NSLog(@"No rows were found with query: `%@`", sql);
-				} else {
-					error = [RASqliteError code:RASqliteErrorQuery
-										message:@"Failed to retrieve result, received code: `%i`", code];
+			if ( code == SQLITE_OK ) {
+				if ( params ) {
+					error = [self bindColumns:params toStatement:&statement];
 				}
+
+				if ( !error ) {
+					code = sqlite3_step(statement);
+					if ( code == SQLITE_ROW ) {
+						row = [self fetchColumns:&statement withError:&error];
+
+						// If the error variable have been populated, something
+						// has gone wrong and we need to reset the row variable.
+						if ( error || [row count] == 0 ) {
+							row = nil;
+						}
+					} else if ( code == SQLITE_DONE ) {
+						// TODO: Debug message, no rows were found.
+						NSLog(@"No rows were found with query: `%@`", sql);
+					} else {
+						error = [RASqliteError code:RASqliteErrorQuery
+											message:@"Failed to retrieve result, received code: `%i`", code];
+					}
+				}
+			} else {
+				error = [RASqliteError code:RASqliteErrorQuery
+									message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+			}
+			sqlite3_finalize(statement);
+
+			// If an error occurred performing the query set the error. However,
+			// do not override the existing error, if it exists.
+			if ( ![self error] && error ) {
+				[self setError:error];
 			}
 		} else {
-			error = [RASqliteError code:RASqliteErrorQuery
-								message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+			// TODO: Debug message, existing error has not been cleared.
+			NSLog(@"Existing error has not been cleared, aborting...");
 		}
-		sqlite3_finalize(statement);
+	};
 
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
-		}
+	// TODO: Documentation.
+	// Reminder: The strcmp function returns zero if the strings are equal.
+	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		fetchRow();
 	} else {
-		// TODO: Debug message, existing error has not been cleared.
-		NSLog(@"Existing error has not been cleared, aborting...");
+		dispatch_sync(_queue, fetchRow);
 	}
 
 	return row;
@@ -434,44 +474,53 @@ static sqlite3 *_database;
 
 - (BOOL)execute:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError *error = [self error];
+	RASqliteError __block *error = [self error];
 
-	// If an error already have occurred, we should not attempt to execute query.
-	if ( !error ) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
-		sqlite3_stmt *statement;
-		int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
-
-		if ( code == SQLITE_OK ) {
-			if ( params ) {
-				error = [self bindColumns:params toStatement:&statement];
+	void (^execute)(void) = ^(void) {	// If an error already have occurred, we should not attempt to execute query.
+		if ( !error ) {
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
 			}
 
-			if ( !error ) {
-				code = sqlite3_step(statement);
-				if ( code != SQLITE_DONE ) {
-					error = [RASqliteError code:RASqliteErrorQuery
-										message:@"Failed to retrieve result, received code: `%i`", code];
+			sqlite3_stmt *statement;
+			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+
+			if ( code == SQLITE_OK ) {
+				if ( params ) {
+					error = [self bindColumns:params toStatement:&statement];
 				}
+
+				if ( !error ) {
+					code = sqlite3_step(statement);
+					if ( code != SQLITE_DONE ) {
+						error = [RASqliteError code:RASqliteErrorQuery
+											message:@"Failed to retrieve result, received code: `%i`", code];
+					}
+				}
+			} else {
+				error = [RASqliteError code:RASqliteErrorQuery
+									message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
+			}
+			sqlite3_finalize(statement);
+
+			// If an error occurred performing the query set the error. However,
+			// do not override the existing error, if it exists.
+			if ( ![self error] && error ) {
+				[self setError:error];
 			}
 		} else {
-			error = [RASqliteError code:RASqliteErrorQuery
-								message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
+			// TODO: Debug message, existing error has not been cleared.
+			NSLog(@"Existing error has not been cleared, aborting...");
 		}
-		sqlite3_finalize(statement);
+	};
 
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
-		}
+	// TODO: Documentation.
+	// Reminder: The strcmp function returns zero if the strings are equal.
+	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		execute();
 	} else {
-		// TODO: Debug message, existing error has not been cleared.
-		NSLog(@"Existing error has not been cleared, aborting...");
+		dispatch_sync(_queue, execute);
 	}
 
 	return error == nil;

@@ -161,7 +161,7 @@ static const NSString *kRASqliteBlob = @"BLOB";
 /**
  Check structure for the database.
 
- @return `YES` if database structure as defined, otherwise `NO`.
+ @return `YES` if database structure is as defined, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
@@ -178,6 +178,38 @@ static const NSString *kRASqliteBlob = @"BLOB";
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 - (BOOL)checkTable:(NSString *)table withColumns:(NSDictionary *)columns;
+
+/**
+ Create the database structure.
+
+ @return `YES` if database structure have been created, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)create;
+
+/**
+ Create the table structure.
+
+ @param table Name of the table to create.
+ @param columns Dictionary with column names and their data types.
+
+ @return `YES` if table structure is created, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)createTable:(NSString *)table withColumns:(NSDictionary *)columns;
+
+/**
+ Delete the database table.
+
+ @param table Name of the table to delete.
+
+ @return `YES` if table is deleted, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)deleteTable:(NSString *)table;
 
 #pragma mark - Query
 #pragma mark -- Fetch

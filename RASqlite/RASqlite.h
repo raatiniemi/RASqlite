@@ -25,6 +25,21 @@
  */
 #define RASqliteQueueLabel dispatch_queue_get_label(dispatch_get_current_queue())
 
+/// Column data type for `NULL`.
+static const NSString *kRASqliteNull = @"NULL";
+
+/// Column data type for `INTEGER`.
+static const NSString *kRASqliteInteger = @"INTEGER";
+
+/// Column data type for `REAL`.
+static const NSString *kRASqliteReal = @"REAL";
+
+/// Column data type for `TEXT`.
+static const NSString *kRASqliteText = @"TEXT";
+
+/// Column data type for `BLOB`.
+static const NSString *kRASqliteBlob = @"BLOB";
+
 // -- -- RASqlite
 
 #import "RASqliteError.h"

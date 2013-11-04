@@ -50,7 +50,7 @@ static sqlite3 *_database;
  @param statement Statement from which to retrieve the columns.
  @param error If an error occurred, variable will be populated (pass-by-reference).
 
- @return Dictionary with the column names and their values.
+ @return Row with the column names and their values.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
 
@@ -58,7 +58,7 @@ static sqlite3 *_database;
  The dictionary will contain the Foundation representations of the SQLite data types,
  e.g. `SQLITE_INTEGER` will be `NSNumber`, `SQLITE_NULL` will be `NSNull`, etc.
  */
-- (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement withError:(RASqliteError **)error;
+- (RASqliteRow *)fetchColumns:(sqlite3_stmt **)statement withError:(RASqliteError **)error;
 
 @end
 
@@ -252,10 +252,10 @@ static sqlite3 *_database;
 	return error;
 }
 
-- (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement withError:(RASqliteError **)error
+- (RASqliteRow *)fetchColumns:(sqlite3_stmt **)statement withError:(RASqliteError **)error
 {
 	unsigned int count = sqlite3_column_count(*statement);
-	NSMutableDictionary *row = [[NSMutableDictionary alloc] initWithCapacity:count];
+	RASqliteRow *row = [RASqliteRow columns:count];
 
 	const char *name;
 	NSString *column;
@@ -273,12 +273,12 @@ static sqlite3 *_database;
 			case SQLITE_INTEGER: {
 				// TODO: Handle retrieval of sqlite3_int64.
 				int value = sqlite3_column_int(*statement, index);
-				[row setObject:[NSNumber numberWithInt:value] forKey:column];
+				[row setColumn:column withValue:[NSNumber numberWithInt:value]];
 				break;
 			}
 			case SQLITE_FLOAT: {
 				double value = sqlite3_column_double(*statement, index);
-				[row setObject:[NSNumber numberWithDouble:value] forKey:column];
+				[row setColumn:column withValue:[NSNumber numberWithDouble:value]];
 				break;
 			}
 			case SQLITE_BLOB: {
@@ -288,13 +288,13 @@ static sqlite3 *_database;
 				break;
 			}
 			case SQLITE_NULL: {
-				[row setObject:[NSNull null] forKey:column];
+				[row setColumn:column withValue:[NSNull null]];
 				break;
 			}
 			case SQLITE_TEXT:
 			default: {
 				const char *value = (const char *)sqlite3_column_text(*statement, index);
-				[row setObject:[NSString stringWithCString:value encoding:NSUTF8StringEncoding] forKey:column];
+				[row setColumn:column withValue:[NSString stringWithCString:value encoding:NSUTF8StringEncoding]];
 				break;
 			}
 		}
@@ -333,7 +333,7 @@ static sqlite3 *_database;
 				}
 
 				if ( !error ) {
-					NSDictionary *row;
+					RASqliteRow *row;
 					results = [[NSMutableArray alloc] init];
 
 					// Looping through the results, until an error occurres or
@@ -399,10 +399,10 @@ static sqlite3 *_database;
 	return [self fetch:sql withParams:nil];
 }
 
-- (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params
+- (RASqliteRow *)fetchRow:(NSString *)sql withParams:(NSArray *)params
 {
 	RASqliteError __block *error = [self error];
-	NSDictionary __block *row;
+	RASqliteRow __block *row;
 
 	void (^blockFetchRow)(void) = ^(void) {
 		// If an error already have occurred, we should not attempt to execute query.
@@ -466,12 +466,12 @@ static sqlite3 *_database;
 	return row;
 }
 
-- (NSDictionary *)fetchRow:(NSString *)sql withParam:(id)param
+- (RASqliteRow *)fetchRow:(NSString *)sql withParam:(id)param
 {
 	return [self fetchRow:sql withParams:@[param]];
 }
 
-- (NSDictionary *)fetchRow:(NSString *)sql
+- (RASqliteRow *)fetchRow:(NSString *)sql
 {
 	return [self fetchRow:sql withParams:nil];
 }

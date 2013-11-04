@@ -28,6 +28,7 @@
 // -- -- RASqlite
 
 #import "RASqliteError.h"
+#import "RASqliteRow.h"
 
 @interface RASqlite : NSObject {
 @protected dispatch_queue_t _queue;
@@ -272,7 +273,7 @@
  it's already executing on the query queue. I.e. the method can be called from
  within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
-- (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params;
+- (RASqliteRow *)fetchRow:(NSString *)sql withParams:(NSArray *)params;
 
 /**
  Fetch a row from the database, with a parameter.
@@ -302,7 +303,7 @@
  it's already executing on the query queue. I.e. the method can be called from
  within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
-- (NSDictionary *)fetchRow:(NSString *)sql withParam:(id)param;
+- (RASqliteRow *)fetchRow:(NSString *)sql withParam:(id)param;
 
 /**
  Fetch a row from the database, without parameters.
@@ -331,7 +332,7 @@
  it's already executing on the query queue. I.e. the method can be called from
  within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
-- (NSDictionary *)fetchRow:(NSString *)sql;
+- (RASqliteRow *)fetchRow:(NSString *)sql;
 
 #pragma mark -- Update
 

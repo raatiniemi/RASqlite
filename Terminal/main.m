@@ -19,13 +19,13 @@ int main(int argc, const char * argv[])
 
 		// TODO: Check table structure and create it, if necessary.
 
-		NSDictionary *user = [database fetchRow:@"SELECT id FROM users WHERE name = ? LIMIT 1" withParam:@"raatiniemi"];
+		RASqliteRow *user = [database fetchRow:@"SELECT id FROM users WHERE name = ? LIMIT 1" withParam:@"raatiniemi"];
 
 		// Check if we were able to find the specified user.
 		if ( user ) {
 			// User have been found, time to do something with it.
 			BOOL success = NO;
-			success = [database execute:@"DELETE FROM users WHERE id = ?" withParam:[user objectForKey:@"id"]];
+			success = [database execute:@"DELETE FROM users WHERE id = ?" withParam:[user getColumn:@"id"]];
 
 			// Check if the user could be removed.
 			if ( success ) {

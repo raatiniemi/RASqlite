@@ -317,13 +317,13 @@ static sqlite3 *_database;
 	NSMutableArray __block *results;
 
 	void (^block)(void) = ^(void) {
+		// If database is not open, attempt to open it.
+		if ( ![self database] ) {
+			error = [self open];
+		}
+
 		// If an error already have occurred, we should not attempt to execute query.
 		if ( !error ) {
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
-			}
-
 			sqlite3_stmt *statement;
 			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -354,12 +354,12 @@ static sqlite3 *_database;
 							break;
 						}
 					} while ( !error );
+				}
 
-					// If the error variable have been populated, something
-					// has gone wrong and we need to reset the results variable.
-					if ( error ) {
-						results = nil;
-					}
+				// If the error variable have been populated, something
+				// has gone wrong and we need to reset the results variable.
+				if ( error ) {
+					results = nil;
 				}
 			} else {
 				error = [RASqliteError code:RASqliteErrorQuery
@@ -372,18 +372,17 @@ static sqlite3 *_database;
 			if ( ![self error] && error ) {
 				[self setError:error];
 			}
-		} else {
-			// TODO: Debug message, existing error has not been cleared.
-			NSLog(@"Existing error has not been cleared, aborting...");
 		}
 	};
 
-	// TODO: Documentation.
-	// Reminder: The strcmp function returns zero if the strings are equal.
-	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		block();
-	} else {
-		dispatch_sync(_queue, block);
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
 	}
 
 	return results;
@@ -405,13 +404,13 @@ static sqlite3 *_database;
 	RASqliteRow __block *row;
 
 	void (^block)(void) = ^(void) {
+		// If database is not open, attempt to open it.
+		if ( ![self database] ) {
+			error = [self open];
+		}
+
 		// If an error already have occurred, we should not attempt to execute query.
 		if ( !error ) {
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
-			}
-
 			sqlite3_stmt *statement;
 			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -449,18 +448,17 @@ static sqlite3 *_database;
 			if ( ![self error] && error ) {
 				[self setError:error];
 			}
-		} else {
-			// TODO: Debug message, existing error has not been cleared.
-			NSLog(@"Existing error has not been cleared, aborting...");
 		}
 	};
 
-	// TODO: Documentation.
-	// Reminder: The strcmp function returns zero if the strings are equal.
-	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		block();
-	} else {
-		dispatch_sync(_queue, block);
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
 	}
 
 	return row;
@@ -483,13 +481,13 @@ static sqlite3 *_database;
 	RASqliteError __block *error = [self error];
 
 	void (^block)(void) = ^(void) {
+		// If database is not open, attempt to open it.
+		if ( ![self database] ) {
+			error = [self open];
+		}
+
 		// If an error already have occurred, we should not attempt to execute query.
 		if ( !error ) {
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
-			}
-
 			sqlite3_stmt *statement;
 			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -516,18 +514,17 @@ static sqlite3 *_database;
 			if ( ![self error] && error ) {
 				[self setError:error];
 			}
-		} else {
-			// TODO: Debug message, existing error has not been cleared.
-			NSLog(@"Existing error has not been cleared, aborting...");
 		}
 	};
 
-	// TODO: Documentation.
-	// Reminder: The strcmp function returns zero if the strings are equal.
-	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		block();
-	} else {
-		dispatch_sync(_queue, block);
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
 	}
 
 	return error == nil;

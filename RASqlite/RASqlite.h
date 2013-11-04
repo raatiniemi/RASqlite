@@ -158,7 +158,26 @@ static const NSString *kRASqliteBlob = @"BLOB";
 
 #pragma mark - Table
 
-// TODO: Implement methods for creating, checking and deleting tables.
+/**
+ Check structure for the database.
+
+ @return `YES` if database structure as defined, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)check;
+
+/**
+ Check structure for database table.
+
+ @param table Name of the table to check.
+ @param columns Dictionary with column names and their data types.
+
+ @return `YES` if table structure is as defined, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)checkTable:(NSString *)table withColumns:(NSDictionary *)columns;
 
 #pragma mark - Query
 #pragma mark -- Fetch

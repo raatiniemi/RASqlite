@@ -14,6 +14,7 @@
 		2D5992BF181D3AF30006A177 /* RASqliteRow.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992BE181D3AF30006A177 /* RASqliteRow.m */; };
 		2D5992C3181D4B270006A177 /* RASqliteError.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992C2181D4B270006A177 /* RASqliteError.m */; };
 		2D5992C9181D90740006A177 /* RASqliteResult.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992C8181D90740006A177 /* RASqliteResult.m */; };
+		2DE1B55118281C5500CF85B2 /* RATerminalModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DE1B55018281C5500CF85B2 /* RATerminalModel.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,6 +43,8 @@
 		2D5992C2181D4B270006A177 /* RASqliteError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RASqliteError.m; path = RASqlite/RASqliteError.m; sourceTree = "<group>"; };
 		2D5992C7181D90740006A177 /* RASqliteResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RASqliteResult.h; path = RASqlite/RASqliteResult.h; sourceTree = "<group>"; };
 		2D5992C8181D90740006A177 /* RASqliteResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RASqliteResult.m; path = RASqlite/RASqliteResult.m; sourceTree = "<group>"; };
+		2DE1B54F18281C5500CF85B2 /* RATerminalModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RATerminalModel.h; sourceTree = "<group>"; };
+		2DE1B55018281C5500CF85B2 /* RATerminalModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RATerminalModel.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +91,8 @@
 			isa = PBXGroup;
 			children = (
 				2D5992AD181D1B780006A177 /* main.m */,
+				2DE1B54F18281C5500CF85B2 /* RATerminalModel.h */,
+				2DE1B55018281C5500CF85B2 /* RATerminalModel.m */,
 				2D5992AF181D1B780006A177 /* Supporting Files */,
 			);
 			path = Terminal;
@@ -180,6 +185,7 @@
 				2D5992C3181D4B270006A177 /* RASqliteError.m in Sources */,
 				2D5992C9181D90740006A177 /* RASqliteResult.m in Sources */,
 				2D5992BF181D3AF30006A177 /* RASqliteRow.m in Sources */,
+				2DE1B55118281C5500CF85B2 /* RATerminalModel.m in Sources */,
 				2D5992AE181D1B780006A177 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

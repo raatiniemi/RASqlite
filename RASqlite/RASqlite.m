@@ -311,6 +311,117 @@ static sqlite3 *_database;
 	return error == nil;
 }
 
+- (BOOL)create
+{
+	RASqliteError __block *error = [self error];
+
+	void (^block)(void) = ^(void) {
+		NSDictionary *tables = [self structure];
+		if ( tables ) {
+			for ( NSString *table in tables ) {
+				if ( ![self createTable:table withColumns:[tables objectForKey:table]] ) {
+					error = [self error];
+					break;
+				}
+			}
+		} else {
+			// TODO: Correct error code.
+			error = [RASqliteError code:0
+								message:@"Unable to check database structure, none has been supplied."];
+		}
+	};
+
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
+	}
+
+	return error == nil;
+}
+
+- (BOOL)createTable:(NSString *)table withColumns:(NSDictionary *)columns
+{
+	RASqliteError __block *error = [self error];
+
+	if ( !table ) {
+		// TODO: Correct error code.
+		error = [RASqliteError code:0
+							message:@"Unable to check table without valid name."];
+	}
+
+	if ( !columns ) {
+		// TODO: Correct error code.
+		error = [RASqliteError code:0
+							message:@"Unable to check table without defined columns."];
+	}
+
+	void (^block)(void) = ^(void) {
+		NSMutableString *sql = [[NSMutableString alloc] init];
+		[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
+
+		NSUInteger index = 0;
+		for ( NSString *name in columns ) {
+			if ( index > 0 ) {
+				[sql appendString:@","];
+			}
+			[sql appendFormat:@"%@ ", name];
+
+			NSArray *types = @[kRASqliteNull, kRASqliteReal, kRASqliteText, kRASqliteBlob, kRASqliteInteger];
+			NSString *type = [columns objectForKey:name];
+			if ( [types indexOfObject:type] != NSNotFound ) {
+				[sql appendString:type];
+
+				if ( [kRASqliteInteger isEqualToString:type] ) {
+					if ( [name isEqualToString:@"id"] ) {
+						[sql appendString:@" PRIMARY KEY"];
+					} else {
+						[sql appendString:@" DEFAULT 0"];
+					}
+				}
+			} else {
+				error = [RASqliteError code:0
+									message:@"Unrecognized SQLite data type: %@", type];
+			}
+
+			index++;
+		}
+		[sql appendString:@");"];
+
+		if ( !error ) {
+			[self execute:sql];
+		}
+	};
+
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
+	}
+
+	return error == nil;
+}
+
 #pragma mark - Query
 
 - (RASqliteError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement

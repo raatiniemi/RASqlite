@@ -13,12 +13,12 @@ int main(int argc, const char * argv[])
 {
 	@autoreleasepool {
 		RATerminalModel *model = [[RATerminalModel alloc] initWithName:@"user.db"];
-
-		// TODO: Check table structure and create it, if necessary.
-		if ( ![model check] ) {
-			// [model setError:nil];
-			NSLog(@"Table structure do not match the given structure.");
-		}
+		[model queueWithBlock:^(RASqlite *db) {
+			if ( ![db check] ) {
+				[db setError:nil];
+				[db create];
+			}
+		}];
 
 		// Check if we were able to find the specified user.
 		RASqliteRow *user = [model getUser:@"raatiniemi"];

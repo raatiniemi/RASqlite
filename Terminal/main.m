@@ -15,6 +15,10 @@ int main(int argc, const char * argv[])
 		RATerminalModel *model = [[RATerminalModel alloc] initWithName:@"user.db"];
 
 		// TODO: Check table structure and create it, if necessary.
+		if ( ![model check] ) {
+			// [model setError:nil];
+			NSLog(@"Table structure do not match the given structure.");
+		}
 
 		// Check if we were able to find the specified user.
 		RASqliteRow *user = [model getUser:@"raatiniemi"];

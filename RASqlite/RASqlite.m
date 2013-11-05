@@ -207,6 +207,110 @@ static sqlite3 *_database;
 
 #pragma mark - Table
 
+- (BOOL)check
+{
+	RASqliteError __block *error = [self error];
+
+	void (^block)(void) = ^(void) {
+		NSDictionary *tables = [self structure];
+		if ( tables ) {
+			for ( NSString *table in tables ) {
+				if ( ![self checkTable:table withColumns:[tables objectForKey:table]] ) {
+					error = [self error];
+					break;
+				}
+			}
+		} else {
+			// TODO: Correct error code.
+			error = [RASqliteError code:0
+								message:@"Unable to check database structure, none has been supplied."];
+		}
+	};
+
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
+	}
+
+	return error == nil;
+}
+
+- (BOOL)checkTable:(NSString *)table withColumns:(NSDictionary *)columns
+{
+	RASqliteError __block *error = [self error];
+
+	if ( !table ) {
+		// TODO: Correct error code.
+		error = [RASqliteError code:0
+							message:@"Unable to check table without valid name."];
+	}
+
+	if ( !columns ) {
+		// TODO: Correct error code.
+		error = [RASqliteError code:0
+							message:@"Unable to check table without defined columns."];
+	}
+
+	void (^block)(void) = ^(void) {
+		NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
+
+		if ( [tColumns count] == [columns count] ) {
+			unsigned int index = 0;
+			for ( NSString *column in columns ) {
+				RASqliteRow *tColumn = [tColumns objectAtIndex:index];
+				if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
+					// TODO: Correct error code.
+					NSString *message = @"Column name `%@` do not match index `%i` for the given structure.";
+					error = [RASqliteError code:0 message:message, table, index];
+					break;
+				}
+
+				NSString *type = [columns objectForKey:column];
+				if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
+					// TODO: Correct error code.
+					NSString *message = @"Column type `%@` to not match index `%i` for given structure.";
+					error = [RASqliteError code:0 message:message, table, index];
+					break;
+				}
+				index++;
+			}
+		} else {
+			// TODO: Correct error code.
+			NSString *message = @"Number of specified columns for table `%@` do not matched the defined table count.";
+			error = [RASqliteError code:0 message:message, table];
+		}
+	};
+
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
+	}
+
+	return error == nil;
+}
+
 #pragma mark - Query
 
 - (RASqliteError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement

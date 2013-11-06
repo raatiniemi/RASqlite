@@ -23,7 +23,7 @@
  Will be used to determind whether we need to dispatch a sync thread for the
  queries, or if the sync thread already have been dispatched.
  */
-#define RASqliteQueueLabel dispatch_queue_get_label(dispatch_get_current_queue())
+#define kRASqliteQueueLabel dispatch_queue_get_label(dispatch_get_current_queue())
 
 /// Column data type for `NULL`.
 static const NSString *kRASqliteNull = @"NULL";

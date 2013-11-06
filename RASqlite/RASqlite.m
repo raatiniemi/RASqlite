@@ -147,7 +147,7 @@ static sqlite3 *_database;
 
 	// TODO: Documentation.
 	// Reminder: The strcmp function returns zero if the strings are equal.
-	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+	if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 		block();
 	} else {
 		dispatch_sync(_queue, block);
@@ -196,7 +196,7 @@ static sqlite3 *_database;
 
 	// TODO: Documentation.
 	// Reminder: The strcmp function returns zero if the strings are equal.
-	if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+	if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 		block();
 	} else {
 		dispatch_sync(_queue, block);
@@ -230,7 +230,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -295,7 +295,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -334,7 +334,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -412,7 +412,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -451,7 +451,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -632,7 +632,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -708,7 +708,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -745,7 +745,7 @@ static sqlite3 *_database;
 	if ( ![self error] && [self database] ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -795,7 +795,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -854,7 +854,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -892,7 +892,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);
@@ -925,7 +925,7 @@ static sqlite3 *_database;
 	if ( !error ) {
 		// TODO: Documentation.
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
 		} else {
 			dispatch_sync(_queue, block);

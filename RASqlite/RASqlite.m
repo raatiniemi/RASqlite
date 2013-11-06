@@ -399,7 +399,52 @@ static sqlite3 *_database;
 		[sql appendString:@");"];
 
 		if ( !error ) {
-			[self execute:sql];
+			if ( [self execute:sql] ) {
+				// TODO: Debug message, table have been created.
+				NSLog(@"Table %@ have been created.", table);
+			} else {
+				// TODO: Debug message, table have not been created.
+				NSLog(@"Table %@ have not been created.", table);
+			}
+		}
+	};
+
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
+	}
+
+	return error == nil;
+}
+
+- (BOOL)deleteTable:(NSString *)table
+{
+	RASqliteError __block *error = [self error];
+
+	if ( !table ) {
+		// TODO: Correct error code.
+		error = [RASqliteError code:0
+							message:@"Unable to check table without valid name."];
+	}
+
+	void (^block)(void) = ^(void) {
+		if ( [self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]] ) {
+			// TODO: Debug message, table have been removed.
+			NSLog(@"Table %@ have been removed.", table);
+		} else {
+			// TODO: Debug message, table have not been removed.
+			NSLog(@"Table %@ have not been removed.", table);
 		}
 	};
 

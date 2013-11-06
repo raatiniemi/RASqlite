@@ -407,6 +407,20 @@ typedef enum {
  */
 - (RASqliteRow *)fetchRow:(NSString *)sql;
 
+/**
+ Retrieve id for the last inserted row.
+
+ @return Id for the last inserted row.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ This method should only be called from within a block sent to either the `queueWithBlock:`
+ or `queueTransactionWithBlock:` methods, otherwise there's a theoretical possibility
+ that one query will be executed between the insert and the call to this method.
+ */
+- (NSNumber *)lastInsertId;
+
 #pragma mark -- Update
 
 /**

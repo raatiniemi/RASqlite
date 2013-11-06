@@ -734,6 +734,27 @@ static sqlite3 *_database;
 	return [self fetchRow:sql withParams:nil];
 }
 
+- (NSNumber *)lastInsertId
+{
+	NSNumber __block *insertId;
+
+	void (^block)(void) = ^(void) {
+		insertId = [NSNumber numberWithLongLong:sqlite3_last_insert_rowid([self database])];
+	};
+
+	if ( ![self error] && [self database] ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+	}
+
+	return insertId;
+}
+
 #pragma mark -- Update
 
 - (BOOL)execute:(NSString *)sql withParams:(NSArray *)params

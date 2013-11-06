@@ -40,6 +40,13 @@ static const NSString *kRASqliteText = @"TEXT";
 /// Column data type for `BLOB`.
 static const NSString *kRASqliteBlob = @"BLOB";
 
+/// Definition of available transaction types.
+typedef enum {
+	RASqliteTransactionDeferred,
+	RASqliteTransactionImmediate,
+	RASqliteTransactionExclusive
+} RASqliteTransaction;
+
 // -- -- RASqlite
 
 #import "RASqliteError.h"
@@ -478,6 +485,46 @@ static const NSString *kRASqliteBlob = @"BLOB";
  */
 - (BOOL)execute:(NSString *)sql;
 
+#pragma mark -- Transaction
+
+/**
+ Begin specified type of transaction.
+
+ @param type The transaction type to begin.
+
+ @return `YES` if the transaction is started, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)beginTransaction:(RASqliteTransaction)type;
+
+/**
+ Begin default (deferred) transaction type.
+
+ @return `YES` if the transaction is started, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)beginTransaction;
+
+/**
+ Attempt to roll back the transaction changes.
+
+ @return `YES` if the transaction have been rolled back, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)rollBack;
+
+/**
+ Attempt to commit the transaction changes.
+
+ @return `YES` if the transaction have been committed, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)commit;
+
 #pragma mark -- Queue
 
 /**
@@ -514,9 +561,5 @@ static const NSString *kRASqliteBlob = @"BLOB";
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 - (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block;
-
-#pragma mark - Transaction
-
-// TODO: Implement methods for commit, rollback and transaction types.
 
 @end

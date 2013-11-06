@@ -626,12 +626,6 @@ static sqlite3 *_database;
 									message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
 			}
 			sqlite3_finalize(statement);
-
-			// If an error occurred performing the query set the error. However,
-			// do not override the existing error, if it exists.
-			if ( ![self error] && error ) {
-				[self setError:error];
-			}
 		}
 	};
 
@@ -642,6 +636,12 @@ static sqlite3 *_database;
 			block();
 		} else {
 			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
 		}
 	}
 
@@ -702,12 +702,6 @@ static sqlite3 *_database;
 									message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
 			}
 			sqlite3_finalize(statement);
-
-			// If an error occurred performing the query set the error. However,
-			// do not override the existing error, if it exists.
-			if ( ![self error] && error ) {
-				[self setError:error];
-			}
 		}
 	};
 
@@ -718,6 +712,12 @@ static sqlite3 *_database;
 			block();
 		} else {
 			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
 		}
 	}
 
@@ -768,12 +768,6 @@ static sqlite3 *_database;
 									message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
 			}
 			sqlite3_finalize(statement);
-
-			// If an error occurred performing the query set the error. However,
-			// do not override the existing error, if it exists.
-			if ( ![self error] && error ) {
-				[self setError:error];
-			}
 		}
 	};
 
@@ -784,6 +778,12 @@ static sqlite3 *_database;
 			block();
 		} else {
 			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
 		}
 	}
 
@@ -800,6 +800,126 @@ static sqlite3 *_database;
 	return [self execute:sql withParams:nil];
 }
 
+#pragma mark -- Transaction
+
+- (BOOL)beginTransaction:(RASqliteTransaction)type
+{
+	RASqliteError __block *error = [self error];
+
+	void (^block)(void) = ^(void) {
+		const char *sql;
+		switch (type) {
+			case RASqliteTransactionExclusive:
+				sql = "BEGIN EXCLUSIVE TRANSACTION";
+				break;
+			case RASqliteTransactionImmediate:
+				sql = "BEGIN IMMEDIATE TRANSACTION";
+				break;
+			case RASqliteTransactionDeferred:
+			default:
+				sql = "BEGIN DEFERRED TRANSACTION";
+				break;
+		}
+
+		char *message;
+		int code = sqlite3_exec([self database], sql, 0, 0, &message);
+		if ( code != SQLITE_OK ) {
+			// TODO: Correct error code.
+			error = [RASqliteError code:0
+								message:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
+		}
+	};
+
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
+	}
+
+	return error == nil;
+}
+
+- (BOOL)beginTransaction
+{
+	return [self beginTransaction:RASqliteTransactionDeferred];
+}
+
+- (BOOL)rollBack
+{
+	RASqliteError __block *error = [self error];
+
+	void (^block)(void) = ^(void) {
+		char *message;
+		int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &message);
+		if ( code != SQLITE_OK ) {
+			// TODO: Correct error code.
+			error = [RASqliteError code:0
+								message:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
+		}
+	};
+
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
+	}
+
+	return error == nil;
+}
+
+- (BOOL)commit
+{
+	RASqliteError __block *error = [self error];
+
+	void (^block)(void) = ^(void) {
+		char *message;
+		int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &message);
+		if ( code != SQLITE_OK ) {
+			// TODO: Correct error code.
+			error = [RASqliteError code:0
+								message:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
+		}
+	};
+
+	if ( !error ) {
+		// TODO: Documentation.
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(RASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
+	}
+
+	return error == nil;
+}
+
 #pragma mark -- Queue
 
 - (void)queueWithBlock:(void (^)(RASqlite *db))block
@@ -811,18 +931,18 @@ static sqlite3 *_database;
 
 - (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block
 {
-	// TODO: Start transaction.
-	dispatch_sync(_queue, ^{
+	[self queueWithBlock:^(RASqlite *db) {
+		[self beginTransaction];
 		BOOL *commit;
 
-		block(self, &commit);
+		block(db, &commit);
 
 		if ( commit ) {
-//			[self commit];
+			[self commit];
 		} else {
-//			[self rollBack];
+			[self rollBack];
 		}
-	});
+	}];
 }
 
 @end

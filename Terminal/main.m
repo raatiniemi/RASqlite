@@ -33,7 +33,7 @@ int main(int argc, const char * argv[])
 
 				// Check if there are any users left.
 				NSArray *users = [model getUsers];
-				if ( users ) {
+				if ( [users count] > 0 ) {
 					NSLog(@"Users still exists.");
 				} else if ( ![model error] ) {
 					NSLog(@"No users exists.");

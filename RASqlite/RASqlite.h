@@ -57,7 +57,7 @@ typedef enum {
 #define RASqliteLog(format, ...)\
 	do {\
 		NSLog(\
-			(@"<%p %@:(%d)> " format)\
+			(@"<%p %@:(%d)> " format),\
 			self,\
 			[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
 			__LINE__,\

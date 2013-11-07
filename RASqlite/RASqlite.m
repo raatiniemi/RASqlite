@@ -114,6 +114,9 @@ static sqlite3 *_database;
 	// have to be resetted before setting a new instance.
 	if ( _database == nil || database == nil ) {
 		_database = database;
+	} else {
+		// Incase an rewrite have been attempted, this should be logged.
+		RASqliteLog(@"Database pointer rewrite attempt.");
 	}
 }
 
@@ -124,33 +127,48 @@ static sqlite3 *_database;
 
 - (RASqliteError *)openWithFlags:(int)flags
 {
-	RASqliteError __block *error;
+	RASqliteError __block *error = [self error];
 
 	void (^block)(void) = ^(void) {
+		// Check if the database already is active, not need to open it.
 		sqlite3 *database = [self database];
 		if ( !database ) {
 			int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
 			if ( code == SQLITE_OK ) {
-				// TODO: Debug message, database have successfully been opened.
-				NSLog(@"Database have successfully been opened.");
-
+				// The database was successfully opened.
 				[self setDatabase:database];
+				RASqliteLog(@"Database have successfully been opened.");
 			} else {
+				// Something went wrong...
 				error = [RASqliteError code:RASqliteErrorOpen
 									message:@"Unable to open database, received code `%i`.", code];
 			}
 		} else {
-			// TODO: Debug message, database is already open.
-			NSLog(@"Database is already open.");
+			// No need to attempt to open the database, it's already open.
+			RASqliteLog(@"Database is already open.");
 		}
 	};
 
-	// TODO: Documentation.
-	// Reminder: The strcmp function returns zero if the strings are equal.
-	if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		block();
-	} else {
-		dispatch_sync(_queue, block);
+	if ( !error ) {
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
 	}
 
 	return error;
@@ -163,14 +181,18 @@ static sqlite3 *_database;
 
 - (RASqliteError *)close
 {
-	RASqliteError __block *error;
+	RASqliteError __block *error = [self error];
 
 	void (^block)(void) = ^(void) {
+		// Check if we have an active database instance, no need to attempt
+		// a close if we don't.
 		sqlite3 *database = [self database];
 		if ( database ) {
 			BOOL retry;
 			int code;
 
+			// Repeat the close process until the database is closed, an error
+			// occurres, or the retry attempts have been depleted.
 			do {
 				// Reset the retry control and attempt to close the database.
 				retry = NO;
@@ -182,24 +204,36 @@ static sqlite3 *_database;
 					error = [RASqliteError code:RASqliteErrorClose
 										message:@"Unable to close database, received code `%i`.", code];
 				} else {
-					// TODO: Debug message, database have successfully been closed.
-					NSLog(@"Database have successfully been closed.");
-
 					[self setDatabase:nil];
+					RASqliteLog(@"Database have successfully been closed.");
 				}
 			} while (retry);
 		} else {
-			// TODO: Debug message, database is already closed.
-			NSLog(@"Database is already closed.");
+			// No need to close, it is already closed.
+			RASqliteLog(@"Database is already closed.");
 		}
 	};
 
-	// TODO: Documentation.
-	// Reminder: The strcmp function returns zero if the strings are equal.
-	if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
-		block();
-	} else {
-		dispatch_sync(_queue, block);
+	if ( !error ) {
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
+		// Reminder: The strcmp function returns zero if the strings are equal.
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+			block();
+		} else {
+			dispatch_sync(_queue, block);
+		}
+
+		// If an error occurred performing the query set the error. However,
+		// do not override the existing error, if it exists.
+		if ( ![self error] && error ) {
+			[self setError:error];
+		}
 	}
 
 	return error;
@@ -228,7 +262,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -293,7 +333,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -332,7 +378,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -410,7 +462,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -449,7 +507,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -630,7 +694,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -706,7 +776,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -743,7 +819,13 @@ static sqlite3 *_database;
 	};
 
 	if ( ![self error] && [self database] ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -793,7 +875,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -852,7 +940,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -890,7 +984,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();
@@ -923,7 +1023,13 @@ static sqlite3 *_database;
 	};
 
 	if ( !error ) {
-		// TODO: Documentation.
+		// Since this method can be called separately or from either of the
+		// queue with block methods, we have to check which thread/queue we are
+		// currently executing on. And, depending on the results, execute the
+		// block function on the correct thread/queue. Otherwise, we'd either
+		// create a thread dead lock or risk getting memory issues due to
+		// concurrent write operations to single source.
+		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
 		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
 			block();

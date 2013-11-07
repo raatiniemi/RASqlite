@@ -11,9 +11,9 @@
 
 // -- -- Constants
 
-/**
- Format for the name of the query threads.
- */
+// -- -- Threading
+
+/// Format for the name of the query threads.
 #define kRASqliteThreadFormat @"me.raatiniemi.rasqlite.%@"
 
 /**
@@ -24,6 +24,8 @@
  queries, or if the sync thread already have been dispatched.
  */
 #define kRASqliteQueueLabel dispatch_queue_get_label(dispatch_get_current_queue())
+
+// -- -- Data types
 
 /// Column data type for `NULL`.
 static const NSString *kRASqliteNull = @"NULL";
@@ -40,12 +42,43 @@ static const NSString *kRASqliteText = @"TEXT";
 /// Column data type for `BLOB`.
 static const NSString *kRASqliteBlob = @"BLOB";
 
+// -- -- Transaction
+
 /// Definition of available transaction types.
 typedef enum {
 	RASqliteTransactionDeferred,
 	RASqliteTransactionImmediate,
 	RASqliteTransactionExclusive
 } RASqliteTransaction;
+
+// -- -- Logging
+
+/// Definition of the available log levels.
+typedef enum {
+	RASqliteLogLevelNothing,
+	RASqliteLogLevelError,
+	RASqliteLogLevelInfo
+} RASqliteLogLevel;
+
+/// Log level used within the library, change this to enable more logging.
+#define kRASqliteLogLevel RASqliteLogLevelNothing
+
+#ifdef kRASqliteDebugEnabled
+#define RASqliteLog(format, ...)\
+	do {\
+		if( kRASqliteLogLevel >= RASqliteLogLevelInfo ) {\
+			NSLog(\
+				(@"<%p %@:(%d)> " format),\
+				self,\
+				[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
+				__LINE__,\
+				##__VA_ARGS__\
+			);\
+		}\
+	} while(0)
+#else
+#define RASqliteLog(format, ...)
+#endif
 
 // -- -- RASqlite
 

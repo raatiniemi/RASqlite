@@ -29,14 +29,14 @@ int main(int argc, const char * argv[])
 
 			// Check if the user could be removed.
 			if ( success ) {
-				RASqliteLog(@"User have been removed.");
+				NSLog(@"User have been removed.");
 
 				// Check if there are any users left.
 				NSArray *users = [model getUsers];
 				if ( [users count] > 0 ) {
-					RASqliteLog(@"Users still exists.");
+					NSLog(@"Users still exists.");
 				} else if ( ![model error] ) {
-					RASqliteLog(@"No users exists.");
+					NSLog(@"No users exists.");
 				} else {
 					// We have to reset the error variable, if an error occurres,
 					// after we have handled it. Otherwise, the database instance
@@ -44,7 +44,7 @@ int main(int argc, const char * argv[])
 					[model setError:nil];
 				}
 			} else {
-				RASqliteLog(@"User could not be removed.");
+				NSLog(@"User could not be removed.");
 
 				// We have to reset the error variable, if an error occurres,
 				// after we have handled it. Otherwise, the database instance
@@ -55,9 +55,9 @@ int main(int argc, const char * argv[])
 			// No user were found, we should create it.
 			BOOL success = [model addUser:@"raatiniemi"];
 			if ( success ) {
-				RASqliteLog(@"User have been created.");
+				NSLog(@"User have been created.");
 			} else {
-				RASqliteLog(@"User could not be created.");
+				NSLog(@"User could not be created.");
 
 				// We have to reset the error variable, if an error occurres,
 				// after we have handled it. Otherwise, the database instance

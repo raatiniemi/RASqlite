@@ -19,17 +19,6 @@ static sqlite3 *_database;
  */
 @property (nonatomic, readwrite, strong) NSString *path;
 
-#pragma mark - Database
-
-/**
- Set the database instance.
-
- @param database Database instance.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
- */
-- (void)setDatabase:(sqlite3 *)database;
-
 #pragma mark - Query
 
 /**
@@ -422,6 +411,7 @@ static sqlite3 *_database;
 		NSMutableString *sql = [[NSMutableString alloc] init];
 		[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
 
+		// Assemble the columns and data types for the structure.
 		NSUInteger index = 0;
 		for ( NSString *name in columns ) {
 			if ( index > 0 ) {
@@ -434,6 +424,8 @@ static sqlite3 *_database;
 			if ( [types indexOfObject:type] != NSNotFound ) {
 				[sql appendString:type];
 
+				// The `integer` data type have to be handled differently than the
+				// other types, either primary key or default value have to be set.
 				if ( [kRASqliteInteger isEqualToString:type] ) {
 					if ( [name isEqualToString:@"id"] ) {
 						[sql appendString:@" PRIMARY KEY"];
@@ -449,14 +441,13 @@ static sqlite3 *_database;
 			index++;
 		}
 		[sql appendString:@");"];
+		RASqliteLog(@"Create query: %@", sql);
 
 		if ( !error ) {
 			if ( [self execute:sql] ) {
-				// TODO: Debug message, table have been created.
-				NSLog(@"Table %@ have been created.", table);
+				RASqliteLog(@"Table `%@` have been created.", table);
 			} else {
-				// TODO: Debug message, table have not been created.
-				NSLog(@"Table %@ have not been created.", table);
+				RASqliteLog(@"Table `%@` have not been created.", table);
 			}
 		}
 	};
@@ -498,11 +489,9 @@ static sqlite3 *_database;
 
 	void (^block)(void) = ^(void) {
 		if ( [self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]] ) {
-			// TODO: Debug message, table have been removed.
-			NSLog(@"Table %@ have been removed.", table);
+			RASqliteLog(@"Table `%@` have been removed.", table);
 		} else {
-			// TODO: Debug message, table have not been removed.
-			NSLog(@"Table %@ have not been removed.", table);
+			RASqliteLog(@"Table `%@` have not been removed.", table);
 		}
 	};
 
@@ -760,8 +749,7 @@ static sqlite3 *_database;
 							row = nil;
 						}
 					} else if ( code == SQLITE_DONE ) {
-						// TODO: Debug message, no rows were found.
-						NSLog(@"No rows were found with query: `%@`", sql);
+						RASqliteLog(@"No rows were found with query: %@", sql);
 					} else {
 						error = [RASqliteError code:RASqliteErrorQuery
 											message:@"Failed to retrieve result, received code: `%i`", code];

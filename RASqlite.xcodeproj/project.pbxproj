@@ -60,6 +60,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2D26F779182C1C930043E0C3 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				2DE1B54F18281C5500CF85B2 /* RATerminalModel.h */,
+				2DE1B55018281C5500CF85B2 /* RATerminalModel.m */,
+			);
+			name = Model;
+			sourceTree = "<group>";
+		};
 		2D59929C181D1B470006A177 = {
 			isa = PBXGroup;
 			children = (
@@ -90,9 +99,8 @@
 		2D5992AC181D1B780006A177 /* Terminal */ = {
 			isa = PBXGroup;
 			children = (
+				2D26F779182C1C930043E0C3 /* Model */,
 				2D5992AD181D1B780006A177 /* main.m */,
-				2DE1B54F18281C5500CF85B2 /* RATerminalModel.h */,
-				2DE1B55018281C5500CF85B2 /* RATerminalModel.m */,
 				2D5992AF181D1B780006A177 /* Supporting Files */,
 			);
 			path = Terminal;

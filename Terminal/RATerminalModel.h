@@ -10,6 +10,11 @@
 
 #import "RASqlite.h"
 
+/**
+ Model for working with the sample user database.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 @interface RATerminalModel : RASqlite
 
 - (RASqliteRow *)getUser:(NSString *)name;

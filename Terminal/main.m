@@ -12,7 +12,7 @@
 int main(int argc, const char * argv[])
 {
 	@autoreleasepool {
-		RATerminalModel *model = [[RATerminalModel alloc] initWithName:@"user.db"];
+		RATerminalModel *model = [[RATerminalModel alloc] init];
 		[model queueWithBlock:^(RASqlite *db) {
 			if ( ![db check] ) {
 				[db setError:nil];
@@ -29,25 +29,22 @@ int main(int argc, const char * argv[])
 
 			// Check if the user could be removed.
 			if ( success ) {
-				NSLog(@"User have been removed.");
+				RASqliteLog(@"User have been removed.");
 
 				// Check if there are any users left.
 				NSArray *users = [model getUsers];
 				if ( [users count] > 0 ) {
-					NSLog(@"Users still exists.");
+					RASqliteLog(@"Users still exists.");
 				} else if ( ![model error] ) {
-					NSLog(@"No users exists.");
+					RASqliteLog(@"No users exists.");
 				} else {
-					NSLog(@"An error occurred: %@", [[model error] localizedDescription]);
-
 					// We have to reset the error variable, if an error occurres,
 					// after we have handled it. Otherwise, the database instance
 					// won't be able to execute any more queries.
 					[model setError:nil];
 				}
 			} else {
-				NSLog(@"User could not be removed.");
-				NSLog(@"An error occurred: %@", [[model error] localizedDescription]);
+				RASqliteLog(@"User could not be removed.");
 
 				// We have to reset the error variable, if an error occurres,
 				// after we have handled it. Otherwise, the database instance
@@ -58,10 +55,9 @@ int main(int argc, const char * argv[])
 			// No user were found, we should create it.
 			BOOL success = [model addUser:@"raatiniemi"];
 			if ( success ) {
-				NSLog(@"User have been created.");
+				RASqliteLog(@"User have been created.");
 			} else {
-				NSLog(@"User could not be created.");
-				NSLog(@"An error occurred: %@", [[model error] localizedDescription]);
+				RASqliteLog(@"User could not be created.");
 
 				// We have to reset the error variable, if an error occurres,
 				// after we have handled it. Otherwise, the database instance
@@ -69,9 +65,6 @@ int main(int argc, const char * argv[])
 				[model setError:nil];
 			}
 		} else {
-			// An error occurred and we couldn't retrieve the user, handle it.
-			NSLog(@"An error occurred: %@", [[model error] localizedDescription]);
-
 			// We have to reset the error variable, if an error occurres, after
 			// we have handled it. Otherwise, the database instance won't be able
 			// to execute any more queries.

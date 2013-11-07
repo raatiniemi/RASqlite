@@ -53,28 +53,16 @@ typedef enum {
 
 // -- -- Logging
 
-/// Definition of the available log levels.
-typedef enum {
-	RASqliteLogLevelNothing,
-	RASqliteLogLevelError,
-	RASqliteLogLevelInfo
-} RASqliteLogLevel;
-
-/// Log level used within the library, change this to enable more logging.
-#define kRASqliteLogLevel RASqliteLogLevelNothing
-
 #ifdef kRASqliteDebugEnabled
 #define RASqliteLog(format, ...)\
 	do {\
-		if( kRASqliteLogLevel >= RASqliteLogLevelInfo ) {\
-			NSLog(\
-				(@"<%p %@:(%d)> " format),\
-				self,\
-				[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
-				__LINE__,\
-				##__VA_ARGS__\
-			);\
-		}\
+		NSLog(\
+			(@"<%p %@:(%d)> " format)\
+			self,\
+			[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
+			__LINE__,\
+			##__VA_ARGS__\
+		);\
 	} while(0)
 #else
 #define RASqliteLog(format, ...)
@@ -95,11 +83,6 @@ typedef enum {
  Stores the first occurred error, `nil` if none has occurred.
  */
 @property (nonatomic, readwrite, strong) RASqliteError *error;
-
-/**
- Stores the defined structure for the database tables.
- */
-@property (nonatomic, readonly, copy) NSDictionary *structure;
 
 #pragma mark - Initialization
 
@@ -127,6 +110,20 @@ typedef enum {
 - (instancetype)initWithPath:(NSString *)path;
 
 #pragma mark - Database
+
+/**
+ Stores the defined structure for the database tables.
+ */
+@property (nonatomic, readonly, copy) NSDictionary *structure;
+
+/**
+ Set the database instance.
+
+ @param database Database instance.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)setDatabase:(sqlite3 *)database;
 
 /**
  Retrieves the database instance.

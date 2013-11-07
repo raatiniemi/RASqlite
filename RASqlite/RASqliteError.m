@@ -7,6 +7,7 @@
 //
 
 #import "RASqliteError.h"
+#import "RASqlite.h"
 
 @implementation RASqliteError
 
@@ -16,6 +17,7 @@
 	va_start(args, message);
 	message = [[NSString alloc] initWithFormat:message arguments:args];
 	va_end(args);
+	RASqliteLog(@"Error with message: `%@`", message);
 
 	NSDictionary *userInfo = @{NSLocalizedDescriptionKey: message};
 	return [[self class] errorWithDomain:RASqliteErrorDomain code:code userInfo:userInfo];

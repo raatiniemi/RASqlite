@@ -8,6 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
+/**
+ Represent a row within a result set.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 @interface RASqliteRow : NSObject
 
 #pragma mark - Initialization

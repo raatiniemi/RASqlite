@@ -9,8 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <sqlite3.h>
 
-// -- -- Constants
-
 // -- -- Threading
 
 /// Format for the name of the query threads.
@@ -73,15 +71,16 @@ typedef enum {
 #import "RASqliteError.h"
 #import "RASqliteRow.h"
 
-@interface RASqlite : NSObject {
-@protected dispatch_queue_t _queue;
+/**
+ Wrapper for working with SQLite databases.
 
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+@interface RASqlite : NSObject {
 @protected RASqliteError *_error;
 }
 
-/**
- Stores the first occurred error, `nil` if none has occurred.
- */
+/// Stores the first occurred error, `nil` if none has occurred.
 @property (nonatomic, readwrite, strong) RASqliteError *error;
 
 #pragma mark - Initialization

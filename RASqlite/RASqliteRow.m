@@ -12,6 +12,7 @@
 @private NSMutableDictionary *_data;
 }
 
+/// Internal data storage for the row.
 @property (nonatomic, readwrite, strong) NSMutableDictionary *data;
 
 @end

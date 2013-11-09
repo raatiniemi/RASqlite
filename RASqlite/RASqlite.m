@@ -8,15 +8,27 @@
 
 #import "RASqlite.h"
 
+/**
+ Instance for the database.
+
+ @note
+ If multiple models are defined using the RASqlite class as parent and each model
+ is using a separate database file. Each model have to define a new database variable
+ and override the `database` and `setDatabase:` methods. Otherwise, only one instance
+ can be active at one given time.
+ */
 static sqlite3 *_database;
 
 @interface RASqlite () {
+@private dispatch_queue_t _queue;
+
 @private NSString *_path;
 }
 
-/**
- Stores the path for the database file.
- */
+/// Queue on which all of the queries will be executed on.
+@property (nonatomic, readwrite, strong) dispatch_queue_t queue;
+
+/// Stores the path for the database file.
 @property (nonatomic, readwrite, strong) NSString *path;
 
 #pragma mark - Query
@@ -53,6 +65,8 @@ static sqlite3 *_database;
 
 @implementation RASqlite
 
+@synthesize queue = _queue;
+
 @synthesize path = _path;
 
 @synthesize error = _error;
@@ -78,7 +92,7 @@ static sqlite3 *_database;
 
 		// Create the thread for running queries, using the name for the database file.
 		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, name];
-		_queue = dispatch_queue_create([thread UTF8String], NULL);
+		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
 	}
 	return self;
 }
@@ -147,10 +161,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -212,10 +226,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -259,10 +273,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -330,10 +344,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -375,10 +389,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -461,10 +475,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -504,10 +518,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -691,10 +705,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -772,10 +786,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -815,10 +829,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 	}
 
@@ -871,10 +885,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -936,10 +950,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -980,10 +994,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -1019,10 +1033,10 @@ static sqlite3 *_database;
 		// concurrent write operations to single source.
 		//
 		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label(_queue)) ) {
+		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
 			block();
 		} else {
-			dispatch_sync(_queue, block);
+			dispatch_sync([self queue], block);
 		}
 
 		// If an error occurred performing the query set the error. However,
@@ -1039,7 +1053,7 @@ static sqlite3 *_database;
 
 - (void)queueWithBlock:(void (^)(RASqlite *db))block
 {
-	dispatch_sync(_queue, ^{
+	dispatch_sync([self queue], ^{
 		block(self);
 	});
 }

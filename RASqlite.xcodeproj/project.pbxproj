@@ -29,6 +29,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2D1D7472182EDBA70049BB3A /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
+		2D1D7473182EDBA70049BB3A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		2D5992A7181D1B780006A177 /* Terminal */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Terminal; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D5992AA181D1B780006A177 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2D5992AD181D1B780006A177 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -71,8 +73,8 @@
 			children = (
 				2D5992B9181D25DE0006A177 /* RASqlite */,
 				2D5992AC181D1B780006A177 /* Terminal */,
-				2D5992A9181D1B780006A177 /* Frameworks */,
 				2D5992A8181D1B780006A177 /* Products */,
+				2D5992A9181D1B780006A177 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -114,10 +116,12 @@
 		2D5992B9181D25DE0006A177 /* RASqlite */ = {
 			isa = PBXGroup;
 			children = (
+				2D1D7472182EDBA70049BB3A /* license.txt */,
 				2D5992BA181D26610006A177 /* RASqlite.h */,
 				2D5992BB181D26610006A177 /* RASqlite.m */,
 				2D5992C1181D4B270006A177 /* RASqliteError.h */,
 				2D5992C2181D4B270006A177 /* RASqliteError.m */,
+				2D1D7473182EDBA70049BB3A /* README.md */,
 				2D5992C0181D3AF70006A177 /* Result */,
 			);
 			name = RASqlite;

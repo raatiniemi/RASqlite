@@ -350,7 +350,7 @@ typedef enum {
  @param params Parameters to bind to the query.
 
  @code
- NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE baz = ? AND qux = ? LIMIT 1" withParams:@[@53, @"id"]];
+ RASqliteRow *row = [self fetchRow:@"SELECT foo FROM bar WHERE baz = ? AND qux = ? LIMIT 1" withParams:@[@53, @"id"]];
  if ( row ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -384,7 +384,7 @@ typedef enum {
  @param param Parameter to bind to the query.
 
  @code
- NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE qux = ? LIMIT 1" withParam:@53];
+ RASqliteRow *row = [self fetchRow:@"SELECT foo FROM bar WHERE qux = ? LIMIT 1" withParam:@53];
  if ( row ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -413,7 +413,7 @@ typedef enum {
  @param sql Query to perform against the database.
 
  @code
- NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar ORDER BY baz ASC LIMIT 1"];
+ RASqliteRow *row = [self fetchRow:@"SELECT foo FROM bar ORDER BY baz ASC LIMIT 1"];
  if ( row ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -576,7 +576,7 @@ typedef enum {
  @param block Block to be executed.
 
  @code
- NSDictionary __block *row;
+ RASqliteRow __block *row;
  [self queueWithBlock:^(RASqlite *db) {
 	row = [db fetchRow:@"SELECT foo FROM bar WHERE baz = ?" withParam:@"qux"];
  }];

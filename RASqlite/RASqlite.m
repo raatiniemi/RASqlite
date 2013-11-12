@@ -131,27 +131,27 @@ static sqlite3 *_database;
 - (RASqliteError *)openWithFlags:(int)flags
 {
 	RASqliteError __block *error = [self error];
-	void (^block)(void) = ^(void) {
-		// Check if the database already is active, not need to open it.
-		sqlite3 *database = [self database];
-		if ( !database ) {
-			int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
-			if ( code == SQLITE_OK ) {
-				// The database was successfully opened.
-				[self setDatabase:database];
-				RASqliteLog(@"Database have successfully been opened.");
-			} else {
-				// Something went wrong...
-				error = [RASqliteError code:RASqliteErrorOpen
-									message:@"Unable to open database, received code `%i`.", code];
-			}
-		} else {
-			// No need to attempt to open the database, it's already open.
-			RASqliteLog(@"Database is already open.");
-		}
-	};
-
 	if ( !error ) {
+		void (^block)(void) = ^(void) {
+			// Check if the database already is active, not need to open it.
+			sqlite3 *database = [self database];
+			if ( !database ) {
+				int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
+				if ( code == SQLITE_OK ) {
+					// The database was successfully opened.
+					[self setDatabase:database];
+					RASqliteLog(@"Database have successfully been opened.");
+				} else {
+					// Something went wrong...
+					error = [RASqliteError code:RASqliteErrorOpen
+										message:@"Unable to open database, received code `%i`.", code];
+				}
+			} else {
+				// No need to attempt to open the database, it's already open.
+				RASqliteLog(@"Database is already open.");
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -184,38 +184,38 @@ static sqlite3 *_database;
 - (RASqliteError *)close
 {
 	RASqliteError __block *error = [self error];
-	void (^block)(void) = ^(void) {
-		// Check if we have an active database instance, no need to attempt
-		// a close if we don't.
-		sqlite3 *database = [self database];
-		if ( database ) {
-			BOOL retry;
-			int code;
-
-			// Repeat the close process until the database is closed, an error
-			// occurres, or the retry attempts have been depleted.
-			do {
-				// Reset the retry control and attempt to close the database.
-				retry = NO;
-				code = sqlite3_close(database);
-
-				// TODO: Check if database is locked or busy and attempt a retry.
-				// TODO: Handle retry infinite loop.
-				if ( code != SQLITE_OK ) {
-					error = [RASqliteError code:RASqliteErrorClose
-										message:@"Unable to close database, received code `%i`.", code];
-				} else {
-					[self setDatabase:nil];
-					RASqliteLog(@"Database have successfully been closed.");
-				}
-			} while (retry);
-		} else {
-			// No need to close, it is already closed.
-			RASqliteLog(@"Database is already closed.");
-		}
-	};
-
 	if ( !error ) {
+		void (^block)(void) = ^(void) {
+			// Check if we have an active database instance, no need to attempt
+			// a close if we don't.
+			sqlite3 *database = [self database];
+			if ( database ) {
+				BOOL retry;
+				int code;
+
+				// Repeat the close process until the database is closed, an error
+				// occurres, or the retry attempts have been depleted.
+				do {
+					// Reset the retry control and attempt to close the database.
+					retry = NO;
+					code = sqlite3_close(database);
+
+					// TODO: Check if database is locked or busy and attempt a retry.
+					// TODO: Handle retry infinite loop.
+					if ( code != SQLITE_OK ) {
+						error = [RASqliteError code:RASqliteErrorClose
+											message:@"Unable to close database, received code `%i`.", code];
+					} else {
+						[self setDatabase:nil];
+						RASqliteLog(@"Database have successfully been closed.");
+					}
+				} while (retry);
+			} else {
+				// No need to close, it is already closed.
+				RASqliteLog(@"Database is already closed.");
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the

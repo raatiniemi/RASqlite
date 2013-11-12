@@ -26,8 +26,8 @@ static sqlite3 *_database;
 - (NSDictionary *)structure
 {
 	NSMutableDictionary *user = [[NSMutableDictionary alloc] init];
-	[user setObject:kRASqliteInteger forKey:@"id"];
-	[user setObject:kRASqliteText forKey:@"name"];
+	[user setObject:RASqliteInteger forKey:@"id"];
+	[user setObject:RASqliteText forKey:@"name"];
 
 	NSMutableDictionary *tabeller = [[NSMutableDictionary alloc] init];
 	[tabeller setObject:user forKey:@"user"];

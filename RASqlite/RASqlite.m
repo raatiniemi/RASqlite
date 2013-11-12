@@ -119,7 +119,7 @@ static sqlite3 *_database;
 		_database = database;
 	} else {
 		// Incase an rewrite have been attempted, this should be logged.
-		RASqliteLog(@"Database pointer rewrite attempt.");
+		RASqliteLog(@"Attempt to rewrite database pointer.");
 	}
 }
 
@@ -131,7 +131,6 @@ static sqlite3 *_database;
 - (RASqliteError *)openWithFlags:(int)flags
 {
 	RASqliteError __block *error = [self error];
-
 	void (^block)(void) = ^(void) {
 		// Check if the database already is active, not need to open it.
 		sqlite3 *database = [self database];
@@ -185,7 +184,6 @@ static sqlite3 *_database;
 - (RASqliteError *)close
 {
 	RASqliteError __block *error = [self error];
-
 	void (^block)(void) = ^(void) {
 		// Check if we have an active database instance, no need to attempt
 		// a close if we don't.
@@ -246,25 +244,29 @@ static sqlite3 *_database;
 
 - (BOOL)check
 {
-	RASqliteError __block *error = [self error];
+	// Keep track if whether the structure for the table is valid. The default
+	// value have to be `YES`, otherwise we risk of deleting the table when
+	// something is wrong with the database instance.
+	BOOL __block valid = YES;
 
-	void (^block)(void) = ^(void) {
-		NSDictionary *tables = [self structure];
-		if ( tables ) {
-			for ( NSString *table in tables ) {
-				if ( ![self checkTable:table withColumns:[tables objectForKey:table]] ) {
-					error = [self error];
-					break;
+	// Check that we have a valid database instance.
+	if ( [self database] ) {
+		void (^block)(void) = ^(void) {
+			NSDictionary *tables = [self structure];
+			if ( tables ) {
+				for ( NSString *table in tables ) {
+					if ( ![self checkTable:table withColumns:[tables objectForKey:table]] ) {
+						valid = NO;
+						break;
+					}
 				}
+			} else {
+				// Raise an exception, no structure have been supplied.
+				[NSException raise:@"Check database"
+							format:@"Unable to check database structure, none has been supplied."];
 			}
-		} else {
-			// TODO: Correct error code.
-			error = [RASqliteError code:0
-								message:@"Unable to check database structure, none has been supplied."];
-		}
-	};
+		};
 
-	if ( !error ) {
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -278,64 +280,59 @@ static sqlite3 *_database;
 		} else {
 			dispatch_sync([self queue], block);
 		}
-
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
-		}
 	}
 
-	return error == nil;
+	return valid;
 }
 
 - (BOOL)checkTable:(NSString *)table withColumns:(NSDictionary *)columns
 {
-	RASqliteError __block *error = [self error];
-
 	if ( !table ) {
-		// TODO: Correct error code.
-		error = [RASqliteError code:0
-							message:@"Unable to check table without valid name."];
+		// Raise an exception, no valid table name.
+		[NSException raise:@"Check table"
+					format:@"Unable to check table without valid name."];
 	}
 
 	if ( !columns ) {
-		// TODO: Correct error code.
-		error = [RASqliteError code:0
-							message:@"Unable to check table without defined columns."];
+		// Raise an exception, no defined columns.
+		[NSException raise:@"Check table"
+					format:@"Unable to check table without defined columns."];
 	}
 
-	void (^block)(void) = ^(void) {
-		NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
+	// Keeps track on whether the structure for the table is valid. The default
+	// value have to be `YES`, otherwise we risk of deleting the table when
+	// something is wrong with the database instance.
+	BOOL __block valid = YES;
 
-		if ( [tColumns count] == [columns count] ) {
-			unsigned int index = 0;
-			for ( NSString *column in columns ) {
-				RASqliteRow *tColumn = [tColumns objectAtIndex:index];
-				if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
-					// TODO: Correct error code.
-					NSString *message = @"Column name `%@` do not match index `%i` for the given structure.";
-					error = [RASqliteError code:0 message:message, table, index];
-					break;
-				}
+	// Check that we have a valid database instance.
+	if ( [self database] ) {
+		void (^block)(void) = ^(void) {
+			// Check whether the defined columns and the table columns match.
+			NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
+			if ( [tColumns count] == [columns count] ) {
+				unsigned int index = 0;
+				for ( NSString *column in columns ) {
+					RASqliteRow *tColumn = [tColumns objectAtIndex:index];
+					if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
+						RASqliteLog(@"Column name `%@` do not match index `%i` for the given structure.", table, index);
+						valid = NO;
+						break;
+					}
 
-				NSString *type = [columns objectForKey:column];
-				if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
-					// TODO: Correct error code.
-					NSString *message = @"Column type `%@` to not match index `%i` for given structure.";
-					error = [RASqliteError code:0 message:message, table, index];
-					break;
+					NSString *type = [columns objectForKey:column];
+					if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
+						RASqliteLog(@"Column type `%@` to not match index `%i` for given structure.", table, index);
+						valid = NO;
+						break;
+					}
+					index++;
 				}
-				index++;
+			} else {
+				RASqliteLog(@"Number of specified columns for table `%@` do not matched the defined table count.", table);
+				valid = NO;
 			}
-		} else {
-			// TODO: Correct error code.
-			NSString *message = @"Number of specified columns for table `%@` do not matched the defined table count.";
-			error = [RASqliteError code:0 message:message, table];
-		}
-	};
+		};
 
-	if ( !error ) {
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -349,38 +346,38 @@ static sqlite3 *_database;
 		} else {
 			dispatch_sync([self queue], block);
 		}
-
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
-		}
 	}
 
-	return error == nil;
+	return valid;
 }
 
 - (BOOL)create
 {
-	RASqliteError __block *error = [self error];
+	// Keeps track on whether the structure was created.
+	BOOL __block created = NO;
 
-	void (^block)(void) = ^(void) {
-		NSDictionary *tables = [self structure];
-		if ( tables ) {
-			for ( NSString *table in tables ) {
-				if ( ![self createTable:table withColumns:[tables objectForKey:table]] ) {
-					error = [self error];
-					break;
+	// Check that we have a valid database instance.
+	if ( [self database] ) {
+		void (^block)(void) = ^(void) {
+			NSDictionary *tables = [self structure];
+			if ( tables ) {
+				// Change the created check before going in to the create loop.
+				created = YES;
+
+				// Loops through each of the tables and attempt to create their structure.
+				for ( NSString *table in tables ) {
+					if ( ![self createTable:table withColumns:[tables objectForKey:table]] ) {
+						created = NO;
+						break;
+					}
 				}
+			} else {
+				// Raise an exception, no structure have been supplied.
+				[NSException raise:@"Create database"
+							format:@"Unable to create database structure, none has been supplied."];
 			}
-		} else {
-			// TODO: Correct error code.
-			error = [RASqliteError code:0
-								message:@"Unable to check database structure, none has been supplied."];
-		}
-	};
+		};
 
-	if ( !error ) {
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -394,79 +391,76 @@ static sqlite3 *_database;
 		} else {
 			dispatch_sync([self queue], block);
 		}
-
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
-		}
 	}
 
-	return error == nil;
+	return created;
 }
 
 - (BOOL)createTable:(NSString *)table withColumns:(NSDictionary *)columns
 {
-	RASqliteError __block *error = [self error];
-
 	if ( !table ) {
-		// TODO: Correct error code.
-		error = [RASqliteError code:0
-							message:@"Unable to check table without valid name."];
+		// Raise an exception, no valid table name.
+		[NSException raise:@"Create table"
+					format:@"Unable to create table without valid name."];
 	}
 
 	if ( !columns ) {
-		// TODO: Correct error code.
-		error = [RASqliteError code:0
-							message:@"Unable to check table without defined columns."];
+		// Raise an exception, no defined columns.
+		[NSException raise:@"Create table"
+					format:@"Unable to create table without defined columns."];
 	}
 
-	void (^block)(void) = ^(void) {
-		NSMutableString *sql = [[NSMutableString alloc] init];
-		[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
+	// Keeps track on whether the table was created.
+	BOOL __block created = NO;
 
-		// Assemble the columns and data types for the structure.
-		NSUInteger index = 0;
-		for ( NSString *name in columns ) {
-			if ( index > 0 ) {
-				[sql appendString:@","];
-			}
-			[sql appendFormat:@"%@ ", name];
+	// Check that we have a valid database instance.
+	if ( [self database] ) {
+		void (^block)(void) = ^(void) {
+			NSMutableString *sql = [[NSMutableString alloc] init];
+			[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
 
-			NSArray *types = @[kRASqliteNull, kRASqliteReal, kRASqliteText, kRASqliteBlob, kRASqliteInteger];
-			NSString *type = [columns objectForKey:name];
-			if ( [types indexOfObject:type] != NSNotFound ) {
-				[sql appendString:type];
-
-				// The `integer` data type have to be handled differently than the
-				// other types, either primary key or default value have to be set.
-				if ( [kRASqliteInteger isEqualToString:type] ) {
-					if ( [name isEqualToString:@"id"] ) {
-						[sql appendString:@" PRIMARY KEY"];
-					} else {
-						[sql appendString:@" DEFAULT 0"];
-					}
+			// Assemble the columns and data types for the structure.
+			NSUInteger index = 0;
+			for ( NSString *name in columns ) {
+				if ( index > 0 ) {
+					[sql appendString:@","];
 				}
-			} else {
-				error = [RASqliteError code:0
-									message:@"Unrecognized SQLite data type: %@", type];
+				[sql appendFormat:@"%@ ", name];
+
+				NSArray *types = @[RASqliteNull, RASqliteReal, RASqliteText, RASqliteBlob, RASqliteInteger];
+				NSString *type = [columns objectForKey:name];
+				if ( [types indexOfObject:type] != NSNotFound ) {
+					[sql appendString:type];
+
+					// The `integer` data type have to be handled differently than the
+					// other types, either primary key or default value have to be set.
+					if ( [RASqliteInteger isEqualToString:type] ) {
+						if ( [name isEqualToString:@"id"] ) {
+							[sql appendString:@" PRIMARY KEY"];
+						} else {
+							[sql appendString:@" DEFAULT 0"];
+						}
+					}
+				} else {
+					// Raise an exception, unrecognized sqlite data type.
+					[NSException raise:@"Create table"
+								format:@"Unrecognized SQLite data type: %@", type];
+				}
+
+				index++;
 			}
+			[sql appendString:@");"];
+			RASqliteLog(@"Create query: %@", sql);
 
-			index++;
-		}
-		[sql appendString:@");"];
-		RASqliteLog(@"Create query: %@", sql);
-
-		if ( !error ) {
-			if ( [self execute:sql] ) {
+			// Attempt to create the database table.
+			created = [self execute:sql];
+			if ( created ) {
 				RASqliteLog(@"Table `%@` have been created.", table);
 			} else {
 				RASqliteLog(@"Table `%@` have not been created.", table);
 			}
-		}
-	};
+		};
 
-	if ( !error ) {
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -480,36 +474,34 @@ static sqlite3 *_database;
 		} else {
 			dispatch_sync([self queue], block);
 		}
-
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
-		}
 	}
 
-	return error == nil;
+	return created;
 }
 
 - (BOOL)deleteTable:(NSString *)table
 {
-	RASqliteError __block *error = [self error];
-
 	if ( !table ) {
-		// TODO: Correct error code.
-		error = [RASqliteError code:0
-							message:@"Unable to check table without valid name."];
+		// Raise an exception, no valid table name.
+		[NSException raise:@"Remove table"
+					format:@"Unable to remove table without valid name."];
 	}
 
-	void (^block)(void) = ^(void) {
-		if ( [self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]] ) {
-			RASqliteLog(@"Table `%@` have been removed.", table);
-		} else {
-			RASqliteLog(@"Table `%@` have not been removed.", table);
-		}
-	};
+	// Keeps track on whether the table was created.
+	BOOL __block removed = NO;
 
-	if ( !error ) {
+	// Check that we have a valid database instance.
+	if ( [self database] ) {
+		void (^block)(void) = ^(void) {
+			// Attempt to remove the database table.
+			removed = [self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]];
+			if ( removed ) {
+				RASqliteLog(@"Table `%@` have been removed.", table);
+			} else {
+				RASqliteLog(@"Table `%@` have not been removed.", table);
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -523,15 +515,9 @@ static sqlite3 *_database;
 		} else {
 			dispatch_sync([self queue], block);
 		}
-
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
-		}
 	}
 
-	return error == nil;
+	return removed;
 }
 
 #pragma mark - Query

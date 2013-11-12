@@ -26,19 +26,19 @@
 // -- -- Data types
 
 /// Column data type for `NULL`.
-static const NSString *kRASqliteNull = @"NULL";
+static const NSString *RASqliteNull = @"NULL";
 
 /// Column data type for `INTEGER`.
-static const NSString *kRASqliteInteger = @"INTEGER";
+static const NSString *RASqliteInteger = @"INTEGER";
 
 /// Column data type for `REAL`.
-static const NSString *kRASqliteReal = @"REAL";
+static const NSString *RASqliteReal = @"REAL";
 
 /// Column data type for `TEXT`.
-static const NSString *kRASqliteText = @"TEXT";
+static const NSString *RASqliteText = @"TEXT";
 
 /// Column data type for `BLOB`.
-static const NSString *kRASqliteBlob = @"BLOB";
+static const NSString *RASqliteBlob = @"BLOB";
 
 // -- -- Transaction
 

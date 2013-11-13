@@ -15,10 +15,9 @@ static NSString *RASqliteErrorDomain = @"me.raatiniemi.rasqlite.error";
 typedef enum {
 	RASqliteErrorOpen,
 	RASqliteErrorClose,
-
 	RASqliteErrorBind,
 	RASqliteErrorQuery,
-	RASqliteErrorImplementation
+	RASqliteErrorTransaction
 } RASqliteErrorCode;
 
 /**

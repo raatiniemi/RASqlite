@@ -547,10 +547,11 @@ static sqlite3 *_database;
 			code = sqlite3_bind_null(*statement, index);
 		} else {
 			// TODO: Implement support for more data types.
-			error = [RASqliteError code:RASqliteErrorImplementation
-								message:@"Support for binding type `%@` is not available.", [column class]];
+			[NSException raise:@"Incomplete implementation"
+						format:@"Support for binding type `%@` is not available.", [column class]];
 		}
 
+		// Check if an error has occurred.
 		if ( !error && code != SQLITE_OK ) {
 			error = [RASqliteError code:RASqliteErrorBind
 								message:@"Unable to bind type `%@`.", [column class]];
@@ -596,8 +597,8 @@ static sqlite3 *_database;
 			}
 			case SQLITE_BLOB: {
 				// TODO: Implement support for SQLITE_BLOB.
-				*error = [RASqliteError code:RASqliteErrorImplementation
-									 message:@"Incomplete implementation of `fetchColumns:` for `SQLITE_BLOB`."];
+				[NSException raise:@"Incomplete implementation"
+							format:@"Incomplete implementation of `%s` for `SQLITE_BLOB`.", __PRETTY_FUNCTION__];
 				break;
 			}
 			case SQLITE_NULL: {
@@ -606,6 +607,7 @@ static sqlite3 *_database;
 			}
 			case SQLITE_TEXT:
 			default: {
+				// TODO: Handle retrieval of sqlite3_column_text16.
 				const char *value = (const char *)sqlite3_column_text(*statement, index);
 				[row setColumn:column withValue:[NSString stringWithCString:value encoding:NSUTF8StringEncoding]];
 				break;
@@ -664,7 +666,6 @@ static sqlite3 *_database;
 							// Something has gone wrong, leave the loop.
 							error = [RASqliteError code:RASqliteErrorQuery
 												message:@"Unable to fetch row, received code `%i`.", code];
-							break;
 						}
 					} while ( !error );
 				}
@@ -922,7 +923,7 @@ static sqlite3 *_database;
 		int code = sqlite3_exec([self database], sql, 0, 0, &message);
 		if ( code != SQLITE_OK ) {
 			// TODO: Correct error code.
-			error = [RASqliteError code:0
+			error = [RASqliteError code:RASqliteErrorTransaction
 								message:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
 		}
 	};
@@ -1005,7 +1006,7 @@ static sqlite3 *_database;
 		int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &message);
 		if ( code != SQLITE_OK ) {
 			// TODO: Correct error code.
-			error = [RASqliteError code:0
+			error = [RASqliteError code:RASqliteErrorTransaction
 								message:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
 		}
 	};

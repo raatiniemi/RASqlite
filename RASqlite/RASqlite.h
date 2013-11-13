@@ -68,8 +68,8 @@ typedef enum {
 
 // -- -- RASqlite
 
-#import "RASqliteError.h"
 #import "RASqliteRow.h"
+#import "NSError+RASqlite.h"
 
 /**
  Wrapper for working with SQLite databases.
@@ -77,11 +77,11 @@ typedef enum {
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 @interface RASqlite : NSObject {
-@protected RASqliteError *_error;
+@protected NSError *_error;
 }
 
 /// Stores the first occurred error, `nil` if none has occurred.
-@property (nonatomic, readwrite, strong) RASqliteError *error;
+@property (nonatomic, readwrite, strong) NSError *error;
 
 #pragma mark - Initialization
 
@@ -110,9 +110,7 @@ typedef enum {
 
 #pragma mark - Database
 
-/**
- Stores the defined structure for the database tables.
- */
+/// Stores the defined structure for the database tables.
 @property (nonatomic, readonly, copy) NSDictionary *structure;
 
 /**
@@ -150,7 +148,7 @@ typedef enum {
  @return `nil` if database was successfully opened, otherwise an error object.
 
  @code
- RASqliteError *error = [model openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE];
+ NSError *error = [model openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE];
  if ( error ) {
 	// An error has occurred, handle it.
  }
@@ -163,7 +161,7 @@ typedef enum {
  the `open`-method will be automatically called before performing a query, unless
  the database is already open.
  */
-- (RASqliteError *)openWithFlags:(int)flags;
+- (NSError *)openWithFlags:(int)flags;
 
 /**
  Open database with default flags.
@@ -181,7 +179,7 @@ typedef enum {
  means that if the file do not exists, it will be created. And, it's open for
  both read and write operations.
  */
-- (RASqliteError *)open;
+- (NSError *)open;
 
 /**
  Close the database.
@@ -190,7 +188,7 @@ typedef enum {
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (RASqliteError *)close;
+- (NSError *)close;
 
 #pragma mark - Table
 

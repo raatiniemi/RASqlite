@@ -1,8 +1,8 @@
 //
-//  RASqliteError.h
+//  NSError+RASqlite.h
 //  RASqlite
 //
-//  Created by Tobias Raatiniemi on 2013-10-27.
+//  Created by Tobias Raatiniemi on 2013-11-13.
 //  Copyright (c) 2013 Raatiniemi. All rights reserved.
 //
 
@@ -21,11 +21,11 @@ typedef enum {
 } RASqliteErrorCode;
 
 /**
- Specific error object for RASqlite related errors.
+ Simplified handling for RASqlite errors.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-@interface RASqliteError : NSError
+@interface NSError (RASqlite)
 
 /**
  Creates an error object with code and message, with support for formats.
@@ -34,7 +34,7 @@ typedef enum {
  @param message Message for the error, with support for formats.
 
  @code
- [RASqliteError code:RASqliteErrorOpen message:@"Unable to open, message: %@", message];
+ [NSError code:RASqliteErrorOpen message:@"Unable to open, message: %@", message];
  @endcode
 
  @return Instansiated error, with domain, code, and localized description.

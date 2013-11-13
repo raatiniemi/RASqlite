@@ -1,15 +1,15 @@
 //
-//  RASqliteError.m
+//  NSError+RASqlite.m
 //  RASqlite
 //
-//  Created by Tobias Raatiniemi on 2013-10-27.
+//  Created by Tobias Raatiniemi on 2013-11-13.
 //  Copyright (c) 2013 Raatiniemi. All rights reserved.
 //
 
-#import "RASqliteError.h"
+#import "NSError+RASqlite.h"
 #import "RASqlite.h"
 
-@implementation RASqliteError
+@implementation NSError (RASqlite)
 
 + (instancetype)code:(RASqliteErrorCode)code message:(NSString *)message, ...
 {
@@ -18,7 +18,6 @@
 	va_start(args, message);
 	message = [[NSString alloc] initWithFormat:message arguments:args];
 	va_end(args);
-	RASqliteLog(@"Error with message: `%@`", message);
 
 	// Assemble the localized description.
 	NSDictionary *userInfo = @{NSLocalizedDescriptionKey: message};

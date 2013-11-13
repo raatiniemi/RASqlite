@@ -38,12 +38,12 @@ static sqlite3 *_database;
 
  @param columns Parameters to bind to the statement.
  @param statement Statement on which the parameters will be binded.
- 
+
  @return `nil` if binding is successful, otherwise an error object.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (RASqliteError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement;
+- (NSError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement;
 
 /**
  Fetch the retrieved columns from the SQL query.
@@ -59,7 +59,7 @@ static sqlite3 *_database;
  The dictionary will contain the Foundation representations of the SQLite data types,
  e.g. `SQLITE_INTEGER` will be `NSNumber`, `SQLITE_NULL` will be `NSNull`, etc.
  */
-- (RASqliteRow *)fetchColumns:(sqlite3_stmt **)statement withError:(RASqliteError **)error;
+- (RASqliteRow *)fetchColumns:(sqlite3_stmt **)statement withError:(NSError **)error;
 
 @end
 
@@ -128,9 +128,9 @@ static sqlite3 *_database;
 	return _database;
 }
 
-- (RASqliteError *)openWithFlags:(int)flags
+- (NSError *)openWithFlags:(int)flags
 {
-	RASqliteError __block *error = [self error];
+	NSError __block *error = [self error];
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			// Check if the database already is active, not need to open it.
@@ -143,8 +143,8 @@ static sqlite3 *_database;
 					RASqliteLog(@"Database have successfully been opened.");
 				} else {
 					// Something went wrong...
-					error = [RASqliteError code:RASqliteErrorOpen
-										message:@"Unable to open database, received code `%i`.", code];
+					error = [NSError code:RASqliteErrorOpen
+								  message:@"Unable to open database, received code `%i`.", code];
 				}
 			} else {
 				// No need to attempt to open the database, it's already open.
@@ -176,14 +176,14 @@ static sqlite3 *_database;
 	return error;
 }
 
-- (RASqliteError *)open
+- (NSError *)open
 {
 	return [self openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE];
 }
 
-- (RASqliteError *)close
+- (NSError *)close
 {
-	RASqliteError __block *error = [self error];
+	NSError __block *error = [self error];
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			// Check if we have an active database instance, no need to attempt
@@ -203,8 +203,8 @@ static sqlite3 *_database;
 					// TODO: Check if database is locked or busy and attempt a retry.
 					// TODO: Handle retry infinite loop.
 					if ( code != SQLITE_OK ) {
-						error = [RASqliteError code:RASqliteErrorClose
-											message:@"Unable to close database, received code `%i`.", code];
+						error = [NSError code:RASqliteErrorClose
+									  message:@"Unable to close database, received code `%i`.", code];
 					} else {
 						[self setDatabase:nil];
 						RASqliteLog(@"Database have successfully been closed.");
@@ -522,9 +522,9 @@ static sqlite3 *_database;
 
 #pragma mark - Query
 
-- (RASqliteError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement
+- (NSError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement
 {
-	RASqliteError *error;
+	NSError *error;
 
 	int code = SQLITE_OK;
 	unsigned int index = 1;
@@ -553,8 +553,8 @@ static sqlite3 *_database;
 
 		// Check if an error has occurred.
 		if ( !error && code != SQLITE_OK ) {
-			error = [RASqliteError code:RASqliteErrorBind
-								message:@"Unable to bind type `%@`.", [column class]];
+			error = [NSError code:RASqliteErrorBind
+						  message:@"Unable to bind type `%@`.", [column class]];
 		}
 
 		if ( error ) {
@@ -566,7 +566,7 @@ static sqlite3 *_database;
 	return error;
 }
 
-- (RASqliteRow *)fetchColumns:(sqlite3_stmt **)statement withError:(RASqliteError **)error
+- (RASqliteRow *)fetchColumns:(sqlite3_stmt **)statement withError:(NSError **)error
 {
 	unsigned int count = sqlite3_column_count(*statement);
 	RASqliteRow *row = [RASqliteRow columns:count];
@@ -628,7 +628,7 @@ static sqlite3 *_database;
 
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError __block *error = [self error];
+	NSError __block *error = [self error];
 	NSMutableArray __block *results;
 
 	if ( !error ) {
@@ -666,8 +666,8 @@ static sqlite3 *_database;
 								break;
 							} else {
 								// Something has gone wrong, leave the loop.
-								error = [RASqliteError code:RASqliteErrorQuery
-													message:@"Unable to fetch row, received code `%i`.", code];
+								error = [NSError code:RASqliteErrorQuery
+											  message:@"Unable to fetch row, received code `%i`.", code];
 							}
 						} while ( !error );
 					}
@@ -678,8 +678,8 @@ static sqlite3 *_database;
 						results = nil;
 					}
 				} else {
-					error = [RASqliteError code:RASqliteErrorQuery
-										message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+					error = [NSError code:RASqliteErrorQuery
+								  message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
 				}
 				sqlite3_finalize(statement);
 			}
@@ -721,7 +721,7 @@ static sqlite3 *_database;
 
 - (RASqliteRow *)fetchRow:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError __block *error = [self error];
+	NSError __block *error = [self error];
 	RASqliteRow __block *row;
 
 	if ( !error ) {
@@ -755,13 +755,13 @@ static sqlite3 *_database;
 						} else if ( code == SQLITE_DONE ) {
 							RASqliteLog(@"No rows were found with query: %@", sql);
 						} else {
-							error = [RASqliteError code:RASqliteErrorQuery
-												message:@"Failed to retrieve result, received code: `%i`", code];
+							error = [NSError code:RASqliteErrorQuery
+										  message:@"Failed to retrieve result, received code: `%i`", code];
 						}
 					}
 				} else {
-					error = [RASqliteError code:RASqliteErrorQuery
-										message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+					error = [NSError code:RASqliteErrorQuery
+								  message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
 				}
 				sqlite3_finalize(statement);
 			}
@@ -831,7 +831,7 @@ static sqlite3 *_database;
 
 - (BOOL)execute:(NSString *)sql withParams:(NSArray *)params
 {
-	RASqliteError __block *error = [self error];
+	NSError __block *error = [self error];
 
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
@@ -854,13 +854,13 @@ static sqlite3 *_database;
 					if ( !error ) {
 						code = sqlite3_step(statement);
 						if ( code != SQLITE_DONE ) {
-							error = [RASqliteError code:RASqliteErrorQuery
-												message:@"Failed to retrieve result, received code: `%i`", code];
+							error = [NSError code:RASqliteErrorQuery
+										  message:@"Failed to retrieve result, received code: `%i`", code];
 						}
 					}
 				} else {
-					error = [RASqliteError code:RASqliteErrorQuery
-										message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
+					error = [NSError code:RASqliteErrorQuery
+								  message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
 				}
 				sqlite3_finalize(statement);
 			}
@@ -904,7 +904,7 @@ static sqlite3 *_database;
 
 - (BOOL)beginTransaction:(RASqliteTransaction)type
 {
-	RASqliteError __block *error = [self error];
+	NSError __block *error = [self error];
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			const char *sql;
@@ -925,7 +925,7 @@ static sqlite3 *_database;
 			int code = sqlite3_exec([self database], sql, 0, 0, &errmsg);
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-				error = [RASqliteError code:RASqliteErrorTransaction message:message];
+				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
 		};
 
@@ -960,14 +960,14 @@ static sqlite3 *_database;
 
 - (BOOL)rollBack
 {
-	RASqliteError __block *error = [self error];
+	NSError __block *error = [self error];
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			char *errmsg;
 			int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &errmsg);
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-				error = [RASqliteError code:RASqliteErrorTransaction message:message];
+				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
 		};
 
@@ -997,14 +997,14 @@ static sqlite3 *_database;
 
 - (BOOL)commit
 {
-	RASqliteError __block *error = [self error];
+	NSError __block *error = [self error];
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			char *errmsg;
 			int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &errmsg);
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-				error = [RASqliteError code:RASqliteErrorTransaction message:message];
+				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
 		};
 
@@ -1046,9 +1046,9 @@ static sqlite3 *_database;
 	[self queueWithBlock:^(RASqlite *db) {
 		[self beginTransaction];
 		BOOL *commit;
-
+		
 		block(db, &commit);
-
+		
 		if ( commit ) {
 			[self commit];
 		} else {

@@ -926,7 +926,6 @@ static sqlite3 *_database;
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
 				error = [RASqliteError code:RASqliteErrorTransaction message:message];
-				RASqliteLog(@"%@", message);
 			}
 		};
 
@@ -969,7 +968,6 @@ static sqlite3 *_database;
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
 				error = [RASqliteError code:RASqliteErrorTransaction message:message];
-				RASqliteLog(@"%@", message);
 			}
 		};
 
@@ -1007,7 +1005,6 @@ static sqlite3 *_database;
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
 				error = [RASqliteError code:RASqliteErrorTransaction message:message];
-				RASqliteLog(@"%@", message);
 			}
 		};
 

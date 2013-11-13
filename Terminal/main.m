@@ -15,7 +15,6 @@ int main(int argc, const char * argv[])
 		RATerminalModel *model = [[RATerminalModel alloc] init];
 		[model queueWithBlock:^(RASqlite *db) {
 			if ( ![db check] ) {
-				[db setError:nil];
 				[db create];
 			}
 		}];

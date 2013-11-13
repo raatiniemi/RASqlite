@@ -631,59 +631,60 @@ static sqlite3 *_database;
 	RASqliteError __block *error = [self error];
 	NSMutableArray __block *results;
 
-	void (^block)(void) = ^(void) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
-		// If an error already have occurred, we should not attempt to execute query.
-		if ( !error ) {
-			sqlite3_stmt *statement;
-			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
-
-			if ( code == SQLITE_OK ) {
-				if ( params ) {
-					error = [self bindColumns:params toStatement:&statement];
-				}
-
-				if ( !error ) {
-					RASqliteRow *row;
-					results = [[NSMutableArray alloc] init];
-
-					// Looping through the results, until an error occurres or
-					// the query is done.
-					do {
-						code = sqlite3_step(statement);
-
-						if ( code == SQLITE_ROW ) {
-							row = [self fetchColumns:&statement withError:&error];
-							[results addObject:row];
-						} else if ( code == SQLITE_DONE ) {
-							// Results have been fetch, leave the loop.
-							break;
-						} else {
-							// Something has gone wrong, leave the loop.
-							error = [RASqliteError code:RASqliteErrorQuery
-												message:@"Unable to fetch row, received code `%i`.", code];
-						}
-					} while ( !error );
-				}
-
-				// If the error variable have been populated, something
-				// has gone wrong and we need to reset the results variable.
-				if ( error ) {
-					results = nil;
-				}
-			} else {
-				error = [RASqliteError code:RASqliteErrorQuery
-									message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
-			}
-			sqlite3_finalize(statement);
-		}
-	};
-
 	if ( !error ) {
+		void (^block)(void) = ^(void) {
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
+			}
+
+			// If an error already have occurred, we should not attempt to execute query.
+			if ( !error ) {
+				sqlite3_stmt *statement;
+				int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+
+				if ( code == SQLITE_OK ) {
+					if ( params ) {
+						// If we have parameters, we need to bind them to the statement.
+						error = [self bindColumns:params toStatement:&statement];
+					}
+
+					if ( !error ) {
+						RASqliteRow *row;
+						results = [[NSMutableArray alloc] init];
+
+						// Looping through the results, until an error occurres or
+						// the query is done.
+						do {
+							code = sqlite3_step(statement);
+
+							if ( code == SQLITE_ROW ) {
+								row = [self fetchColumns:&statement withError:&error];
+								[results addObject:row];
+							} else if ( code == SQLITE_DONE ) {
+								// Results have been fetch, leave the loop.
+								break;
+							} else {
+								// Something has gone wrong, leave the loop.
+								error = [RASqliteError code:RASqliteErrorQuery
+													message:@"Unable to fetch row, received code `%i`.", code];
+							}
+						} while ( !error );
+					}
+
+					// If the error variable have been populated, something
+					// has gone wrong and we need to reset the results variable.
+					if ( error ) {
+						results = nil;
+					}
+				} else {
+					error = [RASqliteError code:RASqliteErrorQuery
+										message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+				}
+				sqlite3_finalize(statement);
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -723,48 +724,49 @@ static sqlite3 *_database;
 	RASqliteError __block *error = [self error];
 	RASqliteRow __block *row;
 
-	void (^block)(void) = ^(void) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
-		// If an error already have occurred, we should not attempt to execute query.
-		if ( !error ) {
-			sqlite3_stmt *statement;
-			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
-
-			if ( code == SQLITE_OK ) {
-				if ( params ) {
-					error = [self bindColumns:params toStatement:&statement];
-				}
-
-				if ( !error ) {
-					code = sqlite3_step(statement);
-					if ( code == SQLITE_ROW ) {
-						row = [self fetchColumns:&statement withError:&error];
-
-						// If the error variable have been populated, something
-						// has gone wrong and we need to reset the row variable.
-						if ( error || [row count] == 0 ) {
-							row = nil;
-						}
-					} else if ( code == SQLITE_DONE ) {
-						RASqliteLog(@"No rows were found with query: %@", sql);
-					} else {
-						error = [RASqliteError code:RASqliteErrorQuery
-											message:@"Failed to retrieve result, received code: `%i`", code];
-					}
-				}
-			} else {
-				error = [RASqliteError code:RASqliteErrorQuery
-									message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
-			}
-			sqlite3_finalize(statement);
-		}
-	};
-
 	if ( !error ) {
+		void (^block)(void) = ^(void) {
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
+			}
+
+			// If an error already have occurred, we should not attempt to execute query.
+			if ( !error ) {
+				sqlite3_stmt *statement;
+				int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+
+				if ( code == SQLITE_OK ) {
+					if ( params ) {
+						// If we have parameters, we need to bind them to the statement.
+						error = [self bindColumns:params toStatement:&statement];
+					}
+
+					if ( !error ) {
+						code = sqlite3_step(statement);
+						if ( code == SQLITE_ROW ) {
+							row = [self fetchColumns:&statement withError:&error];
+
+							// If the error variable have been populated, something
+							// has gone wrong and we need to reset the row variable.
+							if ( error || [row count] == 0 ) {
+								row = nil;
+							}
+						} else if ( code == SQLITE_DONE ) {
+							RASqliteLog(@"No rows were found with query: %@", sql);
+						} else {
+							error = [RASqliteError code:RASqliteErrorQuery
+												message:@"Failed to retrieve result, received code: `%i`", code];
+						}
+					}
+				} else {
+					error = [RASqliteError code:RASqliteErrorQuery
+										message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+				}
+				sqlite3_finalize(statement);
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -802,12 +804,11 @@ static sqlite3 *_database;
 - (NSNumber *)lastInsertId
 {
 	NSNumber __block *insertId;
-
-	void (^block)(void) = ^(void) {
-		insertId = [NSNumber numberWithLongLong:sqlite3_last_insert_rowid([self database])];
-	};
-
 	if ( ![self error] && [self database] ) {
+		void (^block)(void) = ^(void) {
+			insertId = [NSNumber numberWithLongLong:sqlite3_last_insert_rowid([self database])];
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -832,38 +833,39 @@ static sqlite3 *_database;
 {
 	RASqliteError __block *error = [self error];
 
-	void (^block)(void) = ^(void) {
-		// If database is not open, attempt to open it.
-		if ( ![self database] ) {
-			error = [self open];
-		}
-
-		// If an error already have occurred, we should not attempt to execute query.
-		if ( !error ) {
-			sqlite3_stmt *statement;
-			int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
-
-			if ( code == SQLITE_OK ) {
-				if ( params ) {
-					error = [self bindColumns:params toStatement:&statement];
-				}
-
-				if ( !error ) {
-					code = sqlite3_step(statement);
-					if ( code != SQLITE_DONE ) {
-						error = [RASqliteError code:RASqliteErrorQuery
-											message:@"Failed to retrieve result, received code: `%i`", code];
-					}
-				}
-			} else {
-				error = [RASqliteError code:RASqliteErrorQuery
-									message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
-			}
-			sqlite3_finalize(statement);
-		}
-	};
-
 	if ( !error ) {
+		void (^block)(void) = ^(void) {
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
+			}
+
+			// If an error already have occurred, we should not attempt to execute query.
+			if ( !error ) {
+				sqlite3_stmt *statement;
+				int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+
+				if ( code == SQLITE_OK ) {
+					if ( params ) {
+						// If we have parameters, we need to bind them to the statement.
+						error = [self bindColumns:params toStatement:&statement];
+					}
+
+					if ( !error ) {
+						code = sqlite3_step(statement);
+						if ( code != SQLITE_DONE ) {
+							error = [RASqliteError code:RASqliteErrorQuery
+												message:@"Failed to retrieve result, received code: `%i`", code];
+						}
+					}
+				} else {
+					error = [RASqliteError code:RASqliteErrorQuery
+										message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
+				}
+				sqlite3_finalize(statement);
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -903,32 +905,31 @@ static sqlite3 *_database;
 - (BOOL)beginTransaction:(RASqliteTransaction)type
 {
 	RASqliteError __block *error = [self error];
-
-	void (^block)(void) = ^(void) {
-		const char *sql;
-		switch (type) {
-			case RASqliteTransactionExclusive:
-				sql = "BEGIN EXCLUSIVE TRANSACTION";
-				break;
-			case RASqliteTransactionImmediate:
-				sql = "BEGIN IMMEDIATE TRANSACTION";
-				break;
-			case RASqliteTransactionDeferred:
-			default:
-				sql = "BEGIN DEFERRED TRANSACTION";
-				break;
-		}
-
-		char *message;
-		int code = sqlite3_exec([self database], sql, 0, 0, &message);
-		if ( code != SQLITE_OK ) {
-			// TODO: Correct error code.
-			error = [RASqliteError code:RASqliteErrorTransaction
-								message:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
-		}
-	};
-
 	if ( !error ) {
+		void (^block)(void) = ^(void) {
+			const char *sql;
+			switch (type) {
+				case RASqliteTransactionExclusive:
+					sql = "BEGIN EXCLUSIVE TRANSACTION";
+					break;
+				case RASqliteTransactionImmediate:
+					sql = "BEGIN IMMEDIATE TRANSACTION";
+					break;
+				case RASqliteTransactionDeferred:
+				default:
+					sql = "BEGIN DEFERRED TRANSACTION";
+					break;
+			}
+
+			char *errmsg;
+			int code = sqlite3_exec([self database], sql, 0, 0, &errmsg);
+			if ( code != SQLITE_OK ) {
+				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+				error = [RASqliteError code:RASqliteErrorTransaction message:message];
+				RASqliteLog(@"%@", message);
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -961,18 +962,17 @@ static sqlite3 *_database;
 - (BOOL)rollBack
 {
 	RASqliteError __block *error = [self error];
-
-	void (^block)(void) = ^(void) {
-		char *message;
-		int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &message);
-		if ( code != SQLITE_OK ) {
-			// TODO: Correct error code.
-			error = [RASqliteError code:0
-								message:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
-		}
-	};
-
 	if ( !error ) {
+		void (^block)(void) = ^(void) {
+			char *errmsg;
+			int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &errmsg);
+			if ( code != SQLITE_OK ) {
+				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+				error = [RASqliteError code:RASqliteErrorTransaction message:message];
+				RASqliteLog(@"%@", message);
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the
@@ -1000,18 +1000,17 @@ static sqlite3 *_database;
 - (BOOL)commit
 {
 	RASqliteError __block *error = [self error];
-
-	void (^block)(void) = ^(void) {
-		char *message;
-		int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &message);
-		if ( code != SQLITE_OK ) {
-			// TODO: Correct error code.
-			error = [RASqliteError code:RASqliteErrorTransaction
-								message:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
-		}
-	};
-
 	if ( !error ) {
+		void (^block)(void) = ^(void) {
+			char *errmsg;
+			int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &errmsg);
+			if ( code != SQLITE_OK ) {
+				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+				error = [RASqliteError code:RASqliteErrorTransaction message:message];
+				RASqliteLog(@"%@", message);
+			}
+		};
+
 		// Since this method can be called separately or from either of the
 		// queue with block methods, we have to check which thread/queue we are
 		// currently executing on. And, depending on the results, execute the

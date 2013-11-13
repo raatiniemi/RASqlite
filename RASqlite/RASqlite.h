@@ -66,10 +66,9 @@ typedef enum {
 #define RASqliteLog(format, ...)
 #endif
 
-// -- -- RASqlite
+// -- -- Import
 
 #import "RASqliteRow.h"
-#import "NSError+RASqlite.h"
 
 /**
  Wrapper for working with SQLite databases.

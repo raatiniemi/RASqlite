@@ -8,6 +8,10 @@
 
 #import "RASqlite.h"
 
+// Import the Error category from the implementation file. The category should
+// not be made available to the rest of the application.
+#import "NSError+RASqlite.h"
+
 /**
  Instance for the database.
 

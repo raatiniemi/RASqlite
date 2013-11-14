@@ -17,7 +17,7 @@
  */
 @interface RATerminalModel : RASqlite
 
-- (RASqliteRow *)getUser:(NSString *)name;
+- (NSDictionary *)getUser:(NSString *)name;
 
 - (NSArray *)getUsers;
 

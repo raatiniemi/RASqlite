@@ -68,7 +68,7 @@ typedef enum {
 
 // -- -- Import
 
-#import "RASqliteRow.h"
+#import "NSDictionary+RASqlite.h"
 
 /**
  Wrapper for working with SQLite databases.
@@ -347,7 +347,7 @@ typedef enum {
  @param params Parameters to bind to the query.
 
  @code
- RASqliteRow *row = [self fetchRow:@"SELECT foo FROM bar WHERE baz = ? AND qux = ? LIMIT 1" withParams:@[@53, @"id"]];
+ NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE baz = ? AND qux = ? LIMIT 1" withParams:@[@53, @"id"]];
  if ( row ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -372,7 +372,7 @@ typedef enum {
  it's already executing on the query queue. I.e. the method can be called from
  within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
-- (RASqliteRow *)fetchRow:(NSString *)sql withParams:(NSArray *)params;
+- (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params;
 
 /**
  Fetch a row from the database, with a parameter.
@@ -381,7 +381,7 @@ typedef enum {
  @param param Parameter to bind to the query.
 
  @code
- RASqliteRow *row = [self fetchRow:@"SELECT foo FROM bar WHERE qux = ? LIMIT 1" withParam:@53];
+ NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar WHERE qux = ? LIMIT 1" withParam:@53];
  if ( row ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -402,7 +402,7 @@ typedef enum {
  it's already executing on the query queue. I.e. the method can be called from
  within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
-- (RASqliteRow *)fetchRow:(NSString *)sql withParam:(id)param;
+- (NSDictionary *)fetchRow:(NSString *)sql withParam:(id)param;
 
 /**
  Fetch a row from the database, without parameters.
@@ -410,7 +410,7 @@ typedef enum {
  @param sql Query to perform against the database.
 
  @code
- RASqliteRow *row = [self fetchRow:@"SELECT foo FROM bar ORDER BY baz ASC LIMIT 1"];
+ NSDictionary *row = [self fetchRow:@"SELECT foo FROM bar ORDER BY baz ASC LIMIT 1"];
  if ( row ) {
 	// Do something with the results.
  } else if ( ![self error] ) {
@@ -431,7 +431,7 @@ typedef enum {
  it's already executing on the query queue. I.e. the method can be called from
  within the `queueWithBlock:` and `queueTransactionWithBlock:` methods.
  */
-- (RASqliteRow *)fetchRow:(NSString *)sql;
+- (NSDictionary *)fetchRow:(NSString *)sql;
 
 /**
  Retrieve id for the last inserted row.

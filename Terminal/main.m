@@ -20,7 +20,7 @@ int main(int argc, const char * argv[])
 		}];
 
 		// Check if we were able to find the specified user.
-		RASqliteRow *user = [model getUser:@"raatiniemi"];
+		NSDictionary *user = [model getUser:@"raatiniemi"];
 		if ( user ) {
 			// User have been found, time to do something with it.
 			BOOL success = NO;

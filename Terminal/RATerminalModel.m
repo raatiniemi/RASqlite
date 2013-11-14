@@ -54,7 +54,7 @@ static sqlite3 *_database;
 
 #pragma mark - Handle users
 
-- (RASqliteRow *)getUser:(NSString *)name
+- (NSDictionary *)getUser:(NSString *)name
 {
 	return [self fetchRow:@"SELECT id FROM user WHERE name = ? LIMIT 1" withParam:name];
 }

@@ -9,7 +9,7 @@ RASqlite is a simple library for working with SQLite databases on iOS and Mac OS
 	RASqlite *database = [[RASqlite alloc] initWithName:@"user.db"];
 
 	// Fetch one user from the database.
-	RASqliteRow *user = [database fetchRow:@"SELECT id, name FROM users LIMIT 1"];
+	NSDictionary *user = [database fetchRow:@"SELECT id, name FROM users LIMIT 1"];
 	if ( user ) {
 		// Do something with the user.
 	} else if ( ![database error] ) {
@@ -20,8 +20,8 @@ RASqlite is a simple library for working with SQLite databases on iOS and Mac OS
 
 To bind argument(s) to the query, simply use the `fetchRow:withParams:` or `fetchRow:withParam:` methods. The `withParams:` method accepts an array of Foundation objects, i.e. `NSNumber` and `NSString`. The `withParam:` accepts a single Foundation object.
 
-	RASqliteRow *row = [database fetchRow:@"SELECT foo FROM bar WHERE baz = ? AND qux = ?" withParams:@[@1, @2]];
-	RASqliteRow *row = [database fetchRow:@"SELECT foo FROM bar WHERE baz = ?" withParam:@1];
+	NSDictionary *row = [database fetchRow:@"SELECT foo FROM bar WHERE baz = ? AND qux = ?" withParams:@[@1, @2]];
+	NSDictionary *row = [database fetchRow:@"SELECT foo FROM bar WHERE baz = ?" withParam:@1];
 
 To fetch more than one row, use the `fetch:` method.
 
@@ -51,7 +51,7 @@ To perform an update to the database, use the `execute:` method.
 As with both the `fetchRow:` and `fetch:` methods the `execute:` method also have a way of binding argument(s) to the query.
 
 	BOOL success = [database execute:@"UPDATE foo SET bar = ? WHERE baz = ?" withParams:@[@1, @2]];
-	BOOL success = [database execute:@"UPDATE foo SET bar = 'baz' WHERE qux = ?" withParams:@1];
+	BOOL success = [database execute:@"UPDATE foo SET bar = 'baz' WHERE qux = ?" withParam:@1];
 
 ## Queues
 
@@ -60,7 +60,7 @@ Each of the query methods are executed on the same queue, i.e. the methods is th
 The query methods are by them self executed on the database queue. However, there're situations where you'd want to queue multiple queries.
 
 
-	RASqliteRow __block *row;
+	NSDictionary __block *row;
 	[self queueWithBlock:^(RASqlite *db) {
 		row = [db fetchRow:@"SELECT foo FROM bar WHERE baz = ?" withParam:@"qux"];
 	}];

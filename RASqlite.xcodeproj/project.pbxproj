@@ -7,11 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2D3C78EE1834701400259D3E /* NSMutableDictionary+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D3C78ED1834701400259D3E /* NSMutableDictionary+RASqlite.m */; };
+		2D3C78F11834707B00259D3E /* NSDictionary+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D3C78F01834707B00259D3E /* NSDictionary+RASqlite.m */; };
 		2D5992AB181D1B780006A177 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992AA181D1B780006A177 /* Foundation.framework */; };
 		2D5992AE181D1B780006A177 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992AD181D1B780006A177 /* main.m */; };
 		2D5992B7181D1C080006A177 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992B6181D1C080006A177 /* libsqlite3.dylib */; };
 		2D5992BC181D26610006A177 /* RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992BB181D26610006A177 /* RASqlite.m */; };
-		2D5992BF181D3AF30006A177 /* RASqliteRow.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992BE181D3AF30006A177 /* RASqliteRow.m */; };
 		2DE1B55118281C5500CF85B2 /* RATerminalModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DE1B55018281C5500CF85B2 /* RATerminalModel.m */; };
 		2DF94A8318332B75004F6D8E /* NSError+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DF94A8218332B75004F6D8E /* NSError+RASqlite.m */; };
 /* End PBXBuildFile section */
@@ -31,6 +32,10 @@
 /* Begin PBXFileReference section */
 		2D1D7472182EDBA70049BB3A /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
 		2D1D7473182EDBA70049BB3A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		2D3C78EC1834701400259D3E /* NSMutableDictionary+RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableDictionary+RASqlite.h"; path = "RASqlite/NSMutableDictionary+RASqlite.h"; sourceTree = "<group>"; };
+		2D3C78ED1834701400259D3E /* NSMutableDictionary+RASqlite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSMutableDictionary+RASqlite.m"; path = "RASqlite/NSMutableDictionary+RASqlite.m"; sourceTree = "<group>"; };
+		2D3C78EF1834707B00259D3E /* NSDictionary+RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSDictionary+RASqlite.h"; path = "RASqlite/NSDictionary+RASqlite.h"; sourceTree = "<group>"; };
+		2D3C78F01834707B00259D3E /* NSDictionary+RASqlite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSDictionary+RASqlite.m"; path = "RASqlite/NSDictionary+RASqlite.m"; sourceTree = "<group>"; };
 		2D5992A7181D1B780006A177 /* Terminal */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Terminal; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D5992AA181D1B780006A177 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2D5992AD181D1B780006A177 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -38,8 +43,6 @@
 		2D5992B6181D1C080006A177 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		2D5992BA181D26610006A177 /* RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RASqlite.h; path = RASqlite/RASqlite.h; sourceTree = "<group>"; };
 		2D5992BB181D26610006A177 /* RASqlite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RASqlite.m; path = RASqlite/RASqlite.m; sourceTree = "<group>"; };
-		2D5992BD181D3AF30006A177 /* RASqliteRow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RASqliteRow.h; path = RASqlite/RASqliteRow.h; sourceTree = "<group>"; };
-		2D5992BE181D3AF30006A177 /* RASqliteRow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RASqliteRow.m; path = RASqlite/RASqliteRow.m; sourceTree = "<group>"; };
 		2DE1B54F18281C5500CF85B2 /* RATerminalModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RATerminalModel.h; sourceTree = "<group>"; };
 		2DE1B55018281C5500CF85B2 /* RATerminalModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RATerminalModel.m; sourceTree = "<group>"; };
 		2DF94A8118332B75004F6D8E /* NSError+RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSError+RASqlite.h"; path = "RASqlite/NSError+RASqlite.h"; sourceTree = "<group>"; };
@@ -66,6 +69,17 @@
 				2DE1B55018281C5500CF85B2 /* RATerminalModel.m */,
 			);
 			name = Model;
+			sourceTree = "<group>";
+		};
+		2D3C78F2183473AE00259D3E /* Row */ = {
+			isa = PBXGroup;
+			children = (
+				2D3C78EC1834701400259D3E /* NSMutableDictionary+RASqlite.h */,
+				2D3C78ED1834701400259D3E /* NSMutableDictionary+RASqlite.m */,
+				2D3C78EF1834707B00259D3E /* NSDictionary+RASqlite.h */,
+				2D3C78F01834707B00259D3E /* NSDictionary+RASqlite.m */,
+			);
+			name = Row;
 			sourceTree = "<group>";
 		};
 		2D59929C181D1B470006A177 = {
@@ -122,18 +136,9 @@
 				2D5992BA181D26610006A177 /* RASqlite.h */,
 				2D5992BB181D26610006A177 /* RASqlite.m */,
 				2D1D7473182EDBA70049BB3A /* README.md */,
-				2D5992C0181D3AF70006A177 /* Result */,
+				2D3C78F2183473AE00259D3E /* Row */,
 			);
 			name = RASqlite;
-			sourceTree = "<group>";
-		};
-		2D5992C0181D3AF70006A177 /* Result */ = {
-			isa = PBXGroup;
-			children = (
-				2D5992BD181D3AF30006A177 /* RASqliteRow.h */,
-				2D5992BE181D3AF30006A177 /* RASqliteRow.m */,
-			);
-			name = Result;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -188,8 +193,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2D3C78EE1834701400259D3E /* NSMutableDictionary+RASqlite.m in Sources */,
 				2D5992BC181D26610006A177 /* RASqlite.m in Sources */,
-				2D5992BF181D3AF30006A177 /* RASqliteRow.m in Sources */,
+				2D3C78F11834707B00259D3E /* NSDictionary+RASqlite.m in Sources */,
 				2DE1B55118281C5500CF85B2 /* RATerminalModel.m in Sources */,
 				2DF94A8318332B75004F6D8E /* NSError+RASqlite.m in Sources */,
 				2D5992AE181D1B780006A177 /* main.m in Sources */,

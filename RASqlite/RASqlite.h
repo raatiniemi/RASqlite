@@ -573,7 +573,7 @@ typedef enum {
  @param block Block to be executed.
 
  @code
- RASqliteRow __block *row;
+ NSDictionary __block *row;
  [self queueWithBlock:^(RASqlite *db) {
 	row = [db fetchRow:@"SELECT foo FROM bar WHERE baz = ?" withParam:@"qux"];
  }];
@@ -586,6 +586,25 @@ typedef enum {
 
 /**
  Execute a transaction block on the query thread.
+
+ @param transaction The type of the transaction.
+ @param block Block to be executed.
+
+ @code
+ [database queueTransaction:RASqliteTransactionDeferred withBlock:^(RASqlite *db, BOOL *commit) {
+	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+	if ( commit ) {
+		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
+	}
+ }];
+ @endcode
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *db, BOOL **commit))block;
+
+/**
+ Execute a deferred transaction block on the query thread.
 
  @param block Block to be executed.
 

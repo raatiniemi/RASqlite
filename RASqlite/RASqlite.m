@@ -1048,20 +1048,25 @@ static sqlite3 *_database;
 	});
 }
 
-- (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block
+- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *, BOOL **))block
 {
 	[self queueWithBlock:^(RASqlite *db) {
-		[self beginTransaction];
+		[self beginTransaction:transaction];
 		BOOL *commit;
-		
+
 		block(db, &commit);
-		
+
 		if ( commit ) {
 			[self commit];
 		} else {
 			[self rollBack];
 		}
 	}];
+}
+
+- (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block
+{
+	[self queueTransaction:RASqliteTransactionDeferred withBlock:block];
 }
 
 @end

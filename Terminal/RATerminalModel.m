@@ -12,15 +12,6 @@ static sqlite3 *_database;
 
 @implementation RATerminalModel
 
-#pragma mark - Initialization
-
-- (id)init
-{
-	if ( self = [super initWithName:@"user.db"] ) {
-	}
-	return self;
-}
-
 #pragma mark - Database
 
 - (NSDictionary *)structure

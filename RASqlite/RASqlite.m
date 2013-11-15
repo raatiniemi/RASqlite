@@ -38,6 +38,19 @@ static sqlite3 *_database;
 /// Stores the path for the database file.
 @property (nonatomic, readwrite, strong) NSString *path;
 
+#pragma mark - Initialization
+
+/**
+ Check the path for issues, permissions, etc.
+
+ @param path The path to check.
+
+ @return `YES` if the path is valid, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)checkPath:(NSString *)path;
+
 #pragma mark - Query
 
 /**
@@ -120,6 +133,12 @@ static sqlite3 *_database;
 
 #pragma mark - Initialization
 
+- (BOOL)checkPath:(NSString *)path
+{
+	NSFileManager *manager = [NSFileManager defaultManager];
+	return ![manager isWritableFileAtPath:[path stringByDeletingLastPathComponent]];
+}
+
 - (id)init
 {
 	// Use of this method is not allowed, `initWithName:` should be used.
@@ -137,6 +156,14 @@ static sqlite3 *_database;
 		NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 		[self setPath:[NSString stringWithFormat:@"%@/%@", [directories objectAtIndex:0], name]];
 
+		// Check if the path is writeable, among other things.
+		if( ![self checkPath:[self path]] ) {
+			// There is something wrong with the path, raise an exception.
+			// TODO: Better exception message.
+			[NSException raise:@"Invalid path"
+						format:@"The supplied path `%@` can not be used, check the directory permissions.", [self path]];
+		}
+
 		// Create the thread for running queries, using the name for the database file.
 		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, name];
 		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
@@ -146,14 +173,23 @@ static sqlite3 *_database;
 
 - (instancetype)initWithPath:(NSString *)path
 {
-	// Incomplete implementation warning.
-	[NSException raise:@"Incomplete implementation"
-				format:@"Use of the `initWithPath:` method have not fully been implemented."];
+	if ( self = [super init] ) {
+		// Assign the database path.
+		[self setPath:path];
 
-	// TODO: Create the query thread for `initWithPath:`.
+		// Check if the path is writeable, among other things.
+		if( ![self checkPath:[self path]] ) {
+			// There is something wrong with the path, raise an exception.
+			// TODO: Better exception message.
+			[NSException raise:@"Invalid path"
+						format:@"The supplied path `%@` can not be used, check the directory permissions.", [self path]];
+		}
 
-	// Return nil, takes care of the return warning.
-	return nil;
+		// Create the thread for running queries, using the name for the database file.
+		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, [[self path] lastPathComponent]];
+		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
+	}
+	return self;
 }
 
 #pragma mark - Database

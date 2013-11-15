@@ -51,6 +51,8 @@ typedef enum {
 
 // -- -- Logging
 
+// TODO: Implement support for log levels, e.g. debug, info, warning, etc.
+
 #ifdef kRASqliteDebugEnabled
 #define RASqliteLog(format, ...)\
 	do {\
@@ -71,7 +73,7 @@ typedef enum {
 #import "NSDictionary+RASqlite.h"
 
 /**
- Wrapper for working with SQLite databases.
+ RASqlite is a simple library for working with SQLite databases on iOS and Mac OS X.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */

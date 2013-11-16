@@ -94,9 +94,11 @@ typedef enum {
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
 
  @note
- Method is mainly design for iOS development. It will create the absolute path
- for the database to the applications document directory, the name will be used
- as the database filename.
+ When used the file will be place within the directory `rasqlite` of the
+ applications current directory.
+
+ @par
+ If the directory do not exists, it will be created.
  */
 - (instancetype)initWithName:(NSString *)name;
 
@@ -106,6 +108,9 @@ typedef enum {
  @param path Absolute path for the database file.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ If the directory do not exists, it will be created.
  */
 - (instancetype)initWithPath:(NSString *)path;
 

@@ -12,7 +12,7 @@
 int main(int argc, const char * argv[])
 {
 	@autoreleasepool {
-		RATerminalModel *model = [[RATerminalModel alloc] initWithPath:@"~/user.db"];
+		RATerminalModel *model = [[RATerminalModel alloc] initWithName:@"user.db"];
 		[model queueWithBlock:^(RASqlite *db) {
 			if ( ![db check] ) {
 				[db create];

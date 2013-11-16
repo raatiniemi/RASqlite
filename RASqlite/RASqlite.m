@@ -26,6 +26,11 @@
  */
 static sqlite3 *_database;
 
+/**
+ RASqlite is a simple library for working with SQLite databases on iOS and Mac OS X.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 @interface RASqlite () {
 @private dispatch_queue_t _queue;
 
@@ -38,16 +43,20 @@ static sqlite3 *_database;
 /// Stores the path for the database file.
 @property (nonatomic, readwrite, strong) NSString *path;
 
-#pragma mark - Initialization
+#pragma mark - Path
 
 /**
- Check the path for issues, permissions, etc.
+ Check the directory path.
 
- @param path The path to check.
+ @param path Absolute path to the database file, filename will be stripped.
 
- @return `YES` if the path is valid, otherwise `NO`.
+ @return `YES` if directory is valid (writeable/readable), otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ If the directory do not exists, the method will attempt to create it. It will
+ also check that the directory actually is readable and writeable.
  */
 - (BOOL)checkPath:(NSString *)path;
 
@@ -133,12 +142,6 @@ static sqlite3 *_database;
 
 #pragma mark - Initialization
 
-- (BOOL)checkPath:(NSString *)path
-{
-	NSFileManager *manager = [NSFileManager defaultManager];
-	return ![manager isWritableFileAtPath:[path stringByDeletingLastPathComponent]];
-}
-
 - (id)init
 {
 	// Use of this method is not allowed, `initWithName:` should be used.
@@ -152,9 +155,9 @@ static sqlite3 *_database;
 - (instancetype)initWithName:(NSString *)name
 {
 	if ( self = [super init] ) {
-		// Setup the correct path for the iOS document folder.
-		NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-		[self setPath:[NSString stringWithFormat:@"%@/%@", [directories objectAtIndex:0], name]];
+		// Assemble the path for the database file.
+		NSFileManager *manager = [NSFileManager defaultManager];
+		[self setPath:[NSString stringWithFormat:@"%@/rasqlite/%@", [manager currentDirectoryPath], name]];
 
 		// Check if the path is writeable, among other things.
 		if( ![self checkPath:[self path]] ) {
@@ -190,6 +193,50 @@ static sqlite3 *_database;
 		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
 	}
 	return self;
+}
+
+#pragma mark - Path
+
+- (BOOL)checkPath:(NSString *)path
+{
+	NSFileManager *manager = [NSFileManager defaultManager];
+	NSString *directory = [path stringByDeletingLastPathComponent];
+
+	NSError *error;
+	BOOL isValidDirectory = NO;
+	do {
+		BOOL isDirectory = NO;
+		BOOL exists = [manager fileExistsAtPath:directory isDirectory:&isDirectory];
+
+		// If the path do not exists, we need to create it.
+		if ( !exists ) {
+			// Attempt to create the directory.
+			BOOL created = [manager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:&error];
+			if ( !created ) {
+				RASqliteLog(@"Unable to create directory `%@` with error: %@", [error localizedDescription]);
+				break;
+			}
+			// The directory have been created, change the directory flag.
+			isDirectory = YES;
+		}
+		// Check if the directory is actually a directory. If it's not a string
+		// we need delete the last path component (i.e. filename).
+		if ( !isDirectory ) {
+			directory = [directory stringByDeletingLastPathComponent];
+		} else {
+			BOOL readable = [manager isReadableFileAtPath:directory];
+			BOOL writeable = [manager isWritableFileAtPath:directory];
+
+			// Check that the directory is both readable and writeable.
+			if ( !readable || !writeable ) {
+				[NSException raise:@"Filesystem permissions"
+							format:@"The directory `%@` need to be readable and writeable.", directory];
+			}
+			isValidDirectory = YES;
+		}
+	} while ( !isValidDirectory );
+
+	return isValidDirectory;
 }
 
 #pragma mark - Database

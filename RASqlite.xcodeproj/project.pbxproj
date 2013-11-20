@@ -241,6 +241,7 @@
 				GCC_PREFIX_HEADER = "Terminal/Terminal-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
+					"kRASqliteDebugEnabled=1",
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;

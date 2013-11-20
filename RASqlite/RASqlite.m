@@ -213,7 +213,7 @@ static sqlite3 *_database;
 			// Attempt to create the directory.
 			BOOL created = [manager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:&error];
 			if ( !created ) {
-				RASqliteLog(@"Unable to create directory `%@` with error: %@", [error localizedDescription]);
+				RASqliteLog(@"Unable to create directory `%@` with error: %@", directory, [error localizedDescription]);
 				break;
 			}
 			// The directory have been created, change the directory flag.
@@ -378,9 +378,16 @@ static sqlite3 *_database;
 	// value have to be `YES`, otherwise we risk of deleting the table when
 	// something is wrong with the database instance.
 	BOOL __block valid = YES;
+	NSError *error = [self error];
 
-	// Check that we have a valid database instance.
-	if ( [self database] ) {
+	// Check whether we have a valid database instance.
+	// Attempt to open it if no errors have occurred yet.
+	if ( ![self database] && !error ) {
+		error = [self open];
+	}
+
+	// If an error has occurred we should not attempt to perform the action.
+	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			NSDictionary *tables = [self structure];
 			if ( tables ) {
@@ -433,9 +440,16 @@ static sqlite3 *_database;
 	// value have to be `YES`, otherwise we risk of deleting the table when
 	// something is wrong with the database instance.
 	BOOL __block valid = YES;
+	NSError *error = [self error];
 
-	// Check that we have a valid database instance.
-	if ( [self database] ) {
+	// Check whether we have a valid database instance.
+	// Attempt to open it if no errors have occurred yet.
+	if ( ![self database] && !error ) {
+		error = [self open];
+	}
+
+	// If an error has occurred we should not attempt to perform the action.
+	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			// Check whether the defined columns and the table columns match.
 			NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
@@ -485,9 +499,16 @@ static sqlite3 *_database;
 {
 	// Keeps track on whether the structure was created.
 	BOOL __block created = NO;
+	NSError *error = [self error];
 
-	// Check that we have a valid database instance.
-	if ( [self database] ) {
+	// Check whether we have a valid database instance.
+	// Attempt to open it if no errors have occurred yet.
+	if ( ![self database] && !error ) {
+		error = [self open];
+	}
+
+	// If an error has occurred we should not attempt to perform the action.
+	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			NSDictionary *tables = [self structure];
 			if ( tables ) {
@@ -542,9 +563,16 @@ static sqlite3 *_database;
 
 	// Keeps track on whether the table was created.
 	BOOL __block created = NO;
+	NSError *error = [self error];
 
-	// Check that we have a valid database instance.
-	if ( [self database] ) {
+	// Check whether we have a valid database instance.
+	// Attempt to open it if no errors have occurred yet.
+	if ( ![self database] && !error ) {
+		error = [self open];
+	}
+
+	// If an error has occurred we should not attempt to perform the action.
+	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			NSMutableString *sql = [[NSMutableString alloc] init];
 			[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
@@ -619,9 +647,16 @@ static sqlite3 *_database;
 
 	// Keeps track on whether the table was created.
 	BOOL __block removed = NO;
+	NSError *error = [self error];
 
-	// Check that we have a valid database instance.
-	if ( [self database] ) {
+	// Check whether we have a valid database instance.
+	// Attempt to open it if no errors have occurred yet.
+	if ( ![self database] && !error ) {
+		error = [self open];
+	}
+
+	// If an error has occurred we should not attempt to perform the action.
+	if ( !error ) {
 		void (^block)(void) = ^(void) {
 			// Attempt to remove the database table.
 			removed = [self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]];

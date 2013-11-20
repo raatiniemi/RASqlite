@@ -69,6 +69,7 @@ int main(int argc, const char * argv[])
 			// to execute any more queries.
 			[model setError:nil];
 		}
+		[model close];
 	}
     return 0;
 }

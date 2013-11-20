@@ -19,6 +19,8 @@
 	message = [[NSString alloc] initWithFormat:message arguments:args];
 	va_end(args);
 
+	RASqliteLog(@"An error has occurred: %@", message);
+
 	// Assemble the localized description.
 	NSDictionary *userInfo = @{NSLocalizedDescriptionKey: message};
 	return [[self class] errorWithDomain:RASqliteErrorDomain code:code userInfo:userInfo];

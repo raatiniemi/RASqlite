@@ -35,6 +35,8 @@ static sqlite3 *_database;
 @private dispatch_queue_t _queue;
 
 @private NSString *_path;
+
+@private NSInteger _retryTimeout;
 }
 
 /// Queue on which all of the queries will be executed on.
@@ -42,6 +44,9 @@ static sqlite3 *_database;
 
 /// Stores the path for the database file.
 @property (nonatomic, readwrite, strong) NSString *path;
+
+/// Number of attempts before the retry timeout is reached.
+@property (atomic, readwrite) NSInteger retryTimeout;
 
 #pragma mark - Path
 
@@ -138,9 +143,24 @@ static sqlite3 *_database;
 
 @synthesize path = _path;
 
+@synthesize retryTimeout = _retryTimeout;
+
 @synthesize error = _error;
 
 #pragma mark - Initialization
+
+- (void)sharedInitialization
+{
+	// Check if the path is writeable, among other things.
+	if( ![self checkPath:[self path]] ) {
+		// There is something wrong with the path, raise an exception.
+		// TODO: Better exception message.
+		[NSException raise:@"Invalid path"
+					format:@"The supplied path `%@` can not be used, check the directory permissions.", [self path]];
+	}
+
+	[self setRetryTimeout:0];
+}
 
 - (id)init
 {
@@ -159,17 +179,12 @@ static sqlite3 *_database;
 		NSFileManager *manager = [NSFileManager defaultManager];
 		[self setPath:[NSString stringWithFormat:@"%@/rasqlite/%@", [manager currentDirectoryPath], name]];
 
-		// Check if the path is writeable, among other things.
-		if( ![self checkPath:[self path]] ) {
-			// There is something wrong with the path, raise an exception.
-			// TODO: Better exception message.
-			[NSException raise:@"Invalid path"
-						format:@"The supplied path `%@` can not be used, check the directory permissions.", [self path]];
-		}
-
 		// Create the thread for running queries, using the name for the database file.
 		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, name];
 		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
+
+		// Shared initialization.
+		[self sharedInitialization];
 	}
 	return self;
 }
@@ -180,17 +195,12 @@ static sqlite3 *_database;
 		// Assign the database path.
 		[self setPath:path];
 
-		// Check if the path is writeable, among other things.
-		if( ![self checkPath:[self path]] ) {
-			// There is something wrong with the path, raise an exception.
-			// TODO: Better exception message.
-			[NSException raise:@"Invalid path"
-						format:@"The supplied path `%@` can not be used, check the directory permissions.", [self path]];
-		}
-
 		// Create the thread for running queries, using the name for the database file.
 		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, [[self path] lastPathComponent]];
 		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
+
+		// Shared initialization.
+		[self sharedInitialization];
 	}
 	return self;
 }
@@ -323,6 +333,9 @@ static sqlite3 *_database;
 				BOOL retry;
 				int code;
 
+				// Checks of number of attempts, will prevent infinite loops.
+				NSInteger attempt = 0;
+
 				// Repeat the close process until the database is closed, an error
 				// occurres, or the retry attempts have been depleted.
 				do {
@@ -330,9 +343,20 @@ static sqlite3 *_database;
 					retry = NO;
 					code = sqlite3_close(database);
 
-					// TODO: Check if database is locked or busy and attempt a retry.
-					// TODO: Handle retry infinite loop.
-					if ( code != SQLITE_OK ) {
+					// Check whether the database is busy or locked.
+					if ( code == SQLITE_BUSY || code == SQLITE_LOCKED ) {
+						// Since every query against the same database is executed
+						// on the same queue it is highly unlikely that the database
+						// would be busy or locked, but better to be safe.
+						RASqliteLog(@"Database is busy/locked, retrying to close.");
+						retry = YES;
+
+						// Check if the retry timeout have been reached.
+						if ( attempt++ > [self retryTimeout] ) {
+							RASqliteLog(@"Retry timeout have been reached, unable to close database.");
+							retry = NO;
+						}
+					} else if ( code != SQLITE_OK ) {
 						error = [NSError code:RASqliteErrorClose
 									  message:@"Unable to close database, received code `%i`.", code];
 					} else {

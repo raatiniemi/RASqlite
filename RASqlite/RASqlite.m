@@ -222,7 +222,7 @@ static sqlite3 *_database;
 			// Attempt to create the directory.
 			BOOL created = [manager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:&error];
 			if ( !created ) {
-				RASqliteLog(@"Unable to create directory `%@` with error: %@", directory, [error localizedDescription]);
+				RASqliteLog(RASqliteLogLevelError, @"Unable to create directory `%@` with error: %@", directory, [error localizedDescription]);
 				break;
 			}
 			// The directory have been created, change the directory flag.
@@ -258,7 +258,7 @@ static sqlite3 *_database;
 		_database = database;
 	} else {
 		// Incase an rewrite have been attempted, this should be logged.
-		RASqliteLog(@"Attempt to rewrite database pointer.");
+		RASqliteLog(RASqliteLogLevelWarning, @"Attempt to rewrite database pointer.");
 	}
 }
 
@@ -279,7 +279,7 @@ static sqlite3 *_database;
 				if ( code == SQLITE_OK ) {
 					// The database was successfully opened.
 					[self setDatabase:database];
-					RASqliteLog(@"Database have successfully been opened.");
+					RASqliteLog(RASqliteLogLevelInfo, @"Database have successfully been opened.");
 				} else {
 					// Something went wrong...
 					error = [NSError code:RASqliteErrorOpen
@@ -287,7 +287,7 @@ static sqlite3 *_database;
 				}
 			} else {
 				// No need to attempt to open the database, it's already open.
-				RASqliteLog(@"Database is already open.");
+				RASqliteLog(RASqliteLogLevelDebug, @"Database is already open.");
 			}
 		};
 
@@ -343,12 +343,12 @@ static sqlite3 *_database;
 						// Since every query against the same database is executed
 						// on the same queue it is highly unlikely that the database
 						// would be busy or locked, but better to be safe.
-						RASqliteLog(@"Database is busy/locked, retrying to close.");
+						RASqliteLog(RASqliteLogLevelInfo, @"Database is busy/locked, retrying to close.");
 						retry = YES;
 
 						// Check if the retry timeout have been reached.
 						if ( attempt++ > [self retryTimeout] ) {
-							RASqliteLog(@"Retry timeout have been reached, unable to close database.");
+							RASqliteLog(RASqliteLogLevelInfo, @"Retry timeout have been reached, unable to close database.");
 							retry = NO;
 						}
 					} else if ( code != SQLITE_OK ) {
@@ -356,12 +356,12 @@ static sqlite3 *_database;
 									  message:@"Unable to close database, received code `%i`.", code];
 					} else {
 						[self setDatabase:nil];
-						RASqliteLog(@"Database have successfully been closed.");
+						RASqliteLog(RASqliteLogLevelInfo, @"Database have successfully been closed.");
 					}
 				} while (retry);
 			} else {
 				// No need to close, it is already closed.
-				RASqliteLog(@"Database is already closed.");
+				RASqliteLog(RASqliteLogLevelDebug, @"Database is already closed.");
 			}
 		};
 
@@ -469,21 +469,21 @@ static sqlite3 *_database;
 				for ( NSString *column in columns ) {
 					NSDictionary *tColumn = [tColumns objectAtIndex:index];
 					if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
-						RASqliteLog(@"Column name `%@` do not match index `%i` for the given structure.", table, index);
+						RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
 						valid = NO;
 						break;
 					}
 
 					NSString *type = [columns objectForKey:column];
 					if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
-						RASqliteLog(@"Column type `%@` to not match index `%i` for given structure.", table, index);
+						RASqliteLog(RASqliteLogLevelDebug, @"Column type `%@` to not match index `%i` for given structure.", table, index);
 						valid = NO;
 						break;
 					}
 					index++;
 				}
 			} else {
-				RASqliteLog(@"Number of specified columns for table `%@` do not matched the defined table count.", table);
+				RASqliteLog(RASqliteLogLevelDebug, @"Number of specified columns for table `%@` do not matched the defined table count.", table);
 				valid = NO;
 			}
 		};
@@ -611,14 +611,14 @@ static sqlite3 *_database;
 				index++;
 			}
 			[sql appendString:@");"];
-			RASqliteLog(@"Create query: %@", sql);
+			RASqliteLog(RASqliteLogLevelDebug, @"Create query: %@", sql);
 
 			// Attempt to create the database table.
 			created = [self execute:sql];
 			if ( created ) {
-				RASqliteLog(@"Table `%@` have been created.", table);
+				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have been created.", table);
 			} else {
-				RASqliteLog(@"Table `%@` have not been created.", table);
+				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have not been created.", table);
 			}
 		};
 
@@ -660,9 +660,9 @@ static sqlite3 *_database;
 			// Attempt to remove the database table.
 			removed = [self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]];
 			if ( removed ) {
-				RASqliteLog(@"Table `%@` have been removed.", table);
+				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have been removed.", table);
 			} else {
-				RASqliteLog(@"Table `%@` have not been removed.", table);
+				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have not been removed.", table);
 			}
 		};
 
@@ -909,7 +909,7 @@ static sqlite3 *_database;
 								row = nil;
 							}
 						} else if ( code == SQLITE_DONE ) {
-							RASqliteLog(@"No rows were found with query: %@", sql);
+							RASqliteLog(RASqliteLogLevelDebug, @"No rows were found with query: %@", sql);
 						} else {
 							error = [NSError code:RASqliteErrorQuery
 										  message:@"Failed to retrieve result, received code: `%i`", code];

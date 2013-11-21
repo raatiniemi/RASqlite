@@ -45,10 +45,19 @@ typedef enum {
 
 // -- -- Logging
 
-// TODO: Implement support for log levels, e.g. debug, info, warning, etc.
+/// Defined logging levels.
+typedef enum {
+	RASqliteLogLevelDebug,
+	RASqliteLogLevelInfo,
+	RASqliteLogLevelWarning,
+	RASqliteLogLevelError
+} RASqliteLogLevel;
 
-#ifdef kRASqliteDebugEnabled
-#define RASqliteLog(format, ...)\
+// Only define the logging methods if they have not been defined. This way it's
+// possible to override the logging method if needed from the application.
+// TODO: Implement level checks.
+#ifndef RASqliteLog
+#define RASqliteLog(level, format, ...)\
 	do {\
 		NSLog(\
 			(@"<%p %@:(%d)> " format),\
@@ -58,8 +67,6 @@ typedef enum {
 			##__VA_ARGS__\
 		);\
 	} while(0)
-#else
-#define RASqliteLog(format, ...)
 #endif
 
 // -- -- Import

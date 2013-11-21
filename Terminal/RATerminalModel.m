@@ -34,7 +34,7 @@ static sqlite3 *_database;
 		_database = database;
 	} else {
 		// Incase an rewrite have been attempted, this should be logged.
-		RASqliteLog(@"Database pointer rewrite attempt.");
+		RASqliteLog(RASqliteLogLevelWarning, @"Database pointer rewrite attempt.");
 	}
 }
 

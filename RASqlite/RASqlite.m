@@ -151,15 +151,23 @@ static sqlite3 *_database;
 
 - (void)sharedInitialization
 {
+	// Set the number of retry attempts before a timeout is triggered.
+	[self setRetryTimeout:0];
+
 	// Check if the path is writeable, among other things.
 	if( ![self checkPath:[self path]] ) {
 		// There is something wrong with the path, raise an exception.
-		// TODO: Better exception message.
 		[NSException raise:@"Invalid path"
-					format:@"The supplied path `%@` can not be used, check the directory permissions.", [self path]];
+					format:@"The supplied path `%@` can not be used.", [self path]];
 	}
 
-	[self setRetryTimeout:0];
+	// Create the thread for running queries, using the name for the database file.
+	NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, [[self path] lastPathComponent]];
+	[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
+
+	// Set the name of the query queue to the container. It will be used to
+	// check if the current queue is the query queue.
+	dispatch_queue_set_specific([self queue], kRASqliteKeyQueueName, (void *)[thread UTF8String], NULL);
 }
 
 - (id)init
@@ -176,12 +184,7 @@ static sqlite3 *_database;
 {
 	if ( self = [super init] ) {
 		// Assemble the path for the database file.
-		NSFileManager *manager = [NSFileManager defaultManager];
-		[self setPath:[NSString stringWithFormat:@"%@/rasqlite/%@", [manager currentDirectoryPath], name]];
-
-		// Create the thread for running queries, using the name for the database file.
-		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, name];
-		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
+		[self setPath:[NSString stringWithFormat:@"%@/rasqlite/%@", [[NSBundle mainBundle] resourcePath], name]];
 
 		// Shared initialization.
 		[self sharedInitialization];
@@ -194,10 +197,6 @@ static sqlite3 *_database;
 	if ( self = [super init] ) {
 		// Assign the database path.
 		[self setPath:path];
-
-		// Create the thread for running queries, using the name for the database file.
-		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, [[self path] lastPathComponent]];
-		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
 
 		// Shared initialization.
 		[self sharedInitialization];
@@ -292,15 +291,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		char *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -370,15 +365,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -428,15 +419,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -501,15 +488,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -553,15 +536,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -643,15 +622,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -691,15 +666,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -874,15 +845,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -956,15 +923,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -998,15 +961,11 @@ static sqlite3 *_database;
 			insertId = [NSNumber numberWithLongLong:sqlite3_last_insert_rowid([self database])];
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1055,15 +1014,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1118,15 +1073,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1160,15 +1111,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1197,15 +1144,11 @@ static sqlite3 *_database;
 			}
 		};
 
-		// Since this method can be called separately or from either of the
-		// queue with block methods, we have to check which thread/queue we are
-		// currently executing on. And, depending on the results, execute the
-		// block function on the correct thread/queue. Otherwise, we'd either
-		// create a thread dead lock or risk getting memory issues due to
-		// concurrent write operations to single source.
-		//
-		// Reminder: The strcmp function returns zero if the strings are equal.
-		if ( !strcmp(kRASqliteQueueLabel, dispatch_queue_get_label([self queue])) ) {
+		// Attempt to retrieve the name from the current dispatch queue, and
+		// compare it against the name of the query dispatch queue. If the name
+		// matches we're on the correct queue.
+		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);

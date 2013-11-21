@@ -14,14 +14,8 @@
 /// Format for the name of the query threads.
 #define kRASqliteThreadFormat @"me.raatiniemi.rasqlite.%@"
 
-/**
- Retrieves the name of the currently executed thread.
- 
- @note
- Will be used to determind whether we need to dispatch a sync thread for the
- queries, or if the sync thread already have been dispatched.
- */
-#define kRASqliteQueueLabel dispatch_queue_get_label(dispatch_get_current_queue())
+/// The key used for setting/getting the name for the dispatch queue.
+#define kRASqliteKeyQueueName "me.raatiniemi.rasqlite.queue.name"
 
 // -- -- Data types
 

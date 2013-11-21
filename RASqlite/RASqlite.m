@@ -279,7 +279,7 @@ static sqlite3 *_database;
 				if ( code == SQLITE_OK ) {
 					// The database was successfully opened.
 					[self setDatabase:database];
-					RASqliteLog(RASqliteLogLevelInfo, @"Database have successfully been opened.");
+					RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
 				} else {
 					// Something went wrong...
 					error = [NSError code:RASqliteErrorOpen
@@ -356,7 +356,7 @@ static sqlite3 *_database;
 									  message:@"Unable to close database, received code `%i`.", code];
 					} else {
 						[self setDatabase:nil];
-						RASqliteLog(RASqliteLogLevelInfo, @"Database have successfully been closed.");
+						RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
 					}
 				} while (retry);
 			} else {

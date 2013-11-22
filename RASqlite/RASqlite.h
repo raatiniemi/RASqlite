@@ -45,28 +45,45 @@ typedef enum {
 
 // -- -- Logging
 
-/// Defined logging levels.
+/// Definition of available log levels
 typedef enum {
+	/// Debug-level messages.
 	RASqliteLogLevelDebug,
+
+	/// Informational-level messages.
 	RASqliteLogLevelInfo,
+
+	/// Warning-level messages.
 	RASqliteLogLevelWarning,
+
+	/// Error-level messages.
 	RASqliteLogLevelError
 } RASqliteLogLevel;
 
+#if DEBUG
+/// Stores the level of logging within the library.
+static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelDebug;
+
 // Only define the logging methods if they have not been defined. This way it's
 // possible to override the logging method if needed from the application.
-// TODO: Implement level checks.
 #ifndef RASqliteLog
 #define RASqliteLog(level, format, ...)\
-	do {\
+do {\
+	if ( level >= _RASqliteLogLevel ) {\
 		NSLog(\
-			(@"<%p %@:(%d)> " format),\
-			self,\
+			(@"<%@:(%d)> " format),\
 			[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
 			__LINE__,\
 			##__VA_ARGS__\
 		);\
-	} while(0)
+	}\
+} while(0)
+#endif
+#else
+// If debug is not enabled, nothing should reach the debug log.
+#ifndef RASqliteLog
+#define RASqliteLog(level, format, ...) do { } while(0)
+#endif
 #endif
 
 // -- -- Import

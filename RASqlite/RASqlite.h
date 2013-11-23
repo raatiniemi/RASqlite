@@ -36,10 +36,21 @@ static const NSString *RASqliteBlob = @"BLOB";
 
 // -- -- Transaction
 
-/// Definition of available transaction types.
+/**
+ Definition of available transaction types.
+
+ @note
+ More information about transaction types within sqlite can be found here:
+ http://www.sqlite.org/lang_transaction.html
+ */
 typedef enum {
+	/// No locks are acquired on the database until the database is first accessed.
 	RASqliteTransactionDeferred,
+
+	/// Reserved locks are acquired on all database, without waiting for database access.
 	RASqliteTransactionImmediate,
+
+	/// An exclusive transaction causes EXCLUSIVE locks to be acquired on all databases.
 	RASqliteTransactionExclusive
 } RASqliteTransaction;
 

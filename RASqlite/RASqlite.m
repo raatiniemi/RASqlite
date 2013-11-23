@@ -802,7 +802,7 @@ static sqlite3 *_database;
 			// If an error already have occurred, we should not attempt to execute query.
 			if ( !error ) {
 				sqlite3_stmt *statement;
-				int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
 				if ( code == SQLITE_OK ) {
 					if ( params ) {
@@ -891,7 +891,7 @@ static sqlite3 *_database;
 			// If an error already have occurred, we should not attempt to execute query.
 			if ( !error ) {
 				sqlite3_stmt *statement;
-				int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
 				if ( code == SQLITE_OK ) {
 					if ( params ) {
@@ -992,7 +992,7 @@ static sqlite3 *_database;
 			// If an error already have occurred, we should not attempt to execute query.
 			if ( !error ) {
 				sqlite3_stmt *statement;
-				int code = sqlite3_prepare([self database], [sql UTF8String], -1, &statement, NULL);
+				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
 				if ( code == SQLITE_OK ) {
 					if ( params ) {

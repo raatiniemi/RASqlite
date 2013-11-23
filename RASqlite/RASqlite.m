@@ -184,7 +184,8 @@ static sqlite3 *_database;
 {
 	if ( self = [super init] ) {
 		// Assemble the path for the database file.
-		[self setPath:[NSString stringWithFormat:@"%@/rasqlite/%@", [[NSBundle mainBundle] resourcePath], name]];
+		NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+		[self setPath:[NSString stringWithFormat:@"%@/%@", [directories objectAtIndex:0], name]];
 
 		// Shared initialization.
 		[self sharedInitialization];

@@ -691,7 +691,8 @@ static sqlite3 *_database;
 	unsigned int index = 1;
 	for ( id column in columns ) {
 		if ( [column isKindOfClass:[NSString class]] ) {
-			// TODO: Check if string is UTF-8 or UTF-16.
+			// Sqlite do not seem to fully support UTF-16 yet, so no need to
+			// implement support for the `sqlite3_bind_text16` functionality.
 			code = sqlite3_bind_text(*statement, index, [column UTF8String], -1, SQLITE_TRANSIENT);
 		} else if ( [column isKindOfClass:[NSNumber class]] ) {
 			const char *type = [column objCType];
@@ -707,7 +708,7 @@ static sqlite3 *_database;
 		} else if ( [column isKindOfClass:[NSNull class]] ) {
 			code = sqlite3_bind_null(*statement, index);
 		} else {
-			// TODO: Implement support for more data types.
+			// TODO: Implement support blob.
 			[NSException raise:@"Incomplete implementation"
 						format:@"Support for binding type `%@` is not available.", [column class]];
 		}
@@ -746,9 +747,9 @@ static sqlite3 *_database;
 		type = sqlite3_column_type(*statement, index);
 		switch ( type ) {
 			case SQLITE_INTEGER: {
-				// TODO: Handle retrieval of sqlite3_int64.
-				int value = sqlite3_column_int(*statement, index);
-				[row setColumn:column withObject:[NSNumber numberWithInt:value]];
+				// TODO: Test on 32-bit machine.
+				NSInteger value = sqlite3_column_int64(*statement, index);
+				[row setColumn:column withObject:[NSNumber numberWithInteger:value]];
 				break;
 			}
 			case SQLITE_FLOAT: {
@@ -768,7 +769,8 @@ static sqlite3 *_database;
 			}
 			case SQLITE_TEXT:
 			default: {
-				// TODO: Handle retrieval of sqlite3_column_text16.
+				// Sqlite do not seem to fully support UTF-16 yet, so no need to
+				// implement support for the `sqlite3_column_text16` functionality.
 				const char *value = (const char *)sqlite3_column_text(*statement, index);
 				[row setColumn:column withObject:[NSString stringWithCString:value encoding:NSUTF8StringEncoding]];
 				break;

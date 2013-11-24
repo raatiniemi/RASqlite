@@ -708,9 +708,8 @@ static sqlite3 *_database;
 		} else if ( [column isKindOfClass:[NSNull class]] ) {
 			code = sqlite3_bind_null(*statement, index);
 		} else {
-			// TODO: Implement support blob.
-			[NSException raise:@"Incomplete implementation"
-						format:@"Support for binding type `%@` is not available.", [column class]];
+			unsigned int length = (unsigned int)[column length];
+			code = sqlite3_bind_blob(*statement, index, [column bytes], length, SQLITE_TRANSIENT);
 		}
 
 		// Check if an error has occurred.
@@ -758,9 +757,10 @@ static sqlite3 *_database;
 				break;
 			}
 			case SQLITE_BLOB: {
-				// TODO: Implement support for SQLITE_BLOB.
-				[NSException raise:@"Incomplete implementation"
-							format:@"Incomplete implementation of `%s` for `SQLITE_BLOB`.", __PRETTY_FUNCTION__];
+				// Retrieve the value and the number of bytes for the blob column.
+				const void *value = (void *)sqlite3_column_blob(*statement, index);
+				NSUInteger bytes = sqlite3_column_bytes(*statement, index);
+				[row setColumn:column withObject:[NSData dataWithBytes:value length:bytes]];
 				break;
 			}
 			case SQLITE_NULL: {

@@ -37,6 +37,8 @@ static sqlite3 *_database;
 @private NSString *_path;
 
 @private NSInteger _retryTimeout;
+
+@private BOOL _inTransaction;
 }
 
 /// Queue on which all of the queries will be executed on.
@@ -47,6 +49,9 @@ static sqlite3 *_database;
 
 /// Number of attempts before the retry timeout is reached.
 @property (atomic, readwrite) NSInteger retryTimeout;
+
+/// Check for preventing transaction within transactions.
+@property (nonatomic, readwrite) BOOL inTransaction;
 
 #pragma mark - Path
 
@@ -168,6 +173,9 @@ static sqlite3 *_database;
 	// Set the name of the query queue to the container. It will be used to
 	// check if the current queue is the query queue.
 	dispatch_queue_set_specific([self queue], kRASqliteKeyQueueName, (void *)[thread UTF8String], NULL);
+
+	// Set the default value for the `inTransaction`.
+	[self setInTransaction:NO];
 }
 
 - (id)init
@@ -1187,6 +1195,18 @@ static sqlite3 *_database;
 - (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *, BOOL **))block
 {
 	[self queueWithBlock:^(RASqlite *db) {
+		// Check if we're already within a transaction. There are two
+		// implementation alternatives regarding `inTransaction`. Either, an
+		// exception is raised to prevent nested transactions or the inner
+		// transaction omits the begin transaction. However, the second
+		// alternatives poses some difficulties when it comes to the
+		// commit/rollback. Therefor, the first alternative is implemented.
+		if ( [self inTransaction] ) {
+			[NSException raise:@"Nested transactions"
+						format:@"A nested transaction have been detected, this is not allowed."];
+		}
+
+		[self setInTransaction:YES];
 		[self beginTransaction:transaction];
 		BOOL *commit;
 
@@ -1197,6 +1217,7 @@ static sqlite3 *_database;
 		} else {
 			[self rollBack];
 		}
+		[self setInTransaction:NO];
 	}];
 }
 

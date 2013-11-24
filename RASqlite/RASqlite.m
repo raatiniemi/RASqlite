@@ -150,6 +150,8 @@ static sqlite3 *_database;
 
 @synthesize retryTimeout = _retryTimeout;
 
+@synthesize inTransaction = _inTransaction;
+
 @synthesize error = _error;
 
 #pragma mark - Initialization

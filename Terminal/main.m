@@ -15,6 +15,7 @@ int main(int argc, const char * argv[])
 		RATerminalModel *model = [[RATerminalModel alloc] initWithName:@"user.db"];
 		[model queueWithBlock:^(RASqlite *db) {
 			if ( ![db check] ) {
+				[db deleteTable:@"user"];
 				[db create];
 			}
 		}];

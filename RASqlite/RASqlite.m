@@ -742,7 +742,7 @@ static sqlite3 *_database;
 		name = sqlite3_column_name(*statement, index);
 		column = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
 
-		// TODO: Implement support for the rest of the `sqlite3_column_*` functions.
+		// Check which column type the current index is and bind the column value.
 		type = sqlite3_column_type(*statement, index);
 		switch ( type ) {
 			case SQLITE_INTEGER: {
@@ -1171,9 +1171,17 @@ static sqlite3 *_database;
 
 - (void)queueWithBlock:(void (^)(RASqlite *db))block
 {
-	dispatch_sync([self queue], ^{
+	// Attempt to retrieve the name from the current dispatch queue, and
+	// compare it against the name of the query dispatch queue. If the name
+	// matches we're on the correct queue.
+	void *name = dispatch_get_specific(kRASqliteKeyQueueName);
+	if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
 		block(self);
-	});
+	} else {
+		dispatch_sync([self queue], ^{
+			block(self);
+		});
+	}
 }
 
 - (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *, BOOL **))block

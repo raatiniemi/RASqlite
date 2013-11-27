@@ -30,7 +30,6 @@
  */
 - (id)getColumn:(NSString *)name;
 
-
 /**
  Check whether a column exists within the dictionary.
 

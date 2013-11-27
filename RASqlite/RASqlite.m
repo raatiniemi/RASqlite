@@ -158,26 +158,6 @@ static sqlite3 *_database;
 
 - (void)sharedInitialization
 {
-	// Set the number of retry attempts before a timeout is triggered.
-	[self setRetryTimeout:0];
-
-	// Check if the path is writeable, among other things.
-	if( ![self checkPath:[self path]] ) {
-		// There is something wrong with the path, raise an exception.
-		[NSException raise:@"Invalid path"
-					format:@"The supplied path `%@` can not be used.", [self path]];
-	}
-
-	// Create the thread for running queries, using the name for the database file.
-	NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, [[self path] lastPathComponent]];
-	[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
-
-	// Set the name of the query queue to the container. It will be used to
-	// check if the current queue is the query queue.
-	dispatch_queue_set_specific([self queue], kRASqliteKeyQueueName, (void *)[thread UTF8String], NULL);
-
-	// Set the default value for the `inTransaction`.
-	[self setInTransaction:NO];
 }
 
 - (id)init
@@ -190,29 +170,41 @@ static sqlite3 *_database;
 	return nil;
 }
 
-- (instancetype)initWithName:(NSString *)name
-{
-	if ( self = [super init] ) {
-		// Assemble the path for the database file.
-		NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-		[self setPath:[NSString stringWithFormat:@"%@/%@", [directories objectAtIndex:0], name]];
-
-		// Shared initialization.
-		[self sharedInitialization];
-	}
-	return self;
-}
-
 - (instancetype)initWithPath:(NSString *)path
 {
 	if ( self = [super init] ) {
 		// Assign the database path.
 		[self setPath:path];
 
-		// Shared initialization.
-		[self sharedInitialization];
+		// Check if the path is writeable, among other things.
+		if( ![self checkPath:[self path]] ) {
+			// There is something wrong with the path, raise an exception.
+			[NSException raise:@"Invalid path"
+						format:@"The supplied path `%@` can not be used.", [self path]];
+		}
+
+		// Create the thread for running queries, using the name for the database file.
+		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, [[self path] lastPathComponent]];
+		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
+
+		// Set the name of the query queue to the container. It will be used to
+		// check if the current queue is the query queue.
+		dispatch_queue_set_specific([self queue], kRASqliteKeyQueueName, (void *)[thread UTF8String], NULL);
+
+		// Set the number of retry attempts before a timeout is triggered.
+		[self setRetryTimeout:0];
+
+		// Set the default value for the `inTransaction`.
+		[self setInTransaction:NO];
 	}
 	return self;
+}
+
+- (instancetype)initWithName:(NSString *)name
+{
+	// Assemble the path for the database file.
+	NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	return [self initWithPath:[NSString stringWithFormat:@"%@/%@", [directories objectAtIndex:0], name]];
 }
 
 #pragma mark - Path

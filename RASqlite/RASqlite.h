@@ -127,22 +127,6 @@ do {\
 #pragma mark - Initialization
 
 /**
- Initialize with the name of the database file.
-
- @param name Name of the database file.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
-
- @note
- When used the file will be place within the directory `rasqlite` of the
- applications current directory.
-
- @par
- If the directory do not exists, it will be created.
- */
-- (instancetype)initWithName:(NSString *)name;
-
-/**
  Initialize with the absolute path for the database file.
 
  @param path Absolute path for the database file.
@@ -153,6 +137,18 @@ do {\
  If the directory do not exists, it will be created.
  */
 - (instancetype)initWithPath:(NSString *)path;
+
+/**
+ Initialize with the name of the database file.
+
+ @param name Name of the database file.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ If the directory do not exists, it will be created.
+ */
+- (instancetype)initWithName:(NSString *)name;
 
 #pragma mark - Database
 

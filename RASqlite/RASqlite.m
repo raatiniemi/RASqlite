@@ -42,16 +42,16 @@ static sqlite3 *_database;
 }
 
 /// Queue on which all of the queries will be executed on.
-@property (nonatomic, readwrite, strong) dispatch_queue_t queue;
+@property (atomic, readwrite, strong) dispatch_queue_t queue;
 
 /// Stores the path for the database file.
-@property (nonatomic, readwrite, strong) NSString *path;
+@property (atomic, readwrite, strong) NSString *path;
 
 /// Number of attempts before the retry timeout is reached.
 @property (atomic, readwrite) NSInteger retryTimeout;
 
 /// Check for preventing transaction within transactions.
-@property (nonatomic, readwrite) BOOL inTransaction;
+@property (atomic, readwrite) BOOL inTransaction;
 
 #pragma mark - Path
 

@@ -122,7 +122,7 @@ do {\
 }
 
 /// Stores the first occurred error, `nil` if none has occurred.
-@property (nonatomic, readwrite, strong) NSError *error;
+@property (atomic, readwrite, strong) NSError *error;
 
 #pragma mark - Initialization
 

@@ -156,10 +156,6 @@ static sqlite3 *_database;
 
 #pragma mark - Initialization
 
-- (void)sharedInitialization
-{
-}
-
 - (id)init
 {
 	// Use of this method is not allowed, `initWithName:` should be used.

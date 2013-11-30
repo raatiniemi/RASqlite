@@ -39,6 +39,17 @@
  */
 - (void)testInitWithPathFailure;
 
+/**
+ Initialization successful test with `initWithName:`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ Since the `initWithName:` will just call the designated initializer, i.e.
+ `initWithPath:`, there's no need to test the failure.
+ */
+- (void)testInitWithNameSuccess;
+
 @end
 
 @implementation RASqliteTests
@@ -73,6 +84,12 @@
 	// Database initialization should not be successful with readonly directories
 	// since the `checkPath:` method checks permissions, among other things.
 	XCTAssertThrows([[RASqlite alloc] initWithPath:@"/db"], @"Database initilization was successful with the readonly directory `/`.");
+}
+
+- (void)testInitWithNameSuccess
+{
+	RASqlite *rasqlite = [[RASqlite alloc] initWithName:@"db"];
+	XCTAssertNotNil(rasqlite, @"Database initialization failed with name `db`.");
 }
 
 @end

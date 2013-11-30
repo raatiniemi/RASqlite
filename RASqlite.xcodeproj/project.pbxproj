@@ -13,10 +13,13 @@
 		2D42BD431849A66800D0BA89 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992AA181D1B780006A177 /* Foundation.framework */; };
 		2D42BD511849A66800D0BA89 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D42BD501849A66800D0BA89 /* XCTest.framework */; };
 		2D42BD521849A66800D0BA89 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992AA181D1B780006A177 /* Foundation.framework */; };
-		2D42BD541849A66800D0BA89 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D42BD531849A66800D0BA89 /* UIKit.framework */; };
-		2D42BD571849A66800D0BA89 /* libRASqlite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D42BD421849A66800D0BA89 /* libRASqlite.a */; };
 		2D42BD5D1849A66900D0BA89 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 2D42BD5B1849A66900D0BA89 /* InfoPlist.strings */; };
 		2D42BD5F1849A66900D0BA89 /* RASqliteTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D42BD5E1849A66900D0BA89 /* RASqliteTests.m */; };
+		2D42BD661849AAA200D0BA89 /* NSError+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DF94A8218332B75004F6D8E /* NSError+RASqlite.m */; };
+		2D42BD671849AAA200D0BA89 /* RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992BB181D26610006A177 /* RASqlite.m */; };
+		2D42BD681849AAA200D0BA89 /* NSMutableDictionary+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D3C78ED1834701400259D3E /* NSMutableDictionary+RASqlite.m */; };
+		2D42BD691849AAA200D0BA89 /* NSDictionary+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D3C78F01834707B00259D3E /* NSDictionary+RASqlite.m */; };
+		2D42BD6C1849AACC00D0BA89 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D42BD6B1849AACC00D0BA89 /* libsqlite3.dylib */; };
 		2D5992AB181D1B780006A177 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992AA181D1B780006A177 /* Foundation.framework */; };
 		2D5992AE181D1B780006A177 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992AD181D1B780006A177 /* main.m */; };
 		2D5992B7181D1C080006A177 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992B6181D1C080006A177 /* libsqlite3.dylib */; };
@@ -24,16 +27,6 @@
 		2DE1B55118281C5500CF85B2 /* RATerminalModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DE1B55018281C5500CF85B2 /* RATerminalModel.m */; };
 		2DF94A8318332B75004F6D8E /* NSError+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DF94A8218332B75004F6D8E /* NSError+RASqlite.m */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		2D42BD551849A66800D0BA89 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 2D59929D181D1B470006A177 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 2D42BD411849A66800D0BA89;
-			remoteInfo = RASqlite;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		2D42BD401849A66800D0BA89 /* CopyFiles */ = {
@@ -73,6 +66,7 @@
 		2D42BD5A1849A66800D0BA89 /* RASqliteTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "RASqliteTests-Info.plist"; sourceTree = "<group>"; };
 		2D42BD5C1849A66900D0BA89 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		2D42BD5E1849A66900D0BA89 /* RASqliteTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RASqliteTests.m; sourceTree = "<group>"; };
+		2D42BD6B1849AACC00D0BA89 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.0.sdk/usr/lib/libsqlite3.dylib; sourceTree = DEVELOPER_DIR; };
 		2D5992A7181D1B780006A177 /* Terminal */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Terminal; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D5992AA181D1B780006A177 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		2D5992AD181D1B780006A177 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -99,9 +93,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2D42BD571849A66800D0BA89 /* libRASqlite.a in Frameworks */,
+				2D42BD6C1849AACC00D0BA89 /* libsqlite3.dylib in Frameworks */,
 				2D42BD511849A66800D0BA89 /* XCTest.framework in Frameworks */,
-				2D42BD541849A66800D0BA89 /* UIKit.framework in Frameworks */,
 				2D42BD521849A66800D0BA89 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -215,6 +208,7 @@
 		2D5992A9181D1B780006A177 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2D42BD6B1849AACC00D0BA89 /* libsqlite3.dylib */,
 				2D5992B6181D1C080006A177 /* libsqlite3.dylib */,
 				2D5992AA181D1B780006A177 /* Foundation.framework */,
 				2D42BD501849A66800D0BA89 /* XCTest.framework */,
@@ -272,7 +266,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				2D42BD561849A66800D0BA89 /* PBXTargetDependency */,
 			);
 			name = RASqliteTests;
 			productName = RASqliteTests;
@@ -305,6 +298,11 @@
 				CLASSPREFIX = RA;
 				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = Raatiniemi;
+				TargetAttributes = {
+					2D42BD4E1849A66800D0BA89 = {
+						TestTargetID = 2D42BD411849A66800D0BA89;
+					};
+				};
 			};
 			buildConfigurationList = 2D5992A0181D1B470006A177 /* Build configuration list for PBXProject "RASqlite" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -348,6 +346,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2D42BD661849AAA200D0BA89 /* NSError+RASqlite.m in Sources */,
+				2D42BD671849AAA200D0BA89 /* RASqlite.m in Sources */,
+				2D42BD681849AAA200D0BA89 /* NSMutableDictionary+RASqlite.m in Sources */,
+				2D42BD691849AAA200D0BA89 /* NSDictionary+RASqlite.m in Sources */,
 				2D42BD5F1849A66900D0BA89 /* RASqliteTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -367,14 +369,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		2D42BD561849A66800D0BA89 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 2D42BD411849A66800D0BA89 /* RASqlite */;
-			targetProxy = 2D42BD551849A66800D0BA89 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		2D42BD5B1849A66900D0BA89 /* InfoPlist.strings */ = {
@@ -657,6 +651,7 @@
 				2D42BD611849A66900D0BA89 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2D42BD651849A66900D0BA89 /* Build configuration list for PBXNativeTarget "RASqliteTests" */ = {
 			isa = XCConfigurationList;
@@ -665,6 +660,7 @@
 				2D42BD631849A66900D0BA89 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2D5992A0181D1B470006A177 /* Build configuration list for PBXProject "RASqlite" */ = {
 			isa = XCConfigurationList;

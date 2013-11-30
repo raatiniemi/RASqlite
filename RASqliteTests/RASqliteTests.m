@@ -7,28 +7,73 @@
 //
 
 #import <XCTest/XCTest.h>
+#import "RASqlite.h"
 
+/**
+ Unit test for RASqlite.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 @interface RASqliteTests : XCTestCase
+
+#pragma mark - Initialization
+
+/**
+ Test the initialization with `init`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testInit;
+
+/**
+ Initialization successful test with `initWithPath:`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testInitWithPathSuccess;
+
+/**
+ Initialization failure test with `initWithPath:`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testInitWithPathFailure;
 
 @end
 
 @implementation RASqliteTests
 
+#pragma mark - Setup/teardown
+
 - (void)setUp
 {
-    [super setUp];
-    // Put setup code here. This method is called before the invocation of each test method in the class.
+	[super setUp];
 }
 
 - (void)tearDown
 {
-    // Put teardown code here. This method is called after the invocation of each test method in the class.
-    [super tearDown];
+	[super tearDown];
 }
 
-- (void)testExample
+#pragma mark - Initialization
+
+- (void)testInit
 {
-    XCTFail(@"No implementation for \"%s\"", __PRETTY_FUNCTION__);
+	XCTAssertThrows([[RASqlite alloc] init], @"Use of the `init` method is not allowed, use `initWithName:` instead.");
+}
+
+- (void)testInitWithPathSuccess
+{
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:@"/tmp/db"];
+	XCTAssertNotNil(rasqlite, @"Database initialization failed with directory `/tmp`.");
+}
+
+- (void)testInitWithPathFailure
+{
+	// Database initialization should not be successful with readonly directories
+	// since the `checkPath:` method checks permissions, among other things.
+	XCTAssertThrows([[RASqlite alloc] initWithPath:@"/db"], @"Database initilization was successful with the readonly directory `/`.");
+
 }
 
 @end

@@ -749,8 +749,8 @@ static sqlite3 *_database;
 		switch ( type ) {
 			case SQLITE_INTEGER: {
 				// TODO: Test on 32-bit machine.
-				NSInteger value = sqlite3_column_int64(*statement, index);
-				[row setColumn:column withObject:[NSNumber numberWithInteger:value]];
+				long long int value = sqlite3_column_int64(*statement, index);
+				[row setColumn:column withObject:[NSNumber numberWithLongLong:value]];
 				break;
 			}
 			case SQLITE_FLOAT: {

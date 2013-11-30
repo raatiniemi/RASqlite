@@ -73,7 +73,6 @@
 	// Database initialization should not be successful with readonly directories
 	// since the `checkPath:` method checks permissions, among other things.
 	XCTAssertThrows([[RASqlite alloc] initWithPath:@"/db"], @"Database initilization was successful with the readonly directory `/`.");
-
 }
 
 @end

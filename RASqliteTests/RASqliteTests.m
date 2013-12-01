@@ -86,6 +86,15 @@ static NSString *_directory = @"/tmp/rasqlite";
  */
 - (void)testOpenAlreadyOpenDatabase;
 
+#pragma mark -- Close
+
+/**
+ Attempt to close non-initialized database.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testCloseNonInitializedDatabase;
+
 @end
 
 @implementation RASqliteTests
@@ -139,6 +148,8 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark - Database
 
+#pragma mark -- Open
+
 - (void)testOpenWithNonExistingFile
 {
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:@"/tmp/none_existing_file"];
@@ -171,6 +182,16 @@ static NSString *_directory = @"/tmp/rasqlite";
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 	XCTAssertNil([rasqlite open], @"Open database failed: %@", [[rasqlite error] localizedDescription]);
 	XCTAssertNil([rasqlite open], @"Open already open database failed: %@", [[rasqlite error] localizedDescription]);
+}
+
+#pragma mark -- Close
+
+- (void)testCloseNonInitializedDatabase
+{
+	NSString *path = [_directory stringByAppendingString:@"/closed_database"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+	XCTAssertNil([rasqlite close],
+				 @"Close non initialized database failed: %@", [[rasqlite error] localizedDescription]);
 }
 
 @end

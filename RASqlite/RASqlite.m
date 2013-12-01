@@ -320,40 +320,47 @@
 			// a close if we don't.
 			sqlite3 *database = [self database];
 			if ( database ) {
-				BOOL retry;
-				int code;
+				// We have to check whether we have an active transaction. The
+				// `sqlite3_close` will close the database even if a transaction
+				// lock have been acquired.
+				if ( ![self inTransaction] ) {
+					BOOL retry;
+					int code;
 
-				// Checks of number of attempts, will prevent infinite loops.
-				NSInteger attempt = 0;
+					// Checks of number of attempts, will prevent infinite loops.
+					NSInteger attempt = 0;
 
-				// Repeat the close process until the database is closed, an error
-				// occurres, or the retry attempts have been depleted.
-				do {
-					// Reset the retry control and attempt to close the database.
-					retry = NO;
-					code = sqlite3_close(database);
+					// Repeat the close process until the database is closed, an error
+					// occurres, or the retry attempts have been depleted.
+					do {
+						// Reset the retry control and attempt to close the database.
+						retry = NO;
+						code = sqlite3_close(database);
 
-					// Check whether the database is busy or locked.
-					if ( code == SQLITE_BUSY || code == SQLITE_LOCKED ) {
-						// Since every query against the same database is executed
-						// on the same queue it is highly unlikely that the database
-						// would be busy or locked, but better to be safe.
-						RASqliteLog(RASqliteLogLevelInfo, @"Database is busy/locked, retrying to close.");
-						retry = YES;
+						// Check whether the database is busy or locked.
+						// By default, sqlite3 do not check if a transaction is
+						// active this has to be manually checked.
+						if ( code == SQLITE_BUSY || code == SQLITE_LOCKED ) {
+							// Since every query against the same database is executed
+							// on the same queue it is highly unlikely that the database
+							// would be busy or locked, but better to be safe.
+							RASqliteLog(RASqliteLogLevelInfo, @"Database is busy/locked, retrying to close.");
+							retry = YES;
 
-						// Check if the retry timeout have been reached.
-						if ( attempt++ > [self retryTimeout] ) {
-							RASqliteLog(RASqliteLogLevelInfo, @"Retry timeout have been reached, unable to close database.");
-							retry = NO;
+							// Check if the retry timeout have been reached.
+							if ( attempt++ > [self retryTimeout] ) {
+								RASqliteLog(RASqliteLogLevelInfo, @"Retry timeout have been reached, unable to close database.");
+								retry = NO;
+							}
+						} else if ( code != SQLITE_OK ) {
+							error = [NSError code:RASqliteErrorClose
+										  message:@"Unable to close database, received code `%i`.", code];
+						} else {
+							[self setDatabase:nil];
+							RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
 						}
-					} else if ( code != SQLITE_OK ) {
-						error = [NSError code:RASqliteErrorClose
-									  message:@"Unable to close database, received code `%i`.", code];
-					} else {
-						[self setDatabase:nil];
-						RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
-					}
-				} while (retry);
+					} while (retry);
+				}
 			} else {
 				// No need to close, it is already closed.
 				RASqliteLog(RASqliteLogLevelDebug, @"Database is already closed.");

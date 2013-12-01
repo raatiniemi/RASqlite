@@ -9,6 +9,8 @@
 #import <XCTest/XCTest.h>
 #import "RASqlite.h"
 
+static NSString *_directory = @"/tmp/rasqlite";
+
 /**
  Unit test for RASqlite.
 
@@ -50,6 +52,40 @@
  */
 - (void)testInitWithNameSuccess;
 
+#pragma mark - Database
+
+/**
+ Open database with non-existing database file.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ Normally when the file do not exists, the file will be created but to test the
+ functionality the `SQLITE_OPEN_CREATE` flag have been omitted.
+ */
+- (void)testOpenWithNonExistingFile;
+
+/**
+ Open database with existing database file.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testOpenWithExistingFile;
+
+/**
+ Open database, create database file.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testOpenCreateFile;
+
+/**
+ Attempt to open database with already open database.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testOpenAlreadyOpenDatabase;
+
 @end
 
 @implementation RASqliteTests
@@ -59,10 +95,17 @@
 - (void)setUp
 {
 	[super setUp];
+
+	// Create the directory that will contain the unit test files.
+	NSFileManager *manager = [NSFileManager defaultManager];
+	[manager createDirectoryAtPath:_directory withIntermediateDirectories:YES attributes:nil error:nil];
 }
 
 - (void)tearDown
 {
+	NSFileManager *manager = [NSFileManager defaultManager];
+	[manager removeItemAtPath:_directory error:nil];
+
 	[super tearDown];
 }
 
@@ -70,7 +113,8 @@
 
 - (void)testInit
 {
-	XCTAssertThrows([[RASqlite alloc] init], @"Use of the `init` method is not allowed, use `initWithName:` instead.");
+	XCTAssertThrows([[RASqlite alloc] init],
+					@"Use of the `init` method is not allowed, use `initWithName:` instead.");
 }
 
 - (void)testInitWithPathSuccess
@@ -83,13 +127,50 @@
 {
 	// Database initialization should not be successful with readonly directories
 	// since the `checkPath:` method checks permissions, among other things.
-	XCTAssertThrows([[RASqlite alloc] initWithPath:@"/db"], @"Database initilization was successful with the readonly directory `/`.");
+	XCTAssertThrows([[RASqlite alloc] initWithPath:@"/db"],
+					@"Database initilization was successful with the readonly directory `/`.");
 }
 
 - (void)testInitWithNameSuccess
 {
 	RASqlite *rasqlite = [[RASqlite alloc] initWithName:@"db"];
 	XCTAssertNotNil(rasqlite, @"Database initialization failed with name `db`.");
+}
+
+#pragma mark - Database
+
+- (void)testOpenWithNonExistingFile
+{
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:@"/tmp/none_existing_file"];
+	XCTAssertNotNil([rasqlite openWithFlags:SQLITE_OPEN_READWRITE],
+					@"Open database was successful with non existing file.");
+}
+
+- (void)testOpenWithExistingFile
+{
+	NSString *path = [_directory stringByAppendingString:@"/existing_file"];
+	NSFileManager *manager = [NSFileManager defaultManager];
+	[manager createFileAtPath:path contents:nil attributes:nil];
+
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+	XCTAssertNil([rasqlite openWithFlags:SQLITE_OPEN_READWRITE],
+				 @"Open database was failed with existing file: %@", [[rasqlite error] localizedDescription]);
+}
+
+- (void)testOpenCreateFile
+{
+	NSString *path = [_directory stringByAppendingString:@"/create_file"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+	XCTAssertNil([rasqlite openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE],
+				 @"Open database with create failed: %@", [[rasqlite error] localizedDescription]);
+}
+
+- (void)testOpenAlreadyOpenDatabase
+{
+	NSString *path = [_directory stringByAppendingString:@"/open_database"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+	XCTAssertNil([rasqlite open], @"Open database failed: %@", [[rasqlite error] localizedDescription]);
+	XCTAssertNil([rasqlite open], @"Open already open database failed: %@", [[rasqlite error] localizedDescription]);
 }
 
 @end

@@ -16,22 +16,13 @@
 #import "NSMutableDictionary+RASqlite.h"
 
 /**
- Instance for the database.
-
- @note
- If multiple models are defined using the RASqlite class as parent and each model
- is using a separate database file. Each model have to define a new database variable
- and override the `database` and `setDatabase:` methods. Otherwise, only one instance
- can be active at one given time.
- */
-static sqlite3 *_database;
-
-/**
  RASqlite is a simple library for working with SQLite databases on iOS and Mac OS X.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 @interface RASqlite () {
+@private sqlite3 *_database;
+
 @private dispatch_queue_t _queue;
 
 @private NSString *_path;
@@ -40,6 +31,9 @@ static sqlite3 *_database;
 
 @private BOOL _inTransaction;
 }
+
+/// Instance for the database.
+@property (atomic, readwrite) sqlite3 *database;
 
 /// Queue on which all of the queries will be executed on.
 @property (atomic, readwrite, strong) dispatch_queue_t queue;
@@ -143,6 +137,8 @@ static sqlite3 *_database;
 @end
 
 @implementation RASqlite
+
+@synthesize database = _database;
 
 @synthesize queue = _queue;
 
@@ -253,7 +249,7 @@ static sqlite3 *_database;
 {
 	// Protection from rewriting the database pointer mid execution. The pointer
 	// have to be resetted before setting a new instance.
-	if ( _database == nil || database == nil ) {
+	if ( [self database] == nil || database == nil ) {
 		_database = database;
 	} else {
 		// Incase an rewrite have been attempted, this should be logged.

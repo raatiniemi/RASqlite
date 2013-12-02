@@ -113,6 +113,18 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark -- Create
 
+- (void)testCreateWithoutStructure;
+
+// TODO: Test with structure with mock.
+
+- (void)testCreateTableWithoutTable;
+
+- (void)testCreateTableWithoutColumns;
+
+- (void)testCreateTable;
+
+- (void)testCreateTableWithNullType;
+
 @end
 
 @implementation RASqliteTests
@@ -220,8 +232,11 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/check"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	// TODO: Figure out why `XCTAssertThrows` do not capture the exception.
-	// XCTAssertThrows([rasqlite check], @"Unable to check database structure, none has been supplied.");
+	// Have to execute the `check`-method within the execute queue, otherwise
+	// `XCTAssertThrows` won't be able to catch the exception.
+	[rasqlite queueWithBlock:^(RASqlite *db) {
+		XCTAssertThrows([db check], @"Check without structure, no exception thrown.");
+	}];
 }
 
 - (void)testCheckTableWithoutTable
@@ -250,7 +265,67 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 	NSDictionary *columns = @{@"id": RASqliteInteger};
 	XCTAssertFalse([rasqlite checkTable:@"foo" withColumns:columns],
-				   @"Check with non existing table was successful.");
+				   @"Check with non-existing table was successful.");
+}
+
+#pragma mark -- Create
+
+- (void)testCreateWithoutStructure
+{
+	NSString *path = [_directory stringByAppendingString:@"/create"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	// Have to execute the `create`-method within the execute queue, otherwise
+	// `XCTAssertThrows` won't be able to catch the exception.
+	[rasqlite queueWithBlock:^(RASqlite *db) {
+		XCTAssertThrows([db create], @"Create without structure, no exception thrown.");
+	}];
+}
+
+- (void)testCreateTableWithoutTable
+{
+	NSString *path = [_directory stringByAppendingString:@"/create"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSDictionary *columns = @{@"id": RASqliteInteger};
+	XCTAssertThrows([rasqlite createTable:nil withColumns:columns],
+					@"Create without table name did not throw exception.");
+}
+
+- (void)testCreateTableWithoutColumns
+{
+	NSString *path = [_directory stringByAppendingString:@"/create"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	XCTAssertThrows([rasqlite createTable:@"foo" withColumns:nil],
+					@"Create without columns did not throw exception.");
+}
+
+- (void)testCreateTable
+{
+	NSString *path = [_directory stringByAppendingString:@"/create"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableDictionary *columns = [[NSMutableDictionary alloc] init];
+	[columns setObject:RASqliteInteger forKey:@"int"];
+	[columns setObject:RASqliteText forKey:@"text"];
+	[columns setObject:RASqliteReal forKey:@"real"];
+	[columns setObject:RASqliteBlob forKey:@"blob"];
+
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				   @"Create table was not successful: %@", [[rasqlite error] localizedDescription]);
+}
+
+- (void)testCreateTableWithNullType
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	[rasqlite queueWithBlock:^(RASqlite *db) {
+		NSDictionary *columns = @{@"null": RASqliteNull};
+		XCTAssertThrows([rasqlite createTable:@"foo" withColumns:columns],
+						@"Created table with `RASqliteNull` data type.");
+	}];
 }
 
 @end

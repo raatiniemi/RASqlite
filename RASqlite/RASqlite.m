@@ -466,26 +466,31 @@
 		void (^block)(void) = ^(void) {
 			// Check whether the defined columns and the table columns match.
 			NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
-			if ( [tColumns count] == [columns count] ) {
-				unsigned int index = 0;
-				for ( NSString *column in columns ) {
-					NSDictionary *tColumn = [tColumns objectAtIndex:index];
-					if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
-						RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
-						valid = NO;
-						break;
-					}
+			if ( [tColumns count] > 0 ) {
+				if ( [tColumns count] == [columns count] ) {
+					unsigned int index = 0;
+					for ( NSString *column in columns ) {
+						NSDictionary *tColumn = [tColumns objectAtIndex:index];
+						if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
+							valid = NO;
+							break;
+						}
 
-					NSString *type = [columns objectForKey:column];
-					if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
-						RASqliteLog(RASqliteLogLevelDebug, @"Column type `%@` to not match index `%i` for given structure.", table, index);
-						valid = NO;
-						break;
+						NSString *type = [columns objectForKey:column];
+						if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column type `%@` to not match index `%i` for given structure.", table, index);
+							valid = NO;
+							break;
+						}
+						index++;
 					}
-					index++;
+				} else {
+					RASqliteLog(RASqliteLogLevelDebug, @"Number of specified columns for table `%@` do not matched the defined table count.", table);
+					valid = NO;
 				}
 			} else {
-				RASqliteLog(RASqliteLogLevelDebug, @"Number of specified columns for table `%@` do not matched the defined table count.", table);
+				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` do not exist with any structure within the database.", table);
 				valid = NO;
 			}
 		};

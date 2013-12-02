@@ -595,7 +595,7 @@
 				}
 				[sql appendFormat:@"%@ ", name];
 
-				NSArray *types = @[RASqliteNull, RASqliteReal, RASqliteText, RASqliteBlob, RASqliteInteger];
+				NSArray *types = @[RASqliteReal, RASqliteText, RASqliteBlob, RASqliteInteger];
 				NSString *type = [columns objectForKey:name];
 				if ( [types indexOfObject:type] != NSNotFound ) {
 					[sql appendString:type];

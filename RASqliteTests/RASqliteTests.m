@@ -95,6 +95,24 @@ static NSString *_directory = @"/tmp/rasqlite";
  */
 - (void)testCloseNonInitializedDatabase;
 
+#pragma mark - Table
+
+#pragma mark -- Check
+
+- (void)testCheckWithoutStructure;
+
+// TODO: Test with structure with mock.
+
+- (void)testCheckTableWithoutTable;
+
+- (void)testCheckTableWithoutColumns;
+
+- (void)testCheckNonExistingTable;
+
+// TODO: Test check for number of columns, column order etc.
+
+#pragma mark -- Create
+
 @end
 
 @implementation RASqliteTests
@@ -122,8 +140,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 - (void)testInit
 {
-	XCTAssertThrows([[RASqlite alloc] init],
-					@"Use of the `init` method is not allowed, use `initWithName:` instead.");
+	XCTAssertThrows([[RASqlite alloc] init], @"`init` method did not fail.");
 }
 
 - (void)testInitWithPathSuccess
@@ -192,6 +209,48 @@ static NSString *_directory = @"/tmp/rasqlite";
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 	XCTAssertNil([rasqlite close],
 				 @"Close non initialized database failed: %@", [[rasqlite error] localizedDescription]);
+}
+
+#pragma mark - Table
+
+#pragma mark -- Check
+
+- (void)testCheckWithoutStructure
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	// TODO: Figure out why `XCTAssertThrows` do not capture the exception.
+	// XCTAssertThrows([rasqlite check], @"Unable to check database structure, none has been supplied.");
+}
+
+- (void)testCheckTableWithoutTable
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSDictionary *columns = @{@"id": RASqliteInteger};
+	XCTAssertThrows([rasqlite checkTable:nil withColumns:columns],
+					@"Check without table name did not throw exception.");
+}
+
+- (void)testCheckTableWithoutColumns
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	XCTAssertThrows([rasqlite checkTable:@"foo" withColumns:nil],
+					@"Check without columns did not throw exception.");
+}
+
+- (void)testCheckNonExistingTable
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSDictionary *columns = @{@"id": RASqliteInteger};
+	XCTAssertFalse([rasqlite checkTable:@"foo" withColumns:columns],
+				   @"");
 }
 
 @end

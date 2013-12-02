@@ -250,7 +250,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 	NSDictionary *columns = @{@"id": RASqliteInteger};
 	XCTAssertFalse([rasqlite checkTable:@"foo" withColumns:columns],
-				   @"");
+				   @"Check with non existing table was successful.");
 }
 
 @end

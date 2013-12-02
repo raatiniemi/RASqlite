@@ -99,31 +99,99 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark -- Check
 
+/**
+ Attempt to check table without structure.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCheckWithoutStructure;
 
 // TODO: Test with structure with mock.
 
+/**
+ Attempt to check table without table name.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCheckTableWithoutTable;
 
+/**
+ Attempt to check table without columns.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCheckTableWithoutColumns;
 
+/**
+ Attempt to check non-existing table.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCheckNonExistingTable;
 
 // TODO: Test check for number of columns, column order etc.
 
 #pragma mark -- Create
 
+/**
+ Attempt to create table without structure.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCreateWithoutStructure;
 
 // TODO: Test with structure with mock.
 
+/**
+ Attempt to create table without table name.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCreateTableWithoutTable;
 
+/**
+ Attempt to create table without columns.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCreateTableWithoutColumns;
 
+/**
+ Attempt to create table with available data types.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCreateTable;
 
+/**
+ Attempt to create table with null data type.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCreateTableWithNullType;
+
+#pragma mark -- Delete
+
+/**
+ Attempt to delete table without name.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testDeleteTableWithoutTable;
+
+/**
+ Attempt to delete table with invalid table name.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testDeleteTableFailure;
+
+/**
+ Delete table successfully.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testDeleteTableSuccess;
 
 @end
 
@@ -326,6 +394,35 @@ static NSString *_directory = @"/tmp/rasqlite";
 		XCTAssertThrows([rasqlite createTable:@"foo" withColumns:columns],
 						@"Created table with `RASqliteNull` data type.");
 	}];
+}
+
+#pragma mark -- Delete
+
+- (void)testDeleteTableWithoutTable
+{
+	NSString *path = [_directory stringByAppendingString:@"/delete"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	XCTAssertThrows([rasqlite deleteTable:nil],
+					@"Delete without table name did not throw exception.");
+}
+
+- (void)testDeleteTableFailure
+{
+	NSString *path = [_directory stringByAppendingString:@"/delete"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	XCTAssertFalse([rasqlite deleteTable:@"1foo"],
+				   @"Delete table with invalid name was successful.");
+}
+
+- (void)testDeleteTableSuccess
+{
+	NSString *path = [_directory stringByAppendingString:@"/delete"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	XCTAssertTrue([rasqlite deleteTable:@"foo"],
+				  @"Delete table failed.");
 }
 
 @end

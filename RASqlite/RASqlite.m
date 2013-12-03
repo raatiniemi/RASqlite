@@ -1012,7 +1012,7 @@
 						code = sqlite3_step(statement);
 						if ( code != SQLITE_DONE ) {
 							error = [NSError code:RASqliteErrorQuery
-										  message:@"Failed to retrieve result, received code: `%i`", code];
+										  message:@"Failed to execute query, received code: `%i`", code];
 						}
 					}
 				} else {

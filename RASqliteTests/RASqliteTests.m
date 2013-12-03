@@ -9,6 +9,7 @@
 #import <XCTest/XCTest.h>
 #import "RASqlite.h"
 
+/// Base directory for the unit test databases.
 static NSString *_directory = @"/tmp/rasqlite";
 
 /**
@@ -192,6 +193,65 @@ static NSString *_directory = @"/tmp/rasqlite";
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 - (void)testDeleteTableSuccess;
+
+#pragma mark - Query
+
+// TODO: Add tests for binding and fetching columns.
+
+#pragma mark -- Fetch
+
+// For both fetch and fetch row.
+// TODO: Add test for getting `Unable to fetch row, received code %i`.
+// TODO: Add test for method forwarding, fetch:|fetch:withParam: > fetch:withParams.
+// TODO: Add tests where an error already occurred, i.e. execution of query is a no go.
+
+#pragma mark --- Result
+
+/**
+ Attempt to fetch result with bad SQL syntax.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testFetchWithBadSyntax;
+
+/**
+ Attempt to fetch result.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testFetchResult;
+
+/**
+ Attempt to fetch result, none was found.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testFetchNoResult;
+
+#pragma mark --- Row
+
+/**
+ Attempt to fetch row with bad SQL syntax.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testFetchRowWithBadSyntax;
+
+/**
+ Attempt to fetch row.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testFetchRow;
+
+/**
+ Attempt to fetch row, none was found.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testFetchRowNoResult;
+
+#pragma mark -- Execute
 
 @end
 
@@ -424,5 +484,87 @@ static NSString *_directory = @"/tmp/rasqlite";
 	XCTAssertTrue([rasqlite deleteTable:@"foo"],
 				  @"Delete table failed.");
 }
+
+#pragma mark - Query
+
+#pragma mark -- Fetch
+
+#pragma mark --- Result
+
+- (void)testFetchWithBadSyntax
+{
+	NSString *path = [_directory stringByAppendingString:@"/fetch"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	XCTAssertNil([rasqlite fetch:@"foo"], @"Fetched result with bad SQL syntax.");
+	XCTAssertNotNil([rasqlite error], @"Error is `nil` with bad SQL syntax.");
+}
+
+- (void)testFetchResult
+{
+	NSString *path = [_directory stringByAppendingString:@"/fetch"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	id result = [rasqlite fetch:@"SELECT 1 AS `id`"];
+	XCTAssertTrue([result isKindOfClass:[NSArray class]], @"Result is not type of `NSArray`.");
+	XCTAssertNotNil(result, @"Fetch result did not retrieve any results: %@",
+					[[rasqlite error] localizedDescription]);
+}
+
+- (void)testFetchNoResult
+{
+	NSString *path = [_directory stringByAppendingString:@"/fetch"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSDictionary *columns = @{@"id": RASqliteInteger};
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for fetch no result: %@",
+				  [[rasqlite error] localizedDescription]);
+
+	id result = [rasqlite fetch:@"SELECT id FROM foo WHERE id = ?" withParam:@1];
+	XCTAssertNotNil(result, @"Fetch non-existing row did return `nil` value.");
+	XCTAssertTrue([result isKindOfClass:[NSArray class]], @"Result is not type of `NSArray`.");
+	XCTAssertTrue([result count] == 0, @"Fetch non-existing row did not return zero rows.");
+	XCTAssertNil([rasqlite error], @"Fetch non-existing row triggered an error.");
+}
+
+#pragma mark --- Row
+
+- (void)testFetchRowWithBadSyntax
+{
+	NSString *path = [_directory stringByAppendingString:@"/fetchrow"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	XCTAssertNil([rasqlite fetchRow:@"foo"], @"Fetched row with bad SQL syntax.");
+	XCTAssertNotNil([rasqlite error], @"Error is `nil` with bad SQL syntax.");
+}
+
+- (void)testFetchRow
+{
+	NSString *path = [_directory stringByAppendingString:@"/fetch"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	id result = [rasqlite fetchRow:@"SELECT 1 AS `id`"];
+	XCTAssertTrue([result isKindOfClass:[NSDictionary class]], @"Result is not type of `NSDictionary`.");
+	XCTAssertNotNil(result, @"Fetch result did not retrieve any results: %@",
+					[[rasqlite error] localizedDescription]);
+}
+
+- (void)testFetchRowNoResult
+{
+	NSString *path = [_directory stringByAppendingString:@"/fetch"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSDictionary *columns = @{@"id": RASqliteInteger};
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for fetch no result: %@",
+				  [[rasqlite error] localizedDescription]);
+
+	id result = [rasqlite fetchRow:@"SELECT id FROM foo WHERE id = ?" withParam:@1];
+	XCTAssertNil(result, @"Fetch non-existing row did return `nil` value.");
+	XCTAssertNil([rasqlite error], @"Fetch non-existing row triggered an error.");
+}
+
+#pragma mark -- Execute
 
 @end

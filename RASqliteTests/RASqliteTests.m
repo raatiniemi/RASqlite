@@ -253,6 +253,34 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark -- Execute
 
+/**
+ Execute with bad SQL syntax.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testExecuteWithBadSyntax;
+
+/**
+ Attempt to execute insert.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testExecuteInsert;
+
+/**
+ Attempt to execute update.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testExecuteUpdate;
+
+/**
+ Attempt to execute delete.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testExecuteDelete;
+
 @end
 
 @implementation RASqliteTests
@@ -566,5 +594,43 @@ static NSString *_directory = @"/tmp/rasqlite";
 }
 
 #pragma mark -- Execute
+
+- (void)testExecuteWithBadSyntax
+{
+	NSString *path = [_directory stringByAppendingString:@"/execute"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	XCTAssertFalse([rasqlite execute:@"foo"], @"Executed with bad SQL syntax.");
+	XCTAssertNotNil([rasqlite error], @"Error is `nil` with bad SQL syntax.");
+}
+
+- (void)testExecuteInsert
+{
+	NSString *path = [_directory stringByAppendingString:@"/execute"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSDictionary *columns = @{@"id": RASqliteInteger, @"bar": RASqliteText};
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for execute: %@",
+				  [[rasqlite error] localizedDescription]);
+
+	BOOL value = [rasqlite execute:@"INSERT INTO foo(id, bar) VALUES(1, ?)" withParam:@"baz"];
+	XCTAssertTrue(value, @"Execute insert failed: %@", [[rasqlite error] localizedDescription]);
+	XCTAssertNil([rasqlite error], @"Execute insert triggered an error.");
+
+	NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
+	XCTAssertNotNil(row, @"Execute insert, failed to retrieve row.");
+	XCTAssertEqualObjects(@"baz", [row objectForKey:@"bar"], @"Value for retrieved row do not match.");
+}
+
+- (void)testExecuteUpdate
+{
+	// TODO: Implement update test.
+}
+
+- (void)testExecuteDelete
+{
+	// TODO: Implement delete test.
+}
 
 @end

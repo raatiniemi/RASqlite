@@ -34,19 +34,6 @@ static const NSString *RASqliteText = @"TEXT";
 /// Column data type for `BLOB`.
 static const NSString *RASqliteBlob = @"BLOB";
 
-/**
- Check if the specified type is a valid data type.
-
- @param type Type to check.
-
- @return `YES` if type is valid, otherwise `NO`.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
- */
-BOOL RASqliteDataType(NSString *type) {
-	return [@[RASqliteNull, RASqliteInteger, RASqliteReal, RASqliteText, RASqliteBlob] containsObject:type];
-}
-
 // -- -- Transaction
 
 /**

@@ -43,7 +43,9 @@ static const NSString *RASqliteBlob = @"BLOB";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-#define RASqliteDataType(type) [@[RASqliteNull, RASqliteInteger, RASqliteReal, RASqliteText, RASqliteBlob] containsObject:type]
+BOOL RASqliteDataType(NSString *type) {
+	return [@[RASqliteNull, RASqliteInteger, RASqliteReal, RASqliteText, RASqliteBlob] containsObject:type];
+}
 
 // -- -- Transaction
 

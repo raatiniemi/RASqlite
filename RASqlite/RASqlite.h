@@ -90,7 +90,6 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelDebug;
 
 // Only define the logging methods if they have not been defined. This way it's
 // possible to override the logging method if needed from the application.
-// TODO: Instead of defining a macro, define a real function.
 #ifndef RASqliteLog
 #define RASqliteLog(level, format, ...)\
 do {\

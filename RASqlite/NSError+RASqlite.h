@@ -13,10 +13,19 @@ static NSString *RASqliteErrorDomain = @"me.raatiniemi.rasqlite.error";
 
 /// Defined error codes for the library.
 typedef enum {
+	/// Error code related to open the database.
 	RASqliteErrorOpen,
+
+	/// Error code related to close the database.
 	RASqliteErrorClose,
+
+	/// Error code related to binding data.
 	RASqliteErrorBind,
+
+	/// Error code related to executing queries.
 	RASqliteErrorQuery,
+
+	/// Error code related to transaction.
 	RASqliteErrorTransaction
 } RASqliteErrorCode;
 

@@ -614,23 +614,51 @@ static NSString *_directory = @"/tmp/rasqlite";
 				  @"Unable to create table for execute: %@",
 				  [[rasqlite error] localizedDescription]);
 
-	BOOL value = [rasqlite execute:@"INSERT INTO foo(id, bar) VALUES(1, ?)" withParam:@"baz"];
-	XCTAssertTrue(value, @"Execute insert failed: %@", [[rasqlite error] localizedDescription]);
-	XCTAssertNil([rasqlite error], @"Execute insert triggered an error.");
+	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id, bar) VALUES(1, ?)" withParam:@"baz"];
+	XCTAssertTrue(insert, @"Insert failed: %@", [[rasqlite error] localizedDescription]);
 
 	NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
-	XCTAssertNotNil(row, @"Execute insert, failed to retrieve row.");
 	XCTAssertEqualObjects(@"baz", [row objectForKey:@"bar"], @"Value for retrieved row do not match.");
 }
 
 - (void)testExecuteUpdate
 {
-	// TODO: Implement update test.
+	NSString *path = [_directory stringByAppendingString:@"/execute"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSDictionary *columns = @{@"id": RASqliteInteger, @"bar": RASqliteText};
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for execute: %@",
+				  [[rasqlite error] localizedDescription]);
+
+	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id, bar) VALUES(1, ?)" withParam:@"baz"];
+	XCTAssertTrue(insert, @"Insert failed: %@", [[rasqlite error] localizedDescription]);
+
+	BOOL update = [rasqlite execute:@"UPDATE foo SET bar = ? WHERE id = ?" withParams:@[@"quux", @1]];
+	XCTAssertTrue(update, @"Update failed: %@", [[rasqlite error] localizedDescription]);
+
+	NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
+	XCTAssertEqualObjects(@"quux", [row objectForKey:@"bar"], @"Value for retrieved row do not match.");
 }
 
 - (void)testExecuteDelete
 {
-	// TODO: Implement delete test.
+	NSString *path = [_directory stringByAppendingString:@"/execute"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSDictionary *columns = @{@"id": RASqliteInteger, @"bar": RASqliteText};
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for execute: %@",
+				  [[rasqlite error] localizedDescription]);
+
+	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id, bar) VALUES(1, ?)" withParam:@"baz"];
+	XCTAssertTrue(insert, @"Insert failed: %@", [[rasqlite error] localizedDescription]);
+
+	BOOL update = [rasqlite execute:@"DELETE FROM foo WHERE id = ?" withParam:@1];
+	XCTAssertTrue(update, @"Delete failed: %@", [[rasqlite error] localizedDescription]);
+
+	NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
+	XCTAssertNil(row, @"Deleted row was found.");
 }
 
 @end

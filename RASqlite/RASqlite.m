@@ -592,9 +592,10 @@
 				}
 				[sql appendFormat:@"%@ ", name];
 
-				NSArray *types = @[RASqliteReal, RASqliteText, RASqliteBlob, RASqliteInteger];
+				// Check that the type is a valid column type, i.e. RASqliteNull
+				// is not a valid column type, but RASqliteText is.
 				NSString *type = [columns objectForKey:name];
-				if ( [types indexOfObject:type] != NSNotFound ) {
+				if ( RASqliteColumnType(type) ) {
 					[sql appendString:type];
 
 					// The `integer` data type have to be handled differently than the

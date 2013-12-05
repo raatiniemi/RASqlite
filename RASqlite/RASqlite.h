@@ -34,6 +34,16 @@ static const NSString *RASqliteText = @"TEXT";
 /// Column data type for `BLOB`.
 static const NSString *RASqliteBlob = @"BLOB";
 
+/**
+ Check that the type is a valid column type.
+
+ @param type Type to check.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+#define RASqliteColumnType(type)\
+	[@[RASqliteInteger, RASqliteReal, RASqliteText, RASqliteBlob] containsObject:type]
+
 // -- -- Transaction
 
 /**

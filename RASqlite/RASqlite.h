@@ -144,23 +144,8 @@ do {\
 /// Stores the defined structure for the database tables.
 @property (nonatomic, readonly, copy) NSDictionary *structure;
 
-/**
- Set the database instance.
-
- @param database Database instance.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
- */
-- (void)setDatabase:(sqlite3 *)database;
-
-/**
- Retrieves the database instance.
-
- @return Database instance, or `nil` if none is available.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
- */
-- (sqlite3 *)database;
+/// Handles the instance for the database.
+@property (atomic, readwrite) sqlite3 *database;
 
 /**
  Retrieve the absolute path for the database file.

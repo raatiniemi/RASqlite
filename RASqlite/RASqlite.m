@@ -32,9 +32,6 @@
 @private BOOL _inTransaction;
 }
 
-/// Instance for the database.
-@property (atomic, readwrite) sqlite3 *database;
-
 /// Queue on which all of the queries will be executed on.
 @property (atomic, readwrite, strong) dispatch_queue_t queue;
 

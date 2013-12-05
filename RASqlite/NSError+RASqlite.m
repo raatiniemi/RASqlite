@@ -9,6 +9,9 @@
 #import "NSError+RASqlite.h"
 #import "RASqlite.h"
 
+/// Error domain for RASqlite related errors.
+static NSString *RASqliteErrorDomain = @"me.raatiniemi.rasqlite.error";
+
 @implementation NSError (RASqlite)
 
 + (instancetype)code:(RASqliteErrorCode)code message:(NSString *)message, ...

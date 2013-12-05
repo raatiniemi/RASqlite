@@ -8,9 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-/// Error domain for RASqlite related errors.
-static NSString *RASqliteErrorDomain = @"me.raatiniemi.rasqlite.error";
-
 /// Defined error codes for the library.
 typedef enum {
 	/// Error code related to open the database.

@@ -117,8 +117,15 @@ do {\
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 @interface RASqlite : NSObject {
-@protected NSError *_error;
+@private
+	dispatch_queue_t _queue;
+
+@protected
+	NSError *_error;
 }
+
+/// Queue on which all of the queries will be executed on.
+@property (atomic, readwrite, strong) dispatch_queue_t queue;
 
 /// Stores the first occurred error, `nil` if none has occurred.
 @property (atomic, readwrite, strong) NSError *error;

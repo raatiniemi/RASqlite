@@ -21,19 +21,15 @@
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 @interface RASqlite () {
-@private sqlite3 *_database;
+@private
+	sqlite3 *_database;
 
-@private dispatch_queue_t _queue;
+	NSString *_path;
 
-@private NSString *_path;
+	NSInteger _retryTimeout;
 
-@private NSInteger _retryTimeout;
-
-@private BOOL _inTransaction;
+	BOOL _inTransaction;
 }
-
-/// Queue on which all of the queries will be executed on.
-@property (atomic, readwrite, strong) dispatch_queue_t queue;
 
 /// Stores the path for the database file.
 @property (atomic, readwrite, strong) NSString *path;
@@ -137,13 +133,13 @@
 
 @synthesize database = _database;
 
-@synthesize queue = _queue;
-
 @synthesize path = _path;
 
 @synthesize retryTimeout = _retryTimeout;
 
 @synthesize inTransaction = _inTransaction;
+
+@synthesize queue = _queue;
 
 @synthesize error = _error;
 

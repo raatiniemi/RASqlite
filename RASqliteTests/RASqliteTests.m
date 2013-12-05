@@ -29,6 +29,13 @@ static NSString *_directory = @"/tmp/rasqlite";
 - (void)testInit;
 
 /**
+ Test the initialization with `nil` path.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testInitWithNil;
+
+/**
  Initialization successful test with `initWithPath:`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
@@ -309,6 +316,12 @@ static NSString *_directory = @"/tmp/rasqlite";
 - (void)testInit
 {
 	XCTAssertThrows([[RASqlite alloc] init], @"`init` method did not fail.");
+}
+
+- (void)testInitWithNil
+{
+	XCTAssertThrows([[RASqlite alloc] initWithPath:nil],
+					@"`initWithPath:` did not fail with `nil` as path.");
 }
 
 - (void)testInitWithPathSuccess

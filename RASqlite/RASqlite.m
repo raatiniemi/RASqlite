@@ -200,6 +200,12 @@
 
 - (BOOL)checkPath:(NSString *)path
 {
+	// Check that a path actually have been supplied.
+	if ( path == nil ) {
+		[NSException raise:NSInvalidArgumentException
+					format:@"The supplied path can not be `nil`. "];
+	}
+
 	NSFileManager *manager = [NSFileManager defaultManager];
 	NSString *directory = [path stringByDeletingLastPathComponent];
 

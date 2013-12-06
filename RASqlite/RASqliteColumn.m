@@ -8,6 +8,10 @@
 
 #import "RASqliteColumn.h"
 
+// -- -- Import
+
+#import "RASqlite.h"
+
 /**
  Defines the column for the table, used while creating and checking structure.
 
@@ -25,6 +29,20 @@
 @end
 
 @implementation RASqliteColumn
+
+@synthesize name = _name;
+
+@synthesize type = _type;
+
+@synthesize defaultValue = _defaultValue;
+
+@synthesize primaryKey = _primaryKey;
+
+@synthesize autoIncrement = _autoIncrement;
+
+@synthesize unique = _unique;
+
+@synthesize nullable = _nullable;
 
 #pragma mark - Initialization
 

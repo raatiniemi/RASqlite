@@ -8,14 +8,41 @@
 
 #import <Foundation/Foundation.h>
 
-// -- -- Import
+// -- -- Data types
 
-#import "RASqlite.h"
+/// Column data type for `NULL`.
+static const NSString *RASqliteNull = @"NULL";
+
+/// Column data type for `INTEGER`.
+static const NSString *RASqliteInteger = @"INTEGER";
+
+/// Column data type for `REAL`.
+static const NSString *RASqliteReal = @"REAL";
+
+/// Column data type for `TEXT`.
+static const NSString *RASqliteText = @"TEXT";
+
+/// Column data type for `BLOB`.
+static const NSString *RASqliteBlob = @"BLOB";
+
+// TODO: Implement typedef enum for data types.
+
+/**
+ Check that the type is a valid column type.
+
+ @param type Type to check.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+#define RASqliteColumnType(type)\
+	[@[RASqliteInteger, RASqliteReal, RASqliteText, RASqliteBlob] containsObject:type]
 
 /**
  Defines the column for the table, used while creating and checking structure.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @todo Implement support for foreign keys, with a helper struct or object.
  */
 @interface RASqliteColumn : NSObject {
 @protected
@@ -24,6 +51,9 @@
 	id _defaultValue;
 
 	BOOL _primaryKey;
+	BOOL _autoIncrement;
+	BOOL _unique;
+	BOOL _nullable;
 }
 
 /// Stores the name of the column.
@@ -37,6 +67,15 @@
 
 /// Stores whether or not the column is a primary key.
 @property (nonatomic, readwrite, getter = isPrimaryKey) BOOL primaryKey;
+
+/// Stores whether or not the column is auto incremental.
+@property (nonatomic, readwrite, getter = isAutoIncrement) BOOL autoIncrement;
+
+/// Stores whether or not the column is unique.
+@property (nonatomic, readwrite, getter = isUnique) BOOL unique;
+
+/// Stores whether or not the column is nullable.
+@property (nonatomic, readwrite, getter = isNullable) BOOL nullable;
 
 #pragma mark - Initialization
 

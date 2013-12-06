@@ -17,33 +17,6 @@
 /// The key used for setting/getting the name for the dispatch queue.
 #define kRASqliteKeyQueueName "me.raatiniemi.rasqlite.queue.name"
 
-// -- -- Data types
-
-/// Column data type for `NULL`.
-static const NSString *RASqliteNull = @"NULL";
-
-/// Column data type for `INTEGER`.
-static const NSString *RASqliteInteger = @"INTEGER";
-
-/// Column data type for `REAL`.
-static const NSString *RASqliteReal = @"REAL";
-
-/// Column data type for `TEXT`.
-static const NSString *RASqliteText = @"TEXT";
-
-/// Column data type for `BLOB`.
-static const NSString *RASqliteBlob = @"BLOB";
-
-/**
- Check that the type is a valid column type.
-
- @param type Type to check.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
- */
-#define RASqliteColumnType(type)\
-	[@[RASqliteInteger, RASqliteReal, RASqliteText, RASqliteBlob] containsObject:type]
-
 // -- -- Transaction
 
 /**
@@ -109,6 +82,7 @@ do {\
 
 // -- -- Import
 
+#import "RASqliteColumn.h"
 #import "NSDictionary+RASqlite.h"
 
 /**

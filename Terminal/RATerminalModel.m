@@ -8,9 +8,35 @@
 
 #import "RATerminalModel.h"
 
+/**
+ Instance for the database.
+
+ @note
+ Since we only want a single instance to the database in real application
+ environments for each model, we have to declare the variable static.
+ */
 static sqlite3 *_database;
 
+/**
+ Instance for the queue.
+
+ @note
+ Since we only want a single queue to execute against the database, we have
+ to declare the static variable. Otherwise we might get IO errors or memory
+ issues when accessing/writing to the database from several threads.
+ */
+static dispatch_queue_t _queue;
+
 @implementation RATerminalModel
+
+#pragma mark - Initialization
+
+- (id)init
+{
+	if ( self = [super initWithName:@"user.db"] ) {
+	}
+	return self;
+}
 
 #pragma mark - Database
 
@@ -41,6 +67,25 @@ static sqlite3 *_database;
 - (sqlite3 *)database
 {
 	return _database;
+}
+
+#pragma mark - Queue
+
+- (void)setQueue:(dispatch_queue_t)queue
+{
+	// Protection from rewriting the queue pointer mid execution. The pointer
+	// have to be resetted before setting a new instance.
+	if ( _queue == nil || queue == nil ) {
+		_queue = queue;
+	} else {
+		// Incase an rewrite have been attempted, this should be logged.
+		RASqliteLog(RASqliteLogLevelWarning, @"Queue pointer rewrite attempt.");
+	}
+}
+
+- (dispatch_queue_t)queue
+{
+	return _queue;
 }
 
 #pragma mark - Handle users

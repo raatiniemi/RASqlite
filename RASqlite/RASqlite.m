@@ -24,6 +24,8 @@
 @private
 	sqlite3 *_database;
 
+	dispatch_queue_t _queue;
+
 	NSString *_path;
 
 	NSInteger _retryTimeout;
@@ -133,13 +135,13 @@
 
 @synthesize database = _database;
 
+@synthesize queue = _queue;
+
 @synthesize path = _path;
 
 @synthesize retryTimeout = _retryTimeout;
 
 @synthesize inTransaction = _inTransaction;
-
-@synthesize queue = _queue;
 
 @synthesize error = _error;
 

@@ -409,8 +409,14 @@
 		void (^block)(void) = ^(void) {
 			NSDictionary *tables = [self structure];
 			if ( tables ) {
+				// Get the pointer for the method, performance improvement.
+				SEL selector = @selector(checkTable:withColumns:);
+
+				typedef BOOL (*check) (id, SEL, NSString*, NSDictionary*);
+				check checkTable = (check)[self methodForSelector:selector];
+
 				for ( NSString *table in tables ) {
-					if ( ![self checkTable:table withColumns:[tables objectForKey:table]] ) {
+					if ( !checkTable(self, selector, table, [tables objectForKey:table]) ) {
 						valid = NO;
 						break;
 					}
@@ -469,17 +475,23 @@
 			NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
 			if ( [tColumns count] > 0 ) {
 				if ( [tColumns count] == [columns count] ) {
+					// Get the pointer for the method, performance improvement.
+					SEL selector = @selector(getColumn:);
+
+					typedef id (*column) (id, SEL, NSString*);
+					column getColumn = (column)[self methodForSelector:selector];
+
 					unsigned int index = 0;
 					for ( NSString *column in columns ) {
 						NSDictionary *tColumn = [tColumns objectAtIndex:index];
-						if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
+						if ( ![getColumn(tColumn, selector, @"name") isEqualToString:column] ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
 							valid = NO;
 							break;
 						}
 
 						NSString *type = [columns objectForKey:column];
-						if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
+						if ( ![getColumn(tColumn, selector, @"type") isEqualToString:type] ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"Column type `%@` to not match index `%i` for given structure.", table, index);
 							valid = NO;
 							break;
@@ -527,12 +539,18 @@
 		void (^block)(void) = ^(void) {
 			NSDictionary *tables = [self structure];
 			if ( tables ) {
+				// Get the pointer for the method, performance improvement.
+				SEL selector = @selector(createTable:withColumns:);
+
+				typedef BOOL (*create) (id, SEL, NSString*, NSDictionary*);
+				create createTable = (create)[self methodForSelector:selector];
+
 				// Change the created check before going in to the create loop.
 				created = YES;
 
 				// Loops through each of the tables and attempt to create their structure.
 				for ( NSString *table in tables ) {
-					if ( ![self createTable:table withColumns:[tables objectForKey:table]] ) {
+					if ( !createTable(self, selector, table, [tables objectForKey:table]) ) {
 						created = NO;
 						break;
 					}
@@ -695,14 +713,20 @@
 {
 	NSError *error;
 
+	// Get the pointer for the method, performance improvement.
+	SEL selector = @selector(isKindOfClass:);
+
+	typedef BOOL (*isClass) (id, SEL, Class);
+	isClass isKindOfClass = (isClass)[self methodForSelector:selector];
+
 	int code = SQLITE_OK;
 	unsigned int index = 1;
 	for ( id column in columns ) {
-		if ( [column isKindOfClass:[NSString class]] ) {
+		if ( isKindOfClass(column, selector, [NSString class]) ) {
 			// Sqlite do not seem to fully support UTF-16 yet, so no need to
 			// implement support for the `sqlite3_bind_text16` functionality.
 			code = sqlite3_bind_text(*statement, index, [column UTF8String], -1, SQLITE_TRANSIENT);
-		} else if ( [column isKindOfClass:[NSNumber class]] ) {
+		} else if ( isKindOfClass(column, selector, [NSNumber class]) ) {
 			const char *type = [column objCType];
 			if ( strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0 ) {
 				// Both double and float should be binded as double.
@@ -713,7 +737,7 @@
 				// Every data type that is not specified should be binded as int.
 				code = sqlite3_bind_int(*statement, index, [column intValue]);
 			}
-		} else if ( [column isKindOfClass:[NSNull class]] ) {
+		} else if ( isKindOfClass(column, selector, [NSNull class]) ) {
 			code = sqlite3_bind_null(*statement, index);
 		} else {
 			unsigned int length = (unsigned int)[column length];
@@ -821,6 +845,12 @@
 					}
 
 					if ( !error ) {
+						// Get the pointer for the method, performance improvement.
+						SEL selector = @selector(fetchColumns:withError:);
+
+						typedef NSDictionary* (*fetch) (id, SEL, sqlite3_stmt**, NSError **);
+						fetch fetchColumns = (fetch)[self methodForSelector:selector];
+
 						NSDictionary *row;
 						results = [[NSMutableArray alloc] init];
 
@@ -830,7 +860,7 @@
 							code = sqlite3_step(statement);
 
 							if ( code == SQLITE_ROW ) {
-								row = [self fetchColumns:&statement withError:&error];
+								row = fetchColumns(self, selector, &statement, &error);
 								[results addObject:row];
 							} else if ( code == SQLITE_DONE ) {
 								// Results have been fetch, leave the loop.

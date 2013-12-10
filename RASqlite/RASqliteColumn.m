@@ -21,10 +21,10 @@
 }
 
 /// Stores the name of the column.
-@property (nonatomic, readwrite, strong) NSString *name;
+@property (atomic, readwrite, strong) NSString *name;
 
 /// Stores the data type for the column.
-@property (nonatomic, readwrite, strong) NSString *type;
+@property (atomic, readwrite, strong) NSString *type;
 
 @end
 

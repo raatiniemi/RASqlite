@@ -57,25 +57,25 @@ static const NSString *RASqliteBlob = @"BLOB";
 }
 
 /// Stores the name of the column.
-@property (nonatomic, readonly, strong) NSString *name;
+@property (atomic, readonly, strong) NSString *name;
 
 /// Stores the data type for the column.
-@property (nonatomic, readonly, strong) NSString *type;
+@property (atomic, readonly, strong) NSString *type;
 
 /// Stores the default value for the column.
-@property (nonatomic, readwrite, strong) id defaultValue;
+@property (atomic, readwrite, strong) id defaultValue;
 
 /// Stores whether or not the column is a primary key.
-@property (nonatomic, readwrite, getter = isPrimaryKey) BOOL primaryKey;
+@property (atomic, readwrite, getter = isPrimaryKey) BOOL primaryKey;
 
 /// Stores whether or not the column is auto incremental.
-@property (nonatomic, readwrite, getter = isAutoIncrement) BOOL autoIncrement;
+@property (atomic, readwrite, getter = isAutoIncrement) BOOL autoIncrement;
 
 /// Stores whether or not the column is unique.
-@property (nonatomic, readwrite, getter = isUnique) BOOL unique;
+@property (atomic, readwrite, getter = isUnique) BOOL unique;
 
 /// Stores whether or not the column is nullable.
-@property (nonatomic, readwrite, getter = isNullable) BOOL nullable;
+@property (atomic, readwrite, getter = isNullable) BOOL nullable;
 
 #pragma mark - Initialization
 

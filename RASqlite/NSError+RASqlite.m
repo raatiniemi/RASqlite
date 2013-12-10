@@ -7,7 +7,6 @@
 //
 
 #import "NSError+RASqlite.h"
-#import "RASqlite.h"
 
 /// Error domain for RASqlite related errors.
 static NSString *RASqliteErrorDomain = @"me.raatiniemi.rasqlite.error";
@@ -21,8 +20,6 @@ static NSString *RASqliteErrorDomain = @"me.raatiniemi.rasqlite.error";
 	va_start(args, message);
 	message = [[NSString alloc] initWithFormat:message arguments:args];
 	va_end(args);
-
-	RASqliteLog(RASqliteLogLevelError, @"An error has occurred: %@", message);
 
 	// Assemble the localized description.
 	NSDictionary *userInfo = @{NSLocalizedDescriptionKey: message};

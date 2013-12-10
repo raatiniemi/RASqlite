@@ -57,28 +57,17 @@ typedef enum {
 #if DEBUG
 /// Stores the level of logging within the library.
 static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelDebug;
-
-// Only define the logging methods if they have not been defined. This way it's
-// possible to override the logging method if needed from the application.
-#ifndef RASqliteLog
-#define RASqliteLog(level, format, ...)\
-do {\
-	if ( level >= _RASqliteLogLevel ) {\
-		NSLog(\
-			(@"<%@:(%d)> " format),\
-			[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
-			__LINE__,\
-			##__VA_ARGS__\
-		);\
-	}\
-} while(0)
-#endif
 #else
-// If debug is not enabled, nothing should reach the debug log.
-#ifndef RASqliteLog
-#define RASqliteLog(level, format, ...) do { } while(0)
+/// Stores the level of logging within the library.
+static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 #endif
-#endif
+
+/// Macro for forwarding the log message call with the file and line number.
+#define RASqliteLog( l, f, ... )\
+    [self logWithMessage:[NSString stringWithFormat:(f), ##__VA_ARGS__]\
+                   level:l\
+                    file:[[NSString stringWithUTF8String:__FILE__] lastPathComponent]\
+                    line:__LINE__]
 
 // -- -- Import
 
@@ -585,5 +574,22 @@ do {\
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 - (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block;
+
+#pragma mark - Logging
+
+/**
+ Log messages within the library.
+
+ @param message Message to be sent to the log.
+ @param level Priority level of the message.
+ @param file File from which the message originated.
+ @param line Line number of the message within the file.
+
+ @author Tobias Raatiniemi <tobias.raatiniemi@genesis.se>
+
+ @note
+ Is primarily used with the `RASqliteLog` macro.
+ */
+- (void)logWithMessage:(NSString *)message level:(RASqliteLogLevel)level file:(NSString *)file line:(int)line;
 
 @end

@@ -278,8 +278,9 @@
 					RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
 				} else {
 					// Something went wrong...
-					error = [NSError code:RASqliteErrorOpen
-								  message:@"Unable to open database, received code `%i`.", code];
+					NSString *message = [NSString stringWithFormat:@"Unable to open database, received code `%i`.", code];
+					RASqliteLog(RASqliteLogLevelError, @"%@", message);
+					error = [NSError code:RASqliteErrorOpen message:message];
 				}
 			} else {
 				// No need to attempt to open the database, it's already open.
@@ -354,8 +355,9 @@
 								retry = NO;
 							}
 						} else if ( code != SQLITE_OK ) {
-							error = [NSError code:RASqliteErrorClose
-										  message:@"Unable to close database, received code `%i`.", code];
+							NSString *message = [NSString stringWithFormat:@"Unable to close database, received code `%i`.", code];
+							RASqliteLog(RASqliteLogLevelError, @"%@", message);
+							error = [NSError code:RASqliteErrorClose message:message];
 						} else {
 							[self setDatabase:nil];
 							RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
@@ -475,23 +477,17 @@
 			NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
 			if ( [tColumns count] > 0 ) {
 				if ( [tColumns count] == [columns count] ) {
-					// Get the pointer for the method, performance improvement.
-					SEL selector = @selector(getColumn:);
-
-					typedef id (*column) (id, SEL, NSString*);
-					column getColumn = (column)[self methodForSelector:selector];
-
 					unsigned int index = 0;
 					for ( NSString *column in columns ) {
 						NSDictionary *tColumn = [tColumns objectAtIndex:index];
-						if ( ![getColumn(tColumn, selector, @"name") isEqualToString:column] ) {
+						if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
 							valid = NO;
 							break;
 						}
 
 						NSString *type = [columns objectForKey:column];
-						if ( ![getColumn(tColumn, selector, @"type") isEqualToString:type] ) {
+						if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"Column type `%@` to not match index `%i` for given structure.", table, index);
 							valid = NO;
 							break;
@@ -746,8 +742,9 @@
 
 		// Check if an error has occurred.
 		if ( !error && code != SQLITE_OK ) {
-			error = [NSError code:RASqliteErrorBind
-						  message:@"Unable to bind type `%@`.", [column class]];
+			NSString *message = [NSString stringWithFormat:@"Unable to bind type `%@`.", [column class]];
+			RASqliteLog(RASqliteLogLevelError, @"%@", message);
+			error = [NSError code:RASqliteErrorBind message:message];
 		}
 
 		if ( error ) {
@@ -867,8 +864,9 @@
 								break;
 							} else {
 								// Something has gone wrong, leave the loop.
-								error = [NSError code:RASqliteErrorQuery
-											  message:@"Unable to fetch row, received code `%i`.", code];
+								NSString *message = [NSString stringWithFormat:@"Unable to fetch row, received code `%i`.", code];
+								RASqliteLog(RASqliteLogLevelError, @"%@", message);
+								error = [NSError code:RASqliteErrorQuery message:message];
 							}
 						} while ( !error );
 					}
@@ -879,8 +877,10 @@
 						results = nil;
 					}
 				} else {
-					error = [NSError code:RASqliteErrorQuery
-								  message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+					// Something went wrong...
+					NSString *message = [NSString stringWithFormat:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+					RASqliteLog(RASqliteLogLevelError, @"%@", message);
+					error = [NSError code:RASqliteErrorQuery message:message];
 				}
 				sqlite3_finalize(statement);
 			}
@@ -952,13 +952,15 @@
 						} else if ( code == SQLITE_DONE ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"No rows were found with query: %@", sql);
 						} else {
-							error = [NSError code:RASqliteErrorQuery
-										  message:@"Failed to retrieve result, received code: `%i`", code];
+							NSString *message = [NSString stringWithFormat:@"Failed to retrieve result, received code: `%i`", code];
+							RASqliteLog(RASqliteLogLevelError, @"%@", message);
+							error = [NSError code:RASqliteErrorQuery message:message];
 						}
 					}
 				} else {
-					error = [NSError code:RASqliteErrorQuery
-								  message:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+					NSString *message = [NSString stringWithFormat:@"Failed to prepare statement `%@`, received code `%i`.", sql, code];
+					RASqliteLog(RASqliteLogLevelError, @"%@", message);
+					error = [NSError code:RASqliteErrorQuery message:message];
 				}
 				sqlite3_finalize(statement);
 			}
@@ -1043,13 +1045,15 @@
 					if ( !error ) {
 						code = sqlite3_step(statement);
 						if ( code != SQLITE_DONE ) {
-							error = [NSError code:RASqliteErrorQuery
-										  message:@"Failed to execute query, received code: `%i`", code];
+							NSString *message = [NSString stringWithFormat:@"Failed to execute query, received code: `%i`", code];
+							RASqliteLog(RASqliteLogLevelError, @"%@", message);
+							error = [NSError code:RASqliteErrorQuery message:message];
 						}
 					}
 				} else {
-					error = [NSError code:RASqliteErrorQuery
-								  message:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
+					NSString *message = [NSString stringWithFormat:@"Failed to prepare statement `%@`, recived code `%i`.", sql, code];
+					RASqliteLog(RASqliteLogLevelError, @"%@", message);
+					error = [NSError code:RASqliteErrorQuery message:message];
 				}
 				sqlite3_finalize(statement);
 			}
@@ -1110,6 +1114,7 @@
 			int code = sqlite3_exec([self database], sql, 0, 0, &errmsg);
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+				RASqliteLog(RASqliteLogLevelError, @"Unable to begin transaction: %@", message);
 				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
 		};
@@ -1148,6 +1153,7 @@
 			int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &errmsg);
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+				RASqliteLog(RASqliteLogLevelError, @"Unable to rollback transaction: %@", message);
 				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
 		};
@@ -1181,6 +1187,7 @@
 			int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &errmsg);
 			if ( code != SQLITE_OK ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+				RASqliteLog(RASqliteLogLevelError, @"Unable to commit transaction: %@", message);
 				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
 		};
@@ -1254,6 +1261,15 @@
 - (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block
 {
 	[self queueTransaction:RASqliteTransactionDeferred withBlock:block];
+}
+
+#pragma mark - Logging
+
+- (void)logWithMessage:(NSString *)message level:(RASqliteLogLevel)level file:(NSString *)file line:(int)line
+{
+	if ( level >= _RASqliteLogLevel ) {
+		NSLog(@"<%@:(%d)> %@", file, line, message);
+	}
 }
 
 @end

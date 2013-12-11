@@ -444,7 +444,7 @@
 	return valid;
 }
 
-- (BOOL)checkTable:(NSString *)table withColumns:(NSDictionary *)columns
+- (BOOL)checkTable:(NSString *)table withColumns:(NSArray *)columns
 {
 	if ( !table ) {
 		// Raise an exception, no valid table name.
@@ -478,15 +478,15 @@
 			if ( [tColumns count] > 0 ) {
 				if ( [tColumns count] == [columns count] ) {
 					unsigned int index = 0;
-					for ( NSString *column in columns ) {
+					for ( RASqliteColumn *column in columns ) {
 						NSDictionary *tColumn = [tColumns objectAtIndex:index];
-						if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
+						if ( ![[tColumn getColumn:@"name"] isEqualToString:[column name]] ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
 							valid = NO;
 							break;
 						}
 
-						NSString *type = [columns objectForKey:column];
+						NSString *type = [column type];
 						if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"Column type `%@` to not match index `%i` for given structure.", table, index);
 							valid = NO;
@@ -604,24 +604,24 @@
 
 			// Assemble the columns and data types for the structure.
 			NSUInteger index = 0;
-			for ( NSString *name in columns ) {
+			for ( RASqliteColumn *column in columns ) {
 				if ( index > 0 ) {
 					[sql appendString:@","];
 				}
-				[sql appendFormat:@"%@ ", name];
+				[sql appendFormat:@"%@ ", [column name]];
 
 				// Check that the type is a valid column type, i.e. RASqliteNull
 				// is not a valid column type, but RASqliteText is.
-				NSString *type = [columns objectForKey:name];
+				NSString *type = [column type];
 				if ( RASqliteColumnType(type) ) {
 					[sql appendString:type];
 
-					// The `integer` data type have to be handled differently than the
-					// other types, either primary key or default value have to be set.
-					if ( [RASqliteInteger isEqualToString:type] ) {
-						if ( [name isEqualToString:@"id"] ) {
-							[sql appendString:@" PRIMARY KEY"];
-						} else {
+					if ( [column isPrimaryKey] ) {
+						[sql appendString:@" PRIMARY KEY"];
+					} else {
+						// The `integer` data type either have to be the primary
+						// key or have a default value.
+						if ( [RASqliteInteger isEqualToString:type] ) {
 							[sql appendString:@" DEFAULT 0"];
 						}
 					}

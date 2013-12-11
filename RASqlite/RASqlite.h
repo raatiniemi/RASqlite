@@ -198,13 +198,13 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  Check structure for database table.
 
  @param table Name of the table to check.
- @param columns Dictionary with column names and their data types.
+ @param columns Array with column definitions.
 
  @return `YES` if table structure is as defined, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (BOOL)checkTable:(NSString *)table withColumns:(NSDictionary *)columns;
+- (BOOL)checkTable:(NSString *)table withColumns:(NSArray *)columns;
 
 /**
  Create the database structure.
@@ -219,13 +219,13 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  Create the table structure.
 
  @param table Name of the table to create.
- @param columns Dictionary with column names and their data types.
+ @param columns Array with column definitions.
 
  @return `YES` if table structure is created, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (BOOL)createTable:(NSString *)table withColumns:(NSDictionary *)columns;
+- (BOOL)createTable:(NSString *)table withColumns:(NSArray *)columns;
 
 /**
  Delete the database table.

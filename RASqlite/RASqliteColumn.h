@@ -11,19 +11,19 @@
 // -- -- Data types
 
 /// Column data type for `NULL`.
-static const NSString *RASqliteNull = @"NULL";
+static NSString *RASqliteNull = @"NULL";
 
 /// Column data type for `INTEGER`.
-static const NSString *RASqliteInteger = @"INTEGER";
+static NSString *RASqliteInteger = @"INTEGER";
 
 /// Column data type for `REAL`.
-static const NSString *RASqliteReal = @"REAL";
+static NSString *RASqliteReal = @"REAL";
 
 /// Column data type for `TEXT`.
-static const NSString *RASqliteText = @"TEXT";
+static NSString *RASqliteText = @"TEXT";
 
 /// Column data type for `BLOB`.
-static const NSString *RASqliteBlob = @"BLOB";
+static NSString *RASqliteBlob = @"BLOB";
 
 // TODO: Implement typedef enum for data types.
 

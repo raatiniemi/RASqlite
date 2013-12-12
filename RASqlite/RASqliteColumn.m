@@ -72,6 +72,12 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 
 		[self setName:name];
 		[self setType:type];
+
+		// Set the default values for the column constraints.
+		[self setPrimaryKey:NO];
+		[self setAutoIncrement:NO];
+		[self setUnique:NO];
+		[self setNullable:NO];
 	}
 	return self;
 }

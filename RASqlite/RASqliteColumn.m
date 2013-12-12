@@ -8,6 +8,9 @@
 
 #import "RASqliteColumn.h"
 
+/// Exception name for issues with column constrains.
+static NSString *RASqliteColumnConstrainException = @"Column constrain";
+
 // -- -- Import
 
 #import "RASqlite.h"
@@ -71,6 +74,54 @@
 		[self setType:type];
 	}
 	return self;
+}
+
+#pragma mark - Setters
+
+- (void)setPrimaryKey:(BOOL)primaryKey
+{
+	if ( [self isNullable] ) {
+		[NSException raise:RASqliteColumnConstrainException
+					format:@"Primary key columns can not be `nullable`."];
+	}
+
+	_primaryKey = primaryKey;
+}
+
+- (void)setAutoIncrement:(BOOL)autoIncrement
+{
+	// Verify that the column is a valid data type.
+	if ( ![RASqliteInteger isEqualToString:[self name]] ) {
+		[NSException raise:RASqliteColumnConstrainException
+					format:@"Auto increment is only available for `integer` columns."];
+	}
+
+	_autoIncrement = autoIncrement;
+}
+
+- (void)setUnique:(BOOL)unique
+{
+	if ( [self isNullable] ) {
+		[NSException raise:RASqliteColumnConstrainException
+					format:@"Unique columns can not be `nullable`."];
+	}
+
+	_unique = unique;
+}
+
+- (void)setNullable:(BOOL)nullable
+{
+	if ( [self isPrimaryKey] ) {
+		[NSException raise:RASqliteColumnConstrainException
+					format:@"Nullable can not be set to primary key columns."];
+	}
+
+	if ( [self isUnique] ) {
+		[NSException raise:RASqliteColumnConstrainException
+					format:@"Nullable can not be set to unique columns."];
+	}
+
+	_nullable = nullable;
 }
 
 @end

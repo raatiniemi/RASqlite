@@ -502,6 +502,7 @@
 						// TODO: Check the default value, `dflt_value` from tColumn.
 						// TODO: Check the primary key, `pk` from tColumn (long).
 						// TODO: Check nullable, `notnull` from tColumn (long).
+						// TODO: Check for unique columns.
 
 						index++;
 					}

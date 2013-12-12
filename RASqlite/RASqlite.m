@@ -478,7 +478,13 @@
 			if ( [tColumns count] > 0 ) {
 				if ( [tColumns count] == [columns count] ) {
 					unsigned int index = 0;
-					for ( RASqliteColumn *column in columns ) {
+					for ( id column in columns ) {
+						// The column have to be of type `RASqliteColumn`.
+						if ( ![column isKindOfClass:[RASqliteColumn class]] ) {
+							[NSException raise:NSInvalidArgumentException
+										format:@"Column defined for table `%@` is not of type `RASqliteColumn.", table];
+						}
+
 						NSDictionary *tColumn = [tColumns objectAtIndex:index];
 						if ( ![[tColumn getColumn:@"name"] isEqualToString:[column name]] ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
@@ -609,7 +615,13 @@
 
 			// Assemble the columns and data types for the structure.
 			NSUInteger index = 0;
-			for ( RASqliteColumn *column in columns ) {
+			for ( id column in columns ) {
+				// The column have to be of type `RASqliteColumn`.
+				if ( ![column isKindOfClass:[RASqliteColumn class]] ) {
+					[NSException raise:NSInvalidArgumentException
+								format:@"Column defined for table `%@` is not of type `RASqliteColumn.", table];
+				}
+
 				if ( index > 0 ) {
 					[sql appendString:@","];
 				}

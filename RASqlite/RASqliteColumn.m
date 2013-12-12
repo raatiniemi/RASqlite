@@ -74,10 +74,10 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 		[self setType:type];
 
 		// Set the default values for the column constraints.
-		[self setPrimaryKey:NO];
-		[self setAutoIncrement:NO];
-		[self setUnique:NO];
-		[self setNullable:NO];
+		_primaryKey = NO;
+		_autoIncrement = NO;
+		_unique = NO;
+		_nullable = NO;
 	}
 	return self;
 }
@@ -97,7 +97,7 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 - (void)setAutoIncrement:(BOOL)autoIncrement
 {
 	// Verify that the column is a valid data type.
-	if ( ![RASqliteInteger isEqualToString:[self name]] ) {
+	if ( ![RASqliteInteger isEqualToString:[self type]] ) {
 		[NSException raise:RASqliteColumnConstrainException
 					format:@"Auto increment is only available for `integer` columns."];
 	}

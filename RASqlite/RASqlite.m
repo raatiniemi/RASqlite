@@ -492,6 +492,11 @@
 							valid = NO;
 							break;
 						}
+
+						// TODO: Check the default value, `dflt_value` from tColumn.
+						// TODO: Check the primary key, `pk` from tColumn (long).
+						// TODO: Check nullable, `notnull` from tColumn (long).
+
 						index++;
 					}
 				} else {
@@ -616,9 +621,27 @@
 				if ( RASqliteColumnType(type) ) {
 					[sql appendString:type];
 
+					// Check if the column should be unique.
+					if ( [column isUnique] ) {
+						[sql appendString:@" UNIQUE"];
+					}
+
+					// Handle if the column should be nullable or not.
+					if ( ![column isNullable] ) {
+						[sql appendString:@" NOT"];
+					}
+					[sql appendString:@" NULL"];
+
+					// Check if the column should be a primary key.
 					if ( [column isPrimaryKey] ) {
 						[sql appendString:@" PRIMARY KEY"];
+
+						// Column have to be of type `integer` to use `autoincremental`.
+						if ( [column isAutoIncrement] && [RASqliteInteger isEqualToString:type] ) {
+							[sql appendString:@" AUTOINCREMENT"];
+						}
 					} else {
+						// TODO: Handle default values.
 						// The `integer` data type either have to be the primary
 						// key or have a default value.
 						if ( [RASqliteInteger isEqualToString:type] ) {

@@ -149,9 +149,11 @@
 
 - (id)init
 {
-	// Use of this method is not allowed, `initWithName:` should be used.
+	// TODO: Implement support for in memory databases with init as method?
+
+	// Use of this method is not allowed, `initWithName:` or `initWithPath:` should be used.
 	[NSException raise:@"Incorrect initialization"
-				format:@"Use of the `init` method is not allowed, use `initWithName:` instead."];
+				format:@"Use of the `init` method is not allowed, use `initWithName:` or `initWithPath:` instead."];
 
 	// Return nil, takes care of the return warning.
 	return nil;
@@ -478,31 +480,47 @@
 			if ( [tColumns count] > 0 ) {
 				if ( [tColumns count] == [columns count] ) {
 					unsigned int index = 0;
-					for ( id column in columns ) {
+					for ( RASqliteColumn *column in columns ) {
 						// The column have to be of type `RASqliteColumn`.
 						if ( ![column isKindOfClass:[RASqliteColumn class]] ) {
 							[NSException raise:NSInvalidArgumentException
-										format:@"Column defined for table `%@` is not of type `RASqliteColumn.", table];
+										format:@"Column defined for table `%@` at index `%i` is not of type `RASqliteColumn.", table, index];
 						}
 
+						// Retrieve the column definition from the table.
 						NSDictionary *tColumn = [tColumns objectAtIndex:index];
+
+						// Check that the column name matches.
 						if ( ![[tColumn getColumn:@"name"] isEqualToString:[column name]] ) {
-							RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
+							RASqliteLog(RASqliteLogLevelDebug, @"Column name at index `%i` do not match column given for structure `%@`.", index, table);
 							valid = NO;
 							break;
 						}
 
-						NSString *type = [column type];
-						if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
-							RASqliteLog(RASqliteLogLevelDebug, @"Column type `%@` to not match index `%i` for given structure.", table, index);
+						// Check that the column type matches.
+						if ( ![[tColumn getColumn:@"type"] isEqualToString:[column type]] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column type at index `%i` do not match column given for structure `%@`.", index, table);
+							valid = NO;
+							break;
+						}
+
+						// Check that whether the column matches the primary key setting.
+						if ( [column isPrimaryKey] != [[tColumn getColumn:@"pk"] boolValue] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column primary key option at index `%i` do not match column given for structure `%@`.", index, table);
+							valid = NO;
+							break;
+						}
+
+						// Check that whether the column matches the nullable setting.
+						if ( [column isNullable] == [[tColumn getColumn:@"notnull"] boolValue] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column nullable option at index `%i` do not match column given for structure `%@`.", index, table);
 							valid = NO;
 							break;
 						}
 
 						// TODO: Check the default value, `dflt_value` from tColumn.
-						// TODO: Check the primary key, `pk` from tColumn (long).
-						// TODO: Check nullable, `notnull` from tColumn (long).
 						// TODO: Check for unique columns.
+						// TODO: Check for autoincremental.
 
 						index++;
 					}
@@ -616,7 +634,7 @@
 
 			// Assemble the columns and data types for the structure.
 			NSUInteger index = 0;
-			for ( id column in columns ) {
+			for ( RASqliteColumn *column in columns ) {
 				// The column have to be of type `RASqliteColumn`.
 				if ( ![column isKindOfClass:[RASqliteColumn class]] ) {
 					[NSException raise:NSInvalidArgumentException

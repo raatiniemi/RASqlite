@@ -1050,28 +1050,6 @@
 	return [self fetchRow:sql withParams:nil];
 }
 
-- (NSNumber *)lastInsertId
-{
-	NSNumber __block *insertId;
-	if ( ![self error] && [self database] ) {
-		void (^block)(void) = ^(void) {
-			insertId = [NSNumber numberWithLongLong:sqlite3_last_insert_rowid([self database])];
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
-	}
-
-	return insertId;
-}
-
 #pragma mark -- Update
 
 - (BOOL)execute:(NSString *)sql withParams:(NSArray *)params
@@ -1315,6 +1293,32 @@
 - (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block
 {
 	[self queueTransaction:RASqliteTransactionDeferred withBlock:block];
+}
+
+#pragma mark -
+
+- (NSNumber *)lastInsertId
+{
+	NSNumber __block *insertId;
+	if ( ![self error] && [self database] ) {
+		[self queueWithBlock:^(RASqlite *db) {
+			insertId = [NSNumber numberWithLongLong:sqlite3_last_insert_rowid([self database])];
+		}];
+	}
+
+	return insertId;
+}
+
+- (NSNumber *)rowCount
+{
+	NSNumber __block *count;
+	if ( ![self error] && [self database] ) {
+		[self queueWithBlock:^(RASqlite *db) {
+			count = [NSNumber numberWithInt:sqlite3_changes([self database])];
+		}];
+	}
+
+	return count;
 }
 
 #pragma mark - Logging

@@ -26,7 +26,10 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 /// Stores the name of the column.
 @property (atomic, readwrite, strong) NSString *name;
 
-/// Stores the data type for the column.
+/// Stores the type of the column, in its numeric form.
+@property (atomic, readwrite) RASqliteDataType numericType;
+
+/// Stores the type of the column.
 @property (atomic, readwrite, strong) NSString *type;
 
 @end
@@ -34,6 +37,8 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 @implementation RASqliteColumn
 
 @synthesize name = _name;
+
+@synthesize numericType = _numericType;
 
 @synthesize type = _type;
 
@@ -49,7 +54,7 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 
 #pragma mark - Initialization
 
-- (instancetype)initWithName:(NSString *)name type:(NSString *)type
+- (instancetype)initWithName:(NSString *)name type:(RASqliteDataType)type
 {
 	if ( self = [super init] ) {
 		// Verify the supplied column name, can not be `nil`.
@@ -58,20 +63,31 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 						format:@"The supplied column name can not be `nil`."];
 		}
 
-		// Verify the supplied column type, can not be `nil`.
-		if ( type == nil ) {
-			[NSException raise:NSInvalidArgumentException
-						format:@"The supplied column type can not be `nil`."];
-		}
-
 		// Check that the column type is a valid column type.
-		if ( !RASqliteColumnType(type) ) {
-			[NSException raise:NSInvalidArgumentException
-						format:@"The supplied data type is not a valid column type."];
-		}
+		switch (type) {
+			case RASqliteInteger:
+				[self setType:@"INTEGER"];
+				break;
 
+			case RASqliteReal:
+				[self setType:@"REAL"];
+				break;
+
+			case RASqliteBlob:
+				[self setType:@"BLOB"];
+				break;
+
+			case RASqliteText:
+				[self setType:@"TEXT"];
+				break;
+
+			default:
+				[NSException raise:NSInvalidArgumentException
+							format:@"The supplied data type is not a valid column type."];
+		}
+		
 		[self setName:name];
-		[self setType:type];
+		[self setNumericType:type];
 
 		// Set the default values for the column constraints.
 		_primaryKey = NO;
@@ -83,6 +99,18 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 }
 
 #pragma mark - Setters
+
+- (void)setDefaultValue:(id)defaultValue
+{
+	if ( RASqliteInteger == [self numericType] ) {
+	} else if ( RASqliteText == [self numericType] ) {
+	} else if ( RASqliteReal == [self numericType] ) {
+	} else if ( RASqliteBlob == [self numericType] ) {
+		// TODO: How should default value for `blob` be handled?
+	}
+
+	_defaultValue = defaultValue;
+}
 
 - (void)setPrimaryKey:(BOOL)primaryKey
 {
@@ -97,7 +125,7 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 - (void)setAutoIncrement:(BOOL)autoIncrement
 {
 	// Verify that the column is a valid data type.
-	if ( ![RASqliteInteger isEqualToString:[self type]] ) {
+	if ( RASqliteInteger != [self numericType] ) {
 		[NSException raise:RASqliteColumnConstrainException
 					format:@"Auto increment is only available for `integer` columns."];
 	}

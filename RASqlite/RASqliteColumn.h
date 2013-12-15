@@ -10,32 +10,23 @@
 
 // -- -- Data types
 
-/// Column data type for `NULL`.
-static NSString *RASqliteNull = @"NULL";
+/// Available column data types.
+typedef NS_ENUM(short int, RASqliteDataType) {
+	/// Column data type for `NULL`.
+	RASqliteNull,
 
-/// Column data type for `INTEGER`.
-static NSString *RASqliteInteger = @"INTEGER";
+	/// Column data type for `INTEGER`.
+	RASqliteInteger,
 
-/// Column data type for `REAL`.
-static NSString *RASqliteReal = @"REAL";
+	/// Column data type for `REAL`.
+	RASqliteReal,
 
-/// Column data type for `TEXT`.
-static NSString *RASqliteText = @"TEXT";
+	/// Column data type for `TEXT`.
+	RASqliteText,
 
-/// Column data type for `BLOB`.
-static NSString *RASqliteBlob = @"BLOB";
-
-// TODO: Implement typedef enum for data types.
-
-/**
- Check that the type is a valid column type.
-
- @param type Type to check.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
- */
-#define RASqliteColumnType(type)\
-	[@[RASqliteInteger, RASqliteReal, RASqliteText, RASqliteBlob] containsObject:type]
+	/// Column data type for `BLOB`.
+	RASqliteBlob
+};
 
 /**
  Defines the column for the table, used while creating and checking structure.
@@ -47,6 +38,7 @@ static NSString *RASqliteBlob = @"BLOB";
 @interface RASqliteColumn : NSObject {
 @protected
 	NSString *_name;
+	RASqliteDataType _numericType;
 	NSString *_type;
 	id _defaultValue;
 
@@ -59,12 +51,15 @@ static NSString *RASqliteBlob = @"BLOB";
 /// Stores the name of the column.
 @property (atomic, readonly, strong) NSString *name;
 
-/// Stores the data type for the column.
+/// Stores the type of the column, in its numeric form.
+@property (atomic, readonly) RASqliteDataType numericType;
+
+/// Stores the type of the column.
 @property (atomic, readonly, strong) NSString *type;
 
 // TODO: Handle validation of values related for data types.
 /// Stores the default value for the column.
-@property (atomic, readwrite, strong) id defaultValue;
+@property (nonatomic, readwrite, strong) id defaultValue;
 
 /// Stores whether or not the column is a primary key.
 @property (nonatomic, readwrite, getter = isPrimaryKey) BOOL primaryKey;
@@ -84,7 +79,7 @@ static NSString *RASqliteBlob = @"BLOB";
  Initialize with column name and type.
 
  @param name Name of the column.
- @param type Type of the column, must be a registered RASqlite data type.
+ @param type Type of the column.
 
  @code
  [[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger];
@@ -92,6 +87,6 @@ static NSString *RASqliteBlob = @"BLOB";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (instancetype)initWithName:(NSString *)name type:(NSString *)type;
+- (instancetype)initWithName:(NSString *)name type:(RASqliteDataType)type;
 
 @end

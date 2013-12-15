@@ -644,45 +644,34 @@
 				if ( index > 0 ) {
 					[sql appendString:@","];
 				}
-				[sql appendFormat:@"%@ ", [column name]];
+				[sql appendFormat:@"%@ %@", [column name], [column type]];
 
-				// Check that the type is a valid column type, i.e. RASqliteNull
-				// is not a valid column type, but RASqliteText is.
-				NSString *type = [column type];
-				if ( RASqliteColumnType(type) ) {
-					[sql appendString:type];
+				// Check if the column should be unique.
+				if ( [column isUnique] ) {
+					[sql appendString:@" UNIQUE"];
+				}
 
-					// Check if the column should be unique.
-					if ( [column isUnique] ) {
-						[sql appendString:@" UNIQUE"];
-					}
+				// Handle if the column should be nullable or not.
+				if ( ![column isNullable] ) {
+					[sql appendString:@" NOT"];
+				}
+				[sql appendString:@" NULL"];
 
-					// Handle if the column should be nullable or not.
-					if ( ![column isNullable] ) {
-						[sql appendString:@" NOT"];
-					}
-					[sql appendString:@" NULL"];
+				// Check if the column should be a primary key.
+				if ( [column isPrimaryKey] ) {
+					[sql appendString:@" PRIMARY KEY"];
 
-					// Check if the column should be a primary key.
-					if ( [column isPrimaryKey] ) {
-						[sql appendString:@" PRIMARY KEY"];
-
-						// Column have to be of type `integer` to use `autoincremental`.
-						if ( [column isAutoIncrement] && [RASqliteInteger isEqualToString:type] ) {
-							[sql appendString:@" AUTOINCREMENT"];
-						}
-					} else {
-						// TODO: Handle default values.
-						// The `integer` data type either have to be the primary
-						// key or have a default value.
-						if ( [RASqliteInteger isEqualToString:type] ) {
-							[sql appendString:@" DEFAULT 0"];
-						}
+					// Column have to be of type `integer` to use `autoincremental`.
+					if ( [column isAutoIncrement] && RASqliteInteger == [column numericType] ) {
+						[sql appendString:@" AUTOINCREMENT"];
 					}
 				} else {
-					// Raise an exception, unrecognized sqlite data type.
-					[NSException raise:@"Create table"
-								format:@"Unrecognized SQLite data type: %@", type];
+					// TODO: Handle default values.
+					// The `integer` data type either have to be the primary
+					// key or have a default value.
+					if ( RASqliteInteger == [column numericType] ) {
+						[sql appendString:@" DEFAULT 0"];
+					}
 				}
 
 				index++;

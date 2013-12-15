@@ -666,11 +666,10 @@
 						[sql appendString:@" AUTOINCREMENT"];
 					}
 				} else {
-					// TODO: Handle default values.
-					// The `integer` data type either have to be the primary
-					// key or have a default value.
-					if ( RASqliteInteger == [column numericType] ) {
-						[sql appendString:@" DEFAULT 0"];
+					// The default value by default is nil for every data type
+					// except for `RASqliteInteger` and `RASqliteReal`.
+					if ( [column defaultValue] != nil ) {
+						[sql appendFormat:@" DEFAULT %@", [column defaultValue]];
 					}
 				}
 

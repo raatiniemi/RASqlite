@@ -17,6 +17,14 @@
 /// The key used for setting/getting the name for the dispatch queue.
 #define kRASqliteKeyQueueName "me.raatiniemi.rasqlite.queue.name"
 
+// -- -- Exception
+
+/// Exception name for issues with column constrains.
+static NSString *RASqliteColumnConstrainException = @"Column constrain";
+
+/// Exception name for incomplete implementation.
+static NSString *RASqliteIncompleteImplementationException = @"Incomplete implementation";
+
 // -- -- Transaction
 
 /**

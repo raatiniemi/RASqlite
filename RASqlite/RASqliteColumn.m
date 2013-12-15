@@ -8,9 +8,6 @@
 
 #import "RASqliteColumn.h"
 
-/// Exception name for issues with column constrains.
-static NSString *RASqliteColumnConstrainException = @"Column constrain";
-
 // -- -- Import
 
 #import "RASqlite.h"
@@ -67,10 +64,12 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 		switch (type) {
 			case RASqliteInteger:
 				[self setType:@"INTEGER"];
+				_defaultValue = @0;
 				break;
 
 			case RASqliteReal:
 				[self setType:@"REAL"];
+				_defaultValue = @0;
 				break;
 
 			case RASqliteBlob:
@@ -102,11 +101,22 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 
 - (void)setDefaultValue:(id)defaultValue
 {
-	if ( RASqliteInteger == [self numericType] ) {
+	if ( RASqliteInteger == [self numericType] || RASqliteReal == [self numericType] ) {
+		if ( ![defaultValue isKindOfClass:[NSNumber class]] ) {
+			[NSException raise:RASqliteColumnConstrainException
+						format:@"Default value for column `%@` must be of type `NSNumber`.", [self name]];
+		}
 	} else if ( RASqliteText == [self numericType] ) {
-	} else if ( RASqliteReal == [self numericType] ) {
+		if ( ![defaultValue isKindOfClass:[NSString class]] ) {
+			[NSException raise:RASqliteColumnConstrainException
+						format:@"Default value for column `%@` must be of type `NSString`.", [self name]];
+		}
 	} else if ( RASqliteBlob == [self numericType] ) {
 		// TODO: How should default value for `blob` be handled?
+		// Should it be allowed to define default values for `blob`, might be a
+		// bad idea in regard to performance and size.
+		[NSException raise:RASqliteIncompleteImplementationException
+					format:@"Default value support for data type `blob` have not been implemented."];
 	}
 
 	_defaultValue = defaultValue;

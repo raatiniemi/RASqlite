@@ -57,7 +57,6 @@ typedef NS_ENUM(short int, RASqliteDataType) {
 /// Stores the type of the column.
 @property (atomic, readonly, strong) NSString *type;
 
-// TODO: Handle validation of values related for data types.
 /// Stores the default value for the column.
 @property (nonatomic, readwrite, strong) id defaultValue;
 

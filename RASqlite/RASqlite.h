@@ -26,7 +26,7 @@
  More information about transaction types within sqlite can be found here:
  http://www.sqlite.org/lang_transaction.html
  */
-typedef enum {
+typedef NS_ENUM(short int, RASqliteTransaction) {
 	/// No locks are acquired on the database until the database is first accessed.
 	RASqliteTransactionDeferred,
 
@@ -35,12 +35,12 @@ typedef enum {
 
 	/// An exclusive transaction causes EXCLUSIVE locks to be acquired on all databases.
 	RASqliteTransactionExclusive
-} RASqliteTransaction;
+};
 
 // -- -- Logging
 
-/// Definition of available log levels
-typedef enum {
+/// Definition of available log levels.
+typedef NS_ENUM(short int, RASqliteLogLevel) {
 	/// Debug-level messages.
 	RASqliteLogLevelDebug,
 
@@ -52,7 +52,7 @@ typedef enum {
 
 	/// Error-level messages.
 	RASqliteLogLevelError
-} RASqliteLogLevel;
+};
 
 #if DEBUG
 /// Stores the level of logging within the library.

@@ -629,11 +629,12 @@
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
-			NSMutableString *sql = [[NSMutableString alloc] init];
-			[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
+			// The create query will be constructed with a list of items, each
+			// item represent their column name, data type, constraints, etc.
+			NSMutableArray *list = [[NSMutableArray alloc] init];
+			NSMutableString *item;
 
 			// Assemble the columns and data types for the structure.
-			NSUInteger index = 0;
 			for ( RASqliteColumn *column in columns ) {
 				// The column have to be of type `RASqliteColumn`.
 				if ( ![column isKindOfClass:[RASqliteColumn class]] ) {
@@ -641,41 +642,42 @@
 								format:@"Column defined for table `%@` is not of type `RASqliteColumn.", table];
 				}
 
-				if ( index > 0 ) {
-					[sql appendString:@","];
-				}
-				[sql appendFormat:@"%@ %@", [column name], [column type]];
+				// Start with building the item with the column name and type.
+				item = [[NSMutableString alloc] init];
+				[item appendFormat:@"%@ %@", [column name], [column type]];
 
 				// Check if the column should be unique.
 				if ( [column isUnique] ) {
-					[sql appendString:@" UNIQUE"];
+					[item appendString:@" UNIQUE"];
 				}
 
 				// Handle if the column should be nullable or not.
 				if ( ![column isNullable] ) {
-					[sql appendString:@" NOT"];
+					[item appendString:@" NOT"];
 				}
-				[sql appendString:@" NULL"];
+				[item appendString:@" NULL"];
 
 				// Check if the column should be a primary key.
 				if ( [column isPrimaryKey] ) {
-					[sql appendString:@" PRIMARY KEY"];
+					[item appendString:@" PRIMARY KEY"];
 
 					// Column have to be of type `integer` to use `autoincremental`.
 					if ( [column isAutoIncrement] && RASqliteInteger == [column numericType] ) {
-						[sql appendString:@" AUTOINCREMENT"];
+						[item appendString:@" AUTOINCREMENT"];
 					}
 				} else {
-					// The default value by default is nil for every data type
-					// except for `RASqliteInteger` and `RASqliteReal`.
+					// If the column have a default value available, use it.
+					// Have to check for nil since default value can be @0.
 					if ( [column defaultValue] != nil ) {
-						[sql appendFormat:@" DEFAULT %@", [column defaultValue]];
+						[item appendFormat:@" DEFAULT `%@`", [column defaultValue]];
 					}
 				}
 
-				index++;
+				// Add the item to the list of columns.
+				[list addObject:item];
 			}
-			[sql appendString:@");"];
+			// Build the actual sql query for creating the table.
+			NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@(%@)", table, [list componentsJoinedByString:@","]];
 			RASqliteLog(RASqliteLogLevelDebug, @"Create query: %@", sql);
 
 			// Attempt to create the database table.

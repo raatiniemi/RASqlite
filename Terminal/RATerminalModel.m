@@ -51,11 +51,14 @@ static dispatch_queue_t _queue;
 	[user addObject:column];
 
 	column = [[RASqliteColumn alloc] initWithName:@"name" type:RASqliteText];
-	[column setUnique:YES];
 	[user addObject:column];
 
 	column = [[RASqliteColumn alloc] initWithName:@"email" type:RASqliteText];
 	[column setNullable:YES];
+	[user addObject:column];
+
+	column = [[RASqliteColumn alloc] initWithName:@"level" type:RASqliteInteger];
+	[column setDefaultValue:@1];
 	[user addObject:column];
 
 	NSMutableDictionary *tabeller = [[NSMutableDictionary alloc] init];

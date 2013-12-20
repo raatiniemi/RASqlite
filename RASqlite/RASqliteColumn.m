@@ -64,12 +64,10 @@
 		switch (type) {
 			case RASqliteInteger:
 				[self setType:@"INTEGER"];
-				_defaultValue = @0;
 				break;
 
 			case RASqliteReal:
 				[self setType:@"REAL"];
-				_defaultValue = @0;
 				break;
 
 			case RASqliteBlob:

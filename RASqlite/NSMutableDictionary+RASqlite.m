@@ -3,7 +3,7 @@
 //  RASqlite
 //
 //  Created by Tobias Raatiniemi on 2013-11-14.
-//  Copyright (c) 2013 Raatiniemi. All rights reserved.
+//  Copyright (c) 2013-2014 Raatiniemi. All rights reserved.
 //
 
 #import "NSMutableDictionary+RASqlite.h"

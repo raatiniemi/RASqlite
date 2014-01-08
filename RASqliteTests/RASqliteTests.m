@@ -138,11 +138,27 @@ static NSString *_directory = @"/tmp/rasqlite";
 - (void)testCheckNonExistingTable;
 
 // TODO: Test check for number of columns, column order etc.
+// TODO: Add test for default value.
 
+/**
+ Attempt to check table structure with primary key miss match.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCheckWithPrimaryKeyMissmatch;
 
+/**
+ Attempt to check table structure with nullable missmatch.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCheckWithNullableMissmatch;
 
+/**
+ Attempt to check table structure with unique key missmatch.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
 - (void)testCheckWithUniqueKeyMissmatch;
 
 #pragma mark -- Create
@@ -441,6 +457,45 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
 	XCTAssertFalse([rasqlite checkTable:@"foo" withColumns:columns],
 				   @"Check with non-existing table was successful.");
+}
+
+- (void)testCheckWithPrimaryKeyMissmatch
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	RASqliteColumn *column;
+
+	column = [[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger];
+	[column setPrimaryKey:YES];
+	[columns addObject:column];
+
+	column = [[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger];
+	[column setPrimaryKey:NO];
+	[columns addObject:column];
+
+	// Create the table with the first structure.
+	XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
+				  @"Unable to create table for checking primary key missmatch.");
+
+	// Modify the primary key order.
+	[[columns objectAtIndex:0] setPrimaryKey:NO];
+	[[columns objectAtIndex:1] setPrimaryKey:YES];
+
+	// Check if the `checkTable:withColumns:` notice the change.
+	XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
+				   @"Check with primary key missmatch failed.");
+}
+
+- (void)testCheckWithNullableMissmatch
+{
+#warning Implement test for nullable missmatch.
+}
+
+- (void)testCheckWithUniqueKeyMissmatch
+{
+#warning Implement test for unique key missmatch.
 }
 
 #pragma mark -- Create

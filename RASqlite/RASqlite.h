@@ -184,7 +184,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 
 /**
  Close the database.
- 
+
  @return `nil` if database was successfully closed, otherwise an error object.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
@@ -251,10 +251,10 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 
 /**
  Fetch a result set from the database, with parameters.
- 
+
  @param sql Query to perform against the database.
  @param params Parameters to bind to the query.
- 
+
  @code
  NSArray *results = [self fetch:@"SELECT foo FROM bar WHERE baz = ? AND qux = ?" withParams:@[@53, @"id"]];
  if ( results ) {
@@ -271,11 +271,11 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @autor Tobias Raatiniemi <raatiniemi@gmail.com>
- 
+
  @note
  The first index within the params array will bind against the first question
  mark within the SQL query. The second, to the second question mark, etc.
- 
+
  @par
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -305,7 +305,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @autor Tobias Raatiniemi <raatiniemi@gmail.com>
- 
+
  @note
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -334,7 +334,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @autor Tobias Raatiniemi <raatiniemi@gmail.com>
- 
+
  @note
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -360,7 +360,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 	[self setError:nil];
  }
  @endcode
- 
+
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
@@ -368,7 +368,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @note
  The first index within the params array will bind against the first question
  mark within the SQL query. The second, to the second question mark, etc.
- 
+
  @par
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -398,7 +398,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
- 
+
  @note
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -427,7 +427,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @return Result from query, or `nil` if nothing was found or an error has occurred.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
- 
+
  @note
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -455,7 +455,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @return `YES` if query executed successfully, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
- 
+
  @note
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -481,7 +481,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @return `YES` if query executed successfully, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
- 
+
  @note
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -505,7 +505,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @return `YES` if query executed successfully, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
- 
+
  @note
  The method will determind whether it'll need to dispatch to the queue, or if
  it's already executing on the query queue. I.e. the method can be called from
@@ -539,17 +539,18 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @param block Block to be executed.
 
  @code
- [database queueTransaction:RASqliteTransactionDeferred withBlock:^(RASqlite *db, BOOL *commit) {
-	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+ [database queueTransaction:RASqliteTransactionDeferred withBlock:^(RASqlite *db) {
+	BOOL commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
 	if ( commit ) {
 		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 	}
+	return commit;
  }];
  @endcode
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *db, BOOL **commit))block;
+- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(BOOL (^)(RASqlite *db))block;
 
 /**
  Execute a deferred transaction block on the query thread.
@@ -557,17 +558,18 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @param block Block to be executed.
 
  @code
- [database queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
-	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+ [database queueTransactionWithBlock:^(RASqlite *db) {
+	BOOL commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
 	if ( commit ) {
 		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 	}
+	return commit;
  }];
  @endcode
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block;
+- (void)queueTransactionWithBlock:(BOOL (^)(RASqlite *db))block;
 
 #pragma mark -
 

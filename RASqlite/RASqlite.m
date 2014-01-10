@@ -1207,7 +1207,7 @@
 	}
 }
 
-- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *, BOOL **))block
+- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(BOOL (^)(RASqlite *))block
 {
 	[self queueWithBlock:^(RASqlite *db) {
 		// Check if we're already within a transaction. There are two
@@ -1223,9 +1223,8 @@
 
 		[self setInTransaction:YES];
 		[self beginTransaction:transaction];
-		BOOL *commit;
 
-		block(db, &commit);
+		BOOL commit = block(db);
 
 		if ( commit ) {
 			[self commit];
@@ -1236,7 +1235,7 @@
 	}];
 }
 
-- (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL **commit))block
+- (void)queueTransactionWithBlock:(BOOL (^)(RASqlite *db))block
 {
 	[self queueTransaction:RASqliteTransactionDeferred withBlock:block];
 }

@@ -532,7 +532,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 
  @code
  [database queueTransaction:RASqliteTransactionDeferred withBlock:^(RASqlite *db) {
-	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+	BOOL commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
 	if ( commit ) {
 		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 	}
@@ -551,7 +551,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 
  @code
  [database queueTransactionWithBlock:^(RASqlite *db) {
-	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+	BOOL commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
 	if ( commit ) {
 		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 	}

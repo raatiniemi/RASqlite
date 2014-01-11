@@ -310,6 +310,36 @@ static NSString *_directory = @"/tmp/rasqlite";
  */
 - (void)testExecuteDelete;
 
+#pragma mark - Transaction
+
+/**
+ Commit transaction with insert query.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testTransactionInsertCommit;
+
+/**
+ Rollback transaction with insert query.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testTransactionInsertRollback;
+
+/**
+ Commit transaction with delete query.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testTransactionDeleteCommit;
+
+/**
+ Rollback transaction with delete query.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testTransactionDeleteRollback;
+
 @end
 
 @implementation RASqliteTests
@@ -735,11 +765,132 @@ static NSString *_directory = @"/tmp/rasqlite";
 	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id, bar) VALUES(1, ?)" withParam:@"baz"];
 	XCTAssertTrue(insert, @"Insert failed: %@", [[rasqlite error] localizedDescription]);
 
+	NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
+	XCTAssertNotNil(row, @"Inserted row was not found.");
+
 	BOOL update = [rasqlite execute:@"DELETE FROM foo WHERE id = ?" withParam:@1];
 	XCTAssertTrue(update, @"Delete failed: %@", [[rasqlite error] localizedDescription]);
 
-	NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
+	row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
 	XCTAssertNil(row, @"Deleted row was found.");
+}
+
+#pragma mark - Transaction
+
+- (void)testTransactionInsertCommit
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
+		BOOL insert = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
+		XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[db error] localizedDescription]);
+
+		return YES;
+	}];
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Commit transaction with insert did not insert row.");
+}
+
+- (void)testTransactionInsertRollback
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
+		BOOL insert = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
+		XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[db error] localizedDescription]);
+
+		return NO;
+	}];
+
+	XCTAssertNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+				 @"Rollback transaction with insert did insert row.");
+}
+
+- (void)testTransactionDeleteCommit
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id) VALUES(1)"];
+	XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Insert did not insert row.");
+
+	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
+		BOOL delete = [rasqlite execute:@"DELETE FROM foo WHERE id = 1"];
+		XCTAssertTrue(delete, @"Unable to delete for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[rasqlite error] localizedDescription]);
+
+		return YES;
+	}];
+
+	XCTAssertNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+				 @"Commit transaction with delete did not delete row.");
+}
+
+- (void)testTransactionDeleteRollback
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id) VALUES(1)"];
+	XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Insert did not insert row.");
+
+	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
+		BOOL delete = [rasqlite execute:@"DELETE FROM foo WHERE id = 1"];
+		XCTAssertTrue(delete, @"Unable to delete for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[rasqlite error] localizedDescription]);
+
+		return NO;
+	}];
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Rollback transaction with delete did delete row.");
 }
 
 @end

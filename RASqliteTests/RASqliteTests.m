@@ -137,7 +137,20 @@ static NSString *_directory = @"/tmp/rasqlite";
  */
 - (void)testCheckNonExistingTable;
 
-// TODO: Test check for number of columns, column order etc.
+/**
+ Attempt to check table with different number of columns.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testCheckNumberOfColumns;
+
+/**
+ Attempt to check table with different order on the columns.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testCheckOrderOfColumns;
+
 // TODO: Add test for default value.
 
 /**
@@ -489,6 +502,48 @@ static NSString *_directory = @"/tmp/rasqlite";
 				   @"Check with non-existing table was successful.");
 }
 
+- (void)testCheckNumberOfColumns
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	RASqliteColumn *column;
+
+	column = [[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger];
+	[columns addObject:column];
+
+	// Create the table with the first structure.
+	XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
+				  @"Unable to create table for number of columns missmatch.");
+
+	column = [[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger];
+	[columns addObject:column];
+
+	// Check if the `checkTable:withColumns:` notice the change.
+	XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
+				   @"Check with number of columns missmatch failed.");
+}
+
+- (void)testCheckOrderOfColumns
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSArray *columns;
+	columns = @[[[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger]];
+
+	// Create the table with the first structure.
+	XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
+				  @"Unable to create table for order of columns missmatch.");
+
+	columns = @[[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger]];
+
+	// Check if the `checkTable:withColumns:` notice the change.
+	XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
+				   @"Check with order of columns missmatch failed.");
+}
+
 - (void)testCheckWithPrimaryKeyMissmatch
 {
 	NSString *path = [_directory stringByAppendingString:@"/check"];
@@ -573,7 +628,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 	[columns addObject:[[RASqliteColumn alloc] initWithName:@"blob" type:RASqliteBlob]];
 
 	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
-				   @"Create table was not successful: %@", [[rasqlite error] localizedDescription]);
+				  @"Create table was not successful: %@", [[rasqlite error] localizedDescription]);
 }
 
 - (void)testCreateTableWithNullType
@@ -585,7 +640,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 		// TODO: The RASqliteColumn will throw an exception for `NULL`.
 /*		NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"null" type:RASqliteNull]];
 		XCTAssertThrows([rasqlite createTable:@"foo" withColumns:columns],
-						@"Created table with `RASqliteNull` data type.");*/
+					    @"Created table with `RASqliteNull` data type.");*/
 	}];
 }
 

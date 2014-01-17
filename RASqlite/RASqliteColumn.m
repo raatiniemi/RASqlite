@@ -21,13 +21,13 @@
 }
 
 /// Stores the name of the column.
-@property (atomic, readwrite, strong) NSString *name;
+@property (strong, atomic) NSString *name;
 
 /// Stores the type of the column, in its numeric form.
-@property (atomic, readwrite) RASqliteDataType numericType;
+@property (atomic) RASqliteDataType numericType;
 
 /// Stores the type of the column.
-@property (atomic, readwrite, strong) NSString *type;
+@property (strong, atomic) NSString *type;
 
 @end
 

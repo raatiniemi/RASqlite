@@ -93,7 +93,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 }
 
 /// Stores the first occurred error, `nil` if none has occurred.
-@property (atomic, readwrite, strong) NSError *error;
+@property (strong, atomic, readwrite) NSError *error;
 
 #pragma mark - Initialization
 

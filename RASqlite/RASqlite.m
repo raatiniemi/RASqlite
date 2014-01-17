@@ -34,13 +34,13 @@
 }
 
 /// Stores the path for the database file.
-@property (atomic, readwrite, strong) NSString *path;
+@property (strong, atomic) NSString *path;
 
 /// Number of attempts before the retry timeout is reached.
-@property (atomic, readwrite) NSInteger retryTimeout;
+@property (atomic) NSInteger retryTimeout;
 
 /// Check for preventing transaction within transactions.
-@property (atomic, readwrite) BOOL inTransaction;
+@property (atomic) BOOL inTransaction;
 
 #pragma mark - Path
 

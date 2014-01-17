@@ -49,16 +49,16 @@ typedef NS_ENUM(short int, RASqliteDataType) {
 }
 
 /// Stores the name of the column.
-@property (atomic, readonly, strong) NSString *name;
+@property (strong, atomic, readonly) NSString *name;
 
 /// Stores the type of the column, in its numeric form.
 @property (atomic, readonly) RASqliteDataType numericType;
 
 /// Stores the type of the column.
-@property (atomic, readonly, strong) NSString *type;
+@property (strong, atomic, readonly) NSString *type;
 
 /// Stores the default value for the column.
-@property (nonatomic, readwrite, strong) id defaultValue;
+@property (strong, nonatomic, readwrite) id defaultValue;
 
 /// Stores whether or not the column is a primary key.
 @property (nonatomic, readwrite, getter = isPrimaryKey) BOOL primaryKey;

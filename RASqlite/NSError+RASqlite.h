@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 /// Defined error codes for the library.
-typedef enum {
+typedef NS_ENUM(short int, RASqliteErrorCode) {
 	/// Error code related to open the database.
 	RASqliteErrorOpen,
 
@@ -24,7 +24,7 @@ typedef enum {
 
 	/// Error code related to transaction.
 	RASqliteErrorTransaction
-} RASqliteErrorCode;
+};
 
 /**
  Simplified handling for RASqlite errors.

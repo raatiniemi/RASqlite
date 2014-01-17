@@ -17,6 +17,14 @@
 /// The key used for setting/getting the name for the dispatch queue.
 #define kRASqliteKeyQueueName "me.raatiniemi.rasqlite.queue.name"
 
+// -- -- Exception
+
+/// Exception name for issues with column constrains.
+static NSString *RASqliteColumnConstrainException = @"Column constrain";
+
+/// Exception name for incomplete implementation.
+static NSString *RASqliteIncompleteImplementationException = @"Incomplete implementation";
+
 // -- -- Transaction
 
 /**
@@ -26,7 +34,7 @@
  More information about transaction types within sqlite can be found here:
  http://www.sqlite.org/lang_transaction.html
  */
-typedef enum {
+typedef NS_ENUM(short int, RASqliteTransaction) {
 	/// No locks are acquired on the database until the database is first accessed.
 	RASqliteTransactionDeferred,
 
@@ -35,12 +43,12 @@ typedef enum {
 
 	/// An exclusive transaction causes EXCLUSIVE locks to be acquired on all databases.
 	RASqliteTransactionExclusive
-} RASqliteTransaction;
+};
 
 // -- -- Logging
 
-/// Definition of available log levels
-typedef enum {
+/// Definition of available log levels.
+typedef NS_ENUM(short int, RASqliteLogLevel) {
 	/// Debug-level messages.
 	RASqliteLogLevelDebug,
 
@@ -52,7 +60,7 @@ typedef enum {
 
 	/// Error-level messages.
 	RASqliteLogLevelError
-} RASqliteLogLevel;
+};
 
 #if DEBUG
 /// Stores the level of logging within the library.
@@ -85,7 +93,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 }
 
 /// Stores the first occurred error, `nil` if none has occurred.
-@property (atomic, readwrite, strong) NSError *error;
+@property (strong, atomic, readwrite) NSError *error;
 
 #pragma mark - Initialization
 
@@ -198,13 +206,13 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  Check structure for database table.
 
  @param table Name of the table to check.
- @param columns Dictionary with column names and their data types.
+ @param columns Array with column definitions.
 
  @return `YES` if table structure is as defined, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (BOOL)checkTable:(NSString *)table withColumns:(NSDictionary *)columns;
+- (BOOL)checkTable:(NSString *)table withColumns:(NSArray *)columns;
 
 /**
  Create the database structure.
@@ -219,13 +227,13 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  Create the table structure.
 
  @param table Name of the table to create.
- @param columns Dictionary with column names and their data types.
+ @param columns Array with column definitions.
 
  @return `YES` if table structure is created, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (BOOL)createTable:(NSString *)table withColumns:(NSDictionary *)columns;
+- (BOOL)createTable:(NSString *)table withColumns:(NSArray *)columns;
 
 /**
  Delete the database table.

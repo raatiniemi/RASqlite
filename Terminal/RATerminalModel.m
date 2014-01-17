@@ -42,9 +42,24 @@ static dispatch_queue_t _queue;
 
 - (NSDictionary *)structure
 {
-	NSMutableDictionary *user = [[NSMutableDictionary alloc] init];
-	[user setObject:RASqliteInteger forKey:@"id"];
-	[user setObject:RASqliteText forKey:@"name"];
+	NSMutableArray *user = [[NSMutableArray alloc] init];
+	RASqliteColumn *column;
+
+	column = [[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger];
+	[column setAutoIncrement:YES];
+	[column setPrimaryKey:YES];
+	[user addObject:column];
+
+	column = [[RASqliteColumn alloc] initWithName:@"name" type:RASqliteText];
+	[user addObject:column];
+
+	column = [[RASqliteColumn alloc] initWithName:@"email" type:RASqliteText];
+	[column setNullable:YES];
+	[user addObject:column];
+
+	column = [[RASqliteColumn alloc] initWithName:@"level" type:RASqliteInteger];
+	[column setDefaultValue:@1];
+	[user addObject:column];
 
 	NSMutableDictionary *tabeller = [[NSMutableDictionary alloc] init];
 	[tabeller setObject:user forKey:@"user"];

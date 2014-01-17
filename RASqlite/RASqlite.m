@@ -34,13 +34,13 @@
 }
 
 /// Stores the path for the database file.
-@property (atomic, readwrite, strong) NSString *path;
+@property (strong, atomic) NSString *path;
 
 /// Number of attempts before the retry timeout is reached.
-@property (atomic, readwrite) NSInteger retryTimeout;
+@property (atomic) NSInteger retryTimeout;
 
 /// Check for preventing transaction within transactions.
-@property (atomic, readwrite) BOOL inTransaction;
+@property (atomic) BOOL inTransaction;
 
 #pragma mark - Path
 
@@ -149,9 +149,11 @@
 
 - (id)init
 {
-	// Use of this method is not allowed, `initWithName:` should be used.
+	// TODO: Implement support for in memory databases with init as method?
+
+	// Use of this method is not allowed, `initWithName:` or `initWithPath:` should be used.
 	[NSException raise:@"Incorrect initialization"
-				format:@"Use of the `init` method is not allowed, use `initWithName:` instead."];
+				format:@"Use of the `init` method is not allowed, use `initWithName:` or `initWithPath:` instead."];
 
 	// Return nil, takes care of the return warning.
 	return nil;
@@ -444,7 +446,7 @@
 	return valid;
 }
 
-- (BOOL)checkTable:(NSString *)table withColumns:(NSDictionary *)columns
+- (BOOL)checkTable:(NSString *)table withColumns:(NSArray *)columns
 {
 	if ( !table ) {
 		// Raise an exception, no valid table name.
@@ -478,20 +480,48 @@
 			if ( [tColumns count] > 0 ) {
 				if ( [tColumns count] == [columns count] ) {
 					unsigned int index = 0;
-					for ( NSString *column in columns ) {
+					for ( RASqliteColumn *column in columns ) {
+						// The column have to be of type `RASqliteColumn`.
+						if ( ![column isKindOfClass:[RASqliteColumn class]] ) {
+							[NSException raise:NSInvalidArgumentException
+										format:@"Column defined for table `%@` at index `%i` is not of type `RASqliteColumn.", table, index];
+						}
+
+						// Retrieve the column definition from the table.
 						NSDictionary *tColumn = [tColumns objectAtIndex:index];
-						if ( ![[tColumn getColumn:@"name"] isEqualToString:column] ) {
-							RASqliteLog(RASqliteLogLevelDebug, @"Column name `%@` do not match index `%i` for the given structure.", table, index);
+
+						// Check that the column name matches.
+						if ( ![[tColumn getColumn:@"name"] isEqualToString:[column name]] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column name at index `%i` do not match column given for structure `%@`.", index, table);
 							valid = NO;
 							break;
 						}
 
-						NSString *type = [columns objectForKey:column];
-						if ( ![[tColumn getColumn:@"type"] isEqualToString:type] ) {
-							RASqliteLog(RASqliteLogLevelDebug, @"Column type `%@` to not match index `%i` for given structure.", table, index);
+						// Check that the column type matches.
+						if ( ![[tColumn getColumn:@"type"] isEqualToString:[column type]] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column type at index `%i` do not match column given for structure `%@`.", index, table);
 							valid = NO;
 							break;
 						}
+
+						// Check that whether the column matches the primary key setting.
+						if ( [column isPrimaryKey] != [[tColumn getColumn:@"pk"] boolValue] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column primary key option at index `%i` do not match column given for structure `%@`.", index, table);
+							valid = NO;
+							break;
+						}
+
+						// Check that whether the column matches the nullable setting.
+						if ( [column isNullable] == [[tColumn getColumn:@"notnull"] boolValue] ) {
+							RASqliteLog(RASqliteLogLevelDebug, @"Column nullable option at index `%i` do not match column given for structure `%@`.", index, table);
+							valid = NO;
+							break;
+						}
+
+						// TODO: Check the default value, `dflt_value` from tColumn.
+						// TODO: Check for unique columns.
+						// TODO: Check for autoincremental.
+
 						index++;
 					}
 				} else {
@@ -599,41 +629,55 @@
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
-			NSMutableString *sql = [[NSMutableString alloc] init];
-			[sql appendFormat:@"CREATE TABLE IF NOT EXISTS %@(", table];
+			// The create query will be constructed with a list of items, each
+			// item represent their column name, data type, constraints, etc.
+			NSMutableArray *list = [[NSMutableArray alloc] init];
+			NSMutableString *item;
 
 			// Assemble the columns and data types for the structure.
-			NSUInteger index = 0;
-			for ( NSString *name in columns ) {
-				if ( index > 0 ) {
-					[sql appendString:@","];
+			for ( RASqliteColumn *column in columns ) {
+				// The column have to be of type `RASqliteColumn`.
+				if ( ![column isKindOfClass:[RASqliteColumn class]] ) {
+					[NSException raise:NSInvalidArgumentException
+								format:@"Column defined for table `%@` is not of type `RASqliteColumn.", table];
 				}
-				[sql appendFormat:@"%@ ", name];
 
-				// Check that the type is a valid column type, i.e. RASqliteNull
-				// is not a valid column type, but RASqliteText is.
-				NSString *type = [columns objectForKey:name];
-				if ( RASqliteColumnType(type) ) {
-					[sql appendString:type];
+				// Start with building the item with the column name and type.
+				item = [[NSMutableString alloc] init];
+				[item appendFormat:@"%@ %@", [column name], [column type]];
 
-					// The `integer` data type have to be handled differently than the
-					// other types, either primary key or default value have to be set.
-					if ( [RASqliteInteger isEqualToString:type] ) {
-						if ( [name isEqualToString:@"id"] ) {
-							[sql appendString:@" PRIMARY KEY"];
-						} else {
-							[sql appendString:@" DEFAULT 0"];
-						}
+				// Check if the column should be unique.
+				if ( [column isUnique] ) {
+					[item appendString:@" UNIQUE"];
+				}
+
+				// Handle if the column should be nullable or not.
+				if ( ![column isNullable] ) {
+					[item appendString:@" NOT"];
+				}
+				[item appendString:@" NULL"];
+
+				// Check if the column should be a primary key.
+				if ( [column isPrimaryKey] ) {
+					[item appendString:@" PRIMARY KEY"];
+
+					// Column have to be of type `integer` to use `autoincremental`.
+					if ( [column isAutoIncrement] && RASqliteInteger == [column numericType] ) {
+						[item appendString:@" AUTOINCREMENT"];
 					}
 				} else {
-					// Raise an exception, unrecognized sqlite data type.
-					[NSException raise:@"Create table"
-								format:@"Unrecognized SQLite data type: %@", type];
+					// If the column have a default value available, use it.
+					// Have to check for nil since default value can be @0.
+					if ( [column defaultValue] != nil ) {
+						[item appendFormat:@" DEFAULT `%@`", [column defaultValue]];
+					}
 				}
 
-				index++;
+				// Add the item to the list of columns.
+				[list addObject:item];
 			}
-			[sql appendString:@");"];
+			// Build the actual sql query for creating the table.
+			NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@(%@)", table, [list componentsJoinedByString:@","]];
 			RASqliteLog(RASqliteLogLevelDebug, @"Create query: %@", sql);
 
 			// Attempt to create the database table.

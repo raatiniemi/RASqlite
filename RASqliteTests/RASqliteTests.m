@@ -137,7 +137,42 @@ static NSString *_directory = @"/tmp/rasqlite";
  */
 - (void)testCheckNonExistingTable;
 
-// TODO: Test check for number of columns, column order etc.
+/**
+ Attempt to check table with different number of columns.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testCheckNumberOfColumns;
+
+/**
+ Attempt to check table with different order on the columns.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testCheckOrderOfColumns;
+
+// TODO: Add test for default value.
+
+/**
+ Attempt to check table structure with primary key miss match.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testCheckWithPrimaryKeyMissmatch;
+
+/**
+ Attempt to check table structure with nullable missmatch.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testCheckWithNullableMissmatch;
+
+/**
+ Attempt to check table structure with unique key missmatch.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testCheckWithUniqueKeyMissmatch;
 
 #pragma mark -- Create
 
@@ -288,6 +323,36 @@ static NSString *_directory = @"/tmp/rasqlite";
  */
 - (void)testExecuteDelete;
 
+#pragma mark - Transaction
+
+/**
+ Commit transaction with insert query.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testTransactionInsertCommit;
+
+/**
+ Rollback transaction with insert query.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testTransactionInsertRollback;
+
+/**
+ Commit transaction with delete query.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testTransactionDeleteCommit;
+
+/**
+ Rollback transaction with delete query.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)testTransactionDeleteRollback;
+
 @end
 
 @implementation RASqliteTests
@@ -413,7 +478,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/check"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSDictionary *columns = @{@"id": RASqliteInteger};
+	NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
 	XCTAssertThrows([rasqlite checkTable:nil withColumns:columns],
 					@"Check without table name did not throw exception.");
 }
@@ -432,9 +497,90 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/check"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSDictionary *columns = @{@"id": RASqliteInteger};
+	NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
 	XCTAssertFalse([rasqlite checkTable:@"foo" withColumns:columns],
 				   @"Check with non-existing table was successful.");
+}
+
+- (void)testCheckNumberOfColumns
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	RASqliteColumn *column;
+
+	column = [[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger];
+	[columns addObject:column];
+
+	// Create the table with the first structure.
+	XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
+				  @"Unable to create table for number of columns missmatch.");
+
+	column = [[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger];
+	[columns addObject:column];
+
+	// Check if the `checkTable:withColumns:` notice the change.
+	XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
+				   @"Check with number of columns missmatch failed.");
+}
+
+- (void)testCheckOrderOfColumns
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSArray *columns;
+	columns = @[[[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger]];
+
+	// Create the table with the first structure.
+	XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
+				  @"Unable to create table for order of columns missmatch.");
+
+	columns = @[[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger]];
+
+	// Check if the `checkTable:withColumns:` notice the change.
+	XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
+				   @"Check with order of columns missmatch failed.");
+}
+
+- (void)testCheckWithPrimaryKeyMissmatch
+{
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	RASqliteColumn *column;
+
+	column = [[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger];
+	[column setPrimaryKey:YES];
+	[columns addObject:column];
+
+	column = [[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger];
+	[column setPrimaryKey:NO];
+	[columns addObject:column];
+
+	// Create the table with the first structure.
+	XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
+				  @"Unable to create table for checking primary key missmatch.");
+
+	// Modify the primary key order.
+	[[columns objectAtIndex:0] setPrimaryKey:NO];
+	[[columns objectAtIndex:1] setPrimaryKey:YES];
+
+	// Check if the `checkTable:withColumns:` notice the change.
+	XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
+				   @"Check with primary key missmatch failed.");
+}
+
+- (void)testCheckWithNullableMissmatch
+{
+#warning Implement test for nullable missmatch.
+}
+
+- (void)testCheckWithUniqueKeyMissmatch
+{
+#warning Implement test for unique key missmatch.
 }
 
 #pragma mark -- Create
@@ -456,7 +602,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/create"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSDictionary *columns = @{@"id": RASqliteInteger};
+	NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
 	XCTAssertThrows([rasqlite createTable:nil withColumns:columns],
 					@"Create without table name did not throw exception.");
 }
@@ -475,14 +621,14 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/create"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSMutableDictionary *columns = [[NSMutableDictionary alloc] init];
-	[columns setObject:RASqliteInteger forKey:@"int"];
-	[columns setObject:RASqliteText forKey:@"text"];
-	[columns setObject:RASqliteReal forKey:@"real"];
-	[columns setObject:RASqliteBlob forKey:@"blob"];
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"int" type:RASqliteInteger]];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"text" type:RASqliteText]];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"real" type:RASqliteReal]];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"blob" type:RASqliteBlob]];
 
 	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
-				   @"Create table was not successful: %@", [[rasqlite error] localizedDescription]);
+				  @"Create table was not successful: %@", [[rasqlite error] localizedDescription]);
 }
 
 - (void)testCreateTableWithNullType
@@ -491,9 +637,10 @@ static NSString *_directory = @"/tmp/rasqlite";
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
 	[rasqlite queueWithBlock:^(RASqlite *db) {
-		NSDictionary *columns = @{@"null": RASqliteNull};
+		// TODO: The RASqliteColumn will throw an exception for `NULL`.
+/*		NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"null" type:RASqliteNull]];
 		XCTAssertThrows([rasqlite createTable:@"foo" withColumns:columns],
-						@"Created table with `RASqliteNull` data type.");
+					    @"Created table with `RASqliteNull` data type.");*/
 	}];
 }
 
@@ -557,7 +704,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/fetch"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSDictionary *columns = @{@"id": RASqliteInteger};
+	NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
 	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
 				  @"Unable to create table for fetch no result: %@",
 				  [[rasqlite error] localizedDescription]);
@@ -596,7 +743,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/fetch"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSDictionary *columns = @{@"id": RASqliteInteger};
+	NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
 	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
 				  @"Unable to create table for fetch no result: %@",
 				  [[rasqlite error] localizedDescription]);
@@ -622,7 +769,9 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/execute"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSDictionary *columns = @{@"id": RASqliteInteger, @"bar": RASqliteText};
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteText]];
 	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
 				  @"Unable to create table for execute: %@",
 				  [[rasqlite error] localizedDescription]);
@@ -639,7 +788,9 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/execute"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSDictionary *columns = @{@"id": RASqliteInteger, @"bar": RASqliteText};
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteText]];
 	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
 				  @"Unable to create table for execute: %@",
 				  [[rasqlite error] localizedDescription]);
@@ -659,7 +810,9 @@ static NSString *_directory = @"/tmp/rasqlite";
 	NSString *path = [_directory stringByAppendingString:@"/execute"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-	NSDictionary *columns = @{@"id": RASqliteInteger, @"bar": RASqliteText};
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteText]];
 	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
 				  @"Unable to create table for execute: %@",
 				  [[rasqlite error] localizedDescription]);
@@ -667,11 +820,132 @@ static NSString *_directory = @"/tmp/rasqlite";
 	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id, bar) VALUES(1, ?)" withParam:@"baz"];
 	XCTAssertTrue(insert, @"Insert failed: %@", [[rasqlite error] localizedDescription]);
 
+	NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
+	XCTAssertNotNil(row, @"Inserted row was not found.");
+
 	BOOL update = [rasqlite execute:@"DELETE FROM foo WHERE id = ?" withParam:@1];
 	XCTAssertTrue(update, @"Delete failed: %@", [[rasqlite error] localizedDescription]);
 
-	NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
+	row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
 	XCTAssertNil(row, @"Deleted row was found.");
+}
+
+#pragma mark - Transaction
+
+- (void)testTransactionInsertCommit
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
+		BOOL insert = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
+		XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[db error] localizedDescription]);
+
+		return YES;
+	}];
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Commit transaction with insert did not insert row.");
+}
+
+- (void)testTransactionInsertRollback
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
+		BOOL insert = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
+		XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[db error] localizedDescription]);
+
+		return NO;
+	}];
+
+	XCTAssertNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+				 @"Rollback transaction with insert did insert row.");
+}
+
+- (void)testTransactionDeleteCommit
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id) VALUES(1)"];
+	XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Insert did not insert row.");
+
+	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
+		BOOL delete = [rasqlite execute:@"DELETE FROM foo WHERE id = 1"];
+		XCTAssertTrue(delete, @"Unable to delete for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[rasqlite error] localizedDescription]);
+
+		return YES;
+	}];
+
+	XCTAssertNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+				 @"Commit transaction with delete did not delete row.");
+}
+
+- (void)testTransactionDeleteRollback
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	BOOL insert = [rasqlite execute:@"INSERT INTO foo(id) VALUES(1)"];
+	XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Insert did not insert row.");
+
+	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
+		BOOL delete = [rasqlite execute:@"DELETE FROM foo WHERE id = 1"];
+		XCTAssertTrue(delete, @"Unable to delete for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[rasqlite error] localizedDescription]);
+
+		return NO;
+	}];
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Rollback transaction with delete did delete row.");
 }
 
 @end

@@ -18,7 +18,7 @@ RASqlite is a simple library for working with SQLite databases on iOS and Mac OS
 		// An error occurred, handle it.
 	}
 
-To bind argument(s) to the query, simply use the `fetchRow:withParams:` or `fetchRow:withParam:` methods. The `withParams:` method accepts an array of Foundation objects, i.e. `NSNumber` and `NSString`. The `withParam:` accepts a single Foundation object.
+To bind argument(s) to the query, simply use the `fetchRow:withParams:` or `fetchRow:withParam:` methods. The `withParams:` method accepts an array of objects, and the `withParam:` accepts a single object. Acceptable objects are `NSNumber` and `NSString`.
 
 	NSDictionary *row = [database fetchRow:@"SELECT foo FROM bar WHERE baz = ? AND qux = ?" withParams:@[@1, @2]];
 	NSDictionary *row = [database fetchRow:@"SELECT foo FROM bar WHERE baz = ?" withParam:@1];
@@ -58,7 +58,6 @@ As with both the `fetchRow:` and `fetch:` methods the `execute:` method also hav
 Each of the query methods are executed on the same queue, i.e. the methods is thread safe. The queue on which the queries are executed on is unique for the database filename, if the `initWithName:` method is used. The queue label is formatted as follows, `me.raatiniemi.rasqlite.` and the database filename is suffixed, i.e. `me.raatiniemi.rasqlite.user.db` as from the example above.
 
 The query methods are by them self executed on the database queue. However, there're situations where you'd want to queue multiple queries.
-
 
 	NSDictionary __block *row;
 	[self queueWithBlock:^(RASqlite *db) {

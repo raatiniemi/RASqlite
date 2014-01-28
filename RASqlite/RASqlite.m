@@ -1284,7 +1284,7 @@
 	[self queueTransaction:RASqliteTransactionDeferred withBlock:block];
 }
 
-#pragma mark -
+#pragma mark - Helpers
 
 - (NSNumber *)lastInsertId
 {

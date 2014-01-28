@@ -539,7 +539,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @param block Block to be executed.
 
  @code
- [database queueTransaction:RASqliteTransactionDeferred withBlock:^(RASqlite *db) {
+ [database queueTransaction:RASqliteTransactionDeferred withBlock:^BOOL(RASqlite *db) {
 	BOOL commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
 	if ( commit ) {
 		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
@@ -558,7 +558,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @param block Block to be executed.
 
  @code
- [database queueTransactionWithBlock:^(RASqlite *db) {
+ [database queueTransactionWithBlock:^BOOL(RASqlite *db) {
 	BOOL commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
 	if ( commit ) {
 		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
@@ -571,7 +571,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  */
 - (void)queueTransactionWithBlock:(BOOL (^)(RASqlite *db))block;
 
-#pragma mark -
+#pragma mark - Helpers
 
 /**
  Retrieve id for the last inserted row.

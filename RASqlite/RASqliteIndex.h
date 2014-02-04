@@ -8,6 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
-@interface RASqliteIndex : NSObject
+@interface RASqliteIndex : NSObject {
+@protected
+	BOOL _unique;
+}
+
+@property (atomic, getter = isUnique) BOOL unique;
 
 @end

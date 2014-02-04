@@ -121,13 +121,13 @@
 			name = Model;
 			sourceTree = "<group>";
 		};
-		2D3335F11842F99200BD0E85 /* Column */ = {
+		2D3335F11842F99200BD0E85 /* Structure */ = {
 			isa = PBXGroup;
 			children = (
 				2D0E88311845A3C7006EEDC3 /* RASqliteColumn.h */,
 				2D0E88321845A3C7006EEDC3 /* RASqliteColumn.m */,
 			);
-			name = Column;
+			name = Structure;
 			path = ..;
 			sourceTree = "<group>";
 		};
@@ -146,7 +146,7 @@
 		2D42BD441849A66800D0BA89 /* RASqlite */ = {
 			isa = PBXGroup;
 			children = (
-				2D3335F11842F99200BD0E85 /* Column */,
+				2D3335F11842F99200BD0E85 /* Structure */,
 				2D1D7472182EDBA70049BB3A /* license.txt */,
 				2DF94A8118332B75004F6D8E /* NSError+RASqlite.h */,
 				2DF94A8218332B75004F6D8E /* NSError+RASqlite.m */,

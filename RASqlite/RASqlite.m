@@ -1118,6 +1118,11 @@
 	NSError __block *error = [self error];
 	if ( !error ) {
 		void (^block)(void) = ^(void) {
+			// If database is not open, attempt to open it.
+			if ( ![self database] ) {
+				error = [self open];
+			}
+
 			const char *sql;
 			switch (type) {
 				case RASqliteTransactionExclusive:

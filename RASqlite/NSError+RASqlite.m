@@ -16,10 +16,16 @@ static NSString *RASqliteErrorDomain = @"me.raatiniemi.rasqlite.error";
 + (instancetype)code:(RASqliteErrorCode)code message:(NSString *)message, ...
 {
 	// Retrieve the full error message with format arguments.
-	va_list args;
-	va_start(args, message);
-	message = [[NSString alloc] initWithFormat:message arguments:args];
-	va_end(args);
+	if ( message ) {
+		// Assemble the message with format and arguments.
+		va_list args;
+		va_start(args, message);
+		message = [[NSString alloc] initWithFormat:message arguments:args];
+		va_end(args);
+	} else {
+		// No message have been supplied, use default message.
+		message = @"No error message have been supplied.";
+	}
 
 	// Assemble the localized description.
 	NSDictionary *userInfo = @{NSLocalizedDescriptionKey: message};

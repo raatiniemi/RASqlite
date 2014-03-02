@@ -8,6 +8,37 @@
 
 #import "RASqlite.h"
 
+// -- -- Threading
+
+/// Format for the name of the query threads.
+static NSString *RASqliteThreadFormat = @"me.raatiniemi.rasqlite.%@";
+
+/// The key used for setting/getting the name for the dispatch queue.
+static char *RASqliteKeyQueueName = "me.raatiniemi.rasqlite.queue.name";
+
+// -- -- Exception
+
+/// Exception name for incorrect initialization.
+static NSString *RASqliteIcorrectInitializationException = @"Incorrect initialization";
+
+/// Exception name for initialization with an invalid path.
+static NSString *RASqliteInvalidPathException = @"Invalid path";
+
+/// Exception name for issues with filesystem permissions.
+static NSString *RASqliteFilesystemPermissionException = @"Filesystem permissions";
+
+/// Exception name for issues with checking of database structure.
+static NSString *RASqliteCheckDatabaseException = @"Check database";
+
+/// Exception name for issues with checking of table structure.
+static NSString *RASqliteCheckTableException = @"Check table";
+
+/// Exception name for issues with table removal.
+static NSString *RASqliteRemoveTableException = @"Remove table";
+
+/// Exception name for detection of nested transactions.
+static NSString *RASqliteNestedTransactionException = @"Nested transactions";
+
 // -- -- Import
 
 // Importing categories for Foundation objects that should not be made available
@@ -28,7 +59,7 @@
 
 	NSString *_path;
 
-	NSInteger _retryTimeout;
+	NSUInteger _retryTimeout;
 
 	BOOL _inTransaction;
 }
@@ -37,7 +68,7 @@
 @property (strong, atomic) NSString *path;
 
 /// Number of attempts before the retry timeout is reached.
-@property (atomic) NSInteger retryTimeout;
+@property (atomic) NSUInteger retryTimeout;
 
 /// Check for preventing transaction within transactions.
 @property (atomic) BOOL inTransaction;
@@ -152,7 +183,7 @@
 	// TODO: Implement support for in memory databases with init as method?
 
 	// Use of this method is not allowed, `initWithName:` or `initWithPath:` should be used.
-	[NSException raise:@"Incorrect initialization"
+	[NSException raise:RASqliteIcorrectInitializationException
 				format:@"Use of the `init` method is not allowed, use `initWithName:` or `initWithPath:` instead."];
 
 	// Return nil, takes care of the return warning.
@@ -168,17 +199,17 @@
 		// Check if the path is writeable, among other things.
 		if( ![self checkPath:[self path]] ) {
 			// There is something wrong with the path, raise an exception.
-			[NSException raise:@"Invalid path"
+			[NSException raise:RASqliteInvalidPathException
 						format:@"The supplied path `%@` can not be used.", [self path]];
 		}
 
 		// Create the thread for running queries, using the name for the database file.
-		NSString *thread = [NSString stringWithFormat:kRASqliteThreadFormat, [[self path] lastPathComponent]];
+		NSString *thread = [NSString stringWithFormat:RASqliteThreadFormat, [[self path] lastPathComponent]];
 		[self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
 
 		// Set the name of the query queue to the container. It will be used to
 		// check if the current queue is the query queue.
-		dispatch_queue_set_specific([self queue], kRASqliteKeyQueueName, (void *)[thread UTF8String], NULL);
+		dispatch_queue_set_specific([self queue], RASqliteKeyQueueName, (void *)[thread UTF8String], NULL);
 
 		// Set the number of retry attempts before a timeout is triggered.
 		[self setRetryTimeout:0];
@@ -236,7 +267,7 @@
 
 			// Check that the directory is both readable and writeable.
 			if ( !readable || !writeable ) {
-				[NSException raise:@"Filesystem permissions"
+				[NSException raise:RASqliteFilesystemPermissionException
 							format:@"The directory `%@` need to be readable and writeable.", directory];
 			}
 			isValidDirectory = YES;
@@ -293,8 +324,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		char *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		char *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -375,8 +406,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -427,7 +458,7 @@
 				}
 			} else {
 				// Raise an exception, no structure have been supplied.
-				[NSException raise:@"Check database"
+				[NSException raise:RASqliteCheckDatabaseException
 							format:@"Unable to check database structure, none has been supplied."];
 			}
 		};
@@ -435,8 +466,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -450,13 +481,13 @@
 {
 	if ( !table ) {
 		// Raise an exception, no valid table name.
-		[NSException raise:@"Check table"
+		[NSException raise:RASqliteCheckTableException
 					format:@"Unable to check table without valid name."];
 	}
 
 	if ( !columns ) {
 		// Raise an exception, no defined columns.
-		[NSException raise:@"Check table"
+		[NSException raise:RASqliteCheckTableException
 					format:@"Unable to check table without defined columns."];
 	}
 
@@ -537,8 +568,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -583,7 +614,7 @@
 				}
 			} else {
 				// Raise an exception, no structure have been supplied.
-				[NSException raise:@"Create database"
+				[NSException raise:RASqliteCheckDatabaseException
 							format:@"Unable to create database structure, none has been supplied."];
 			}
 		};
@@ -591,8 +622,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -606,13 +637,13 @@
 {
 	if ( !table ) {
 		// Raise an exception, no valid table name.
-		[NSException raise:@"Create table"
+		[NSException raise:RASqliteCheckTableException
 					format:@"Unable to create table without valid name."];
 	}
 
 	if ( !columns ) {
 		// Raise an exception, no defined columns.
-		[NSException raise:@"Create table"
+		[NSException raise:RASqliteCheckTableException
 					format:@"Unable to create table without defined columns."];
 	}
 
@@ -692,8 +723,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -707,7 +738,7 @@
 {
 	if ( !table ) {
 		// Raise an exception, no valid table name.
-		[NSException raise:@"Remove table"
+		[NSException raise:RASqliteRemoveTableException
 					format:@"Unable to remove table without valid name."];
 	}
 
@@ -736,8 +767,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -933,8 +964,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1013,8 +1044,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1084,8 +1115,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1149,8 +1180,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1188,8 +1219,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1222,8 +1253,8 @@
 		// Attempt to retrieve the name from the current dispatch queue, and
 		// compare it against the name of the query dispatch queue. If the name
 		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+		void *name = dispatch_get_specific(RASqliteKeyQueueName);
+		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 			block();
 		} else {
 			dispatch_sync([self queue], block);
@@ -1246,8 +1277,8 @@
 	// Attempt to retrieve the name from the current dispatch queue, and
 	// compare it against the name of the query dispatch queue. If the name
 	// matches we're on the correct queue.
-	void *name = dispatch_get_specific(kRASqliteKeyQueueName);
-	if ( name == dispatch_queue_get_specific([self queue], kRASqliteKeyQueueName) ) {
+	void *name = dispatch_get_specific(RASqliteKeyQueueName);
+	if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 		block(self);
 	} else {
 		dispatch_sync([self queue], ^{
@@ -1266,7 +1297,7 @@
 		// alternatives poses some difficulties when it comes to the
 		// commit/rollback. Therefor, the first alternative is implemented.
 		if ( [self inTransaction] ) {
-			[NSException raise:@"Nested transactions"
+			[NSException raise:RASqliteNestedTransactionException
 						format:@"A nested transaction have been detected, this is not allowed."];
 		}
 

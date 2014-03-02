@@ -9,14 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <sqlite3.h>
 
-// -- -- Threading
-
-/// Format for the name of the query threads.
-#define kRASqliteThreadFormat @"me.raatiniemi.rasqlite.%@"
-
-/// The key used for setting/getting the name for the dispatch queue.
-#define kRASqliteKeyQueueName "me.raatiniemi.rasqlite.queue.name"
-
 // -- -- Exception
 
 /// Exception name for issues with column constrains.

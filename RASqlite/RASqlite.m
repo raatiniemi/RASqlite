@@ -1287,7 +1287,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	}
 }
 
-- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(BOOL (^)(RASqlite *))block
+- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void(^)(RASqlite *db, BOOL *commit))block
 {
 	[self queueWithBlock:^(RASqlite *db) {
 		// Check if we're already within a transaction. There are two
@@ -1304,7 +1304,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		[self setInTransaction:YES];
 		[self beginTransaction:transaction];
 
-		BOOL commit = block(db);
+		BOOL commit = NO;
+		block(db, &commit);
 
 		if ( commit ) {
 			[self commit];
@@ -1315,7 +1316,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	}];
 }
 
-- (void)queueTransactionWithBlock:(BOOL (^)(RASqlite *db))block
+- (void)queueTransactionWithBlock:(void(^)(RASqlite *db, BOOL *commit))block
 {
 	[self queueTransaction:RASqliteTransactionDeferred withBlock:block];
 }
@@ -1327,7 +1328,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	NSNumber __block *insertId;
 	if ( ![self error] && [self database] ) {
 		[self queueWithBlock:^(RASqlite *db) {
-			insertId = [NSNumber numberWithLongLong:sqlite3_last_insert_rowid([self database])];
+			insertId = @(sqlite3_last_insert_rowid([self database]));
 		}];
 	}
 
@@ -1339,7 +1340,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	NSNumber __block *count;
 	if ( ![self error] && [self database] ) {
 		[self queueWithBlock:^(RASqlite *db) {
-			count = [NSNumber numberWithInt:sqlite3_changes([self database])];
+			count = @(sqlite3_changes([self database]));
 		}];
 	}
 

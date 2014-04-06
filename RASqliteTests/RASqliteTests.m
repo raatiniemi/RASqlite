@@ -844,13 +844,11 @@ static NSString *_directory = @"/tmp/rasqlite";
 				  __PRETTY_FUNCTION__,
 				  [[rasqlite error] localizedDescription]);
 
-	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
-		BOOL insert = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
-		XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+	[rasqlite queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
+		*commit = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
+		XCTAssertTrue(*commit, @"Unable to insert for `%s`: %@",
 					  __PRETTY_FUNCTION__,
 					  [[db error] localizedDescription]);
-
-		return YES;
 	}];
 
 	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
@@ -869,13 +867,14 @@ static NSString *_directory = @"/tmp/rasqlite";
 				  __PRETTY_FUNCTION__,
 				  [[rasqlite error] localizedDescription]);
 
-	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
-		BOOL insert = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
-		XCTAssertTrue(insert, @"Unable to insert for `%s`: %@",
+	[rasqlite queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
+		*commit = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
+		XCTAssertTrue(*commit, @"Unable to insert for `%s`: %@",
 					  __PRETTY_FUNCTION__,
 					  [[db error] localizedDescription]);
 
-		return NO;
+		// We have to force a rollback.
+		*commit = NO;
 	}];
 
 	XCTAssertNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
@@ -902,13 +901,11 @@ static NSString *_directory = @"/tmp/rasqlite";
 	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
 					@"Insert did not insert row.");
 
-	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
-		BOOL delete = [rasqlite execute:@"DELETE FROM foo WHERE id = 1"];
-		XCTAssertTrue(delete, @"Unable to delete for `%s`: %@",
+	[rasqlite queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
+		*commit = [rasqlite execute:@"DELETE FROM foo WHERE id = 1"];
+		XCTAssertTrue(*commit, @"Unable to delete for `%s`: %@",
 					  __PRETTY_FUNCTION__,
 					  [[rasqlite error] localizedDescription]);
-
-		return YES;
 	}];
 
 	XCTAssertNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
@@ -935,13 +932,14 @@ static NSString *_directory = @"/tmp/rasqlite";
 	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
 					@"Insert did not insert row.");
 
-	[rasqlite queueTransactionWithBlock:^BOOL(RASqlite *db) {
-		BOOL delete = [rasqlite execute:@"DELETE FROM foo WHERE id = 1"];
-		XCTAssertTrue(delete, @"Unable to delete for `%s`: %@",
+	[rasqlite queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
+		*commit = [rasqlite execute:@"DELETE FROM foo WHERE id = 1"];
+		XCTAssertTrue(*commit, @"Unable to delete for `%s`: %@",
 					  __PRETTY_FUNCTION__,
 					  [[rasqlite error] localizedDescription]);
 
-		return NO;
+		// We have to force a rollback.
+		*commit = NO;
 	}];
 
 	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],

@@ -85,7 +85,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 }
 
 /// Stores the first occurred error, `nil` if none has occurred.
-@property (strong, atomic, readwrite) NSError *error;
+@property (strong, atomic) NSError *error;
 
 #pragma mark - Initialization
 
@@ -119,10 +119,10 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 @property (nonatomic, readonly, copy) NSDictionary *structure;
 
 /// Handles the instance for the database.
-@property (atomic, readwrite) sqlite3 *database;
+@property (atomic) sqlite3 *database;
 
 /// Queue on which all of the queries will be executed on.
-@property (atomic, readwrite, strong) dispatch_queue_t queue;
+@property (atomic, strong) dispatch_queue_t queue;
 
 /**
  Retrieve the absolute path for the database file.
@@ -531,18 +531,17 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @param block Block to be executed.
 
  @code
- [database queueTransaction:RASqliteTransactionDeferred withBlock:^BOOL(RASqlite *db) {
-	BOOL commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+ [database queueTransaction:RASqliteTransactionDeferred withBlock:^(RASqlite *db, BOOL *commit) {
+	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
 	if ( commit ) {
 		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 	}
-	return commit;
  }];
  @endcode
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(BOOL (^)(RASqlite *db))block;
+- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void(^)(RASqlite *db, BOOL *commit))block;
 
 /**
  Execute a deferred transaction block on the query thread.
@@ -550,18 +549,17 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
  @param block Block to be executed.
 
  @code
- [database queueTransactionWithBlock:^BOOL(RASqlite *db) {
-	BOOL commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+ [database queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
+	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
 	if ( commit ) {
 		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 	}
-	return commit;
  }];
  @endcode
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)queueTransactionWithBlock:(BOOL (^)(RASqlite *db))block;
+- (void)queueTransactionWithBlock:(void(^)(RASqlite *db, BOOL *commit))block;
 
 #pragma mark - Helpers
 

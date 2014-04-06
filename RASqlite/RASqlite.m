@@ -60,8 +60,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	NSString *_path;
 
 	NSUInteger _retryTimeout;
-
-	BOOL _inTransaction;
 }
 
 /// Stores the path for the database file.
@@ -69,9 +67,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 /// Number of attempts before the retry timeout is reached.
 @property (atomic) NSUInteger retryTimeout;
-
-/// Check for preventing transaction within transactions.
-@property (atomic) BOOL inTransaction;
 
 #pragma mark - Path
 
@@ -160,6 +155,13 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
  */
 - (BOOL)commit;
 
+/**
+ Check whether the current database is in transaction.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)inTransaction;
+
 @end
 
 @implementation RASqlite
@@ -172,8 +174,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 @synthesize retryTimeout = _retryTimeout;
 
-@synthesize inTransaction = _inTransaction;
-
 @synthesize error = _error;
 
 #pragma mark - Initialization
@@ -181,6 +181,9 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (id)init
 {
 	// TODO: Implement support for in memory databases with init as method?
+	// Use designated initializator, e.g. from the `init` method run the
+	// `initWithPath:`. If the path is @"" or `nil` the database should be
+	// initialized as memory database.
 
 	// Use of this method is not allowed, `initWithName:` or `initWithPath:` should be used.
 	[NSException raise:RASqliteIcorrectInitializationException
@@ -213,9 +216,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 		// Set the number of retry attempts before a timeout is triggered.
 		[self setRetryTimeout:0];
-
-		// Set the default value for the `inTransaction`.
-		[self setInTransaction:NO];
 	}
 	return self;
 }
@@ -1270,6 +1270,29 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	return error == nil;
 }
 
+- (BOOL)inTransaction
+{
+	BOOL __block inTransaction = NO;
+	void (^block)(void) = ^(void) {
+		// Using the `sqlite3_get_autocommit` to check whether the database is
+		// currently in a transaction.
+		// http://sqlite.org/c3ref/get_autocommit.html
+		inTransaction = sqlite3_get_autocommit([self database]) == 0;
+	};
+
+	// Attempt to retrieve the name from the current dispatch queue, and
+	// compare it against the name of the query dispatch queue. If the name
+	// matches we're on the correct queue.
+	void *name = dispatch_get_specific(RASqliteKeyQueueName);
+	if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
+		block();
+	} else {
+		dispatch_sync([self queue], block);
+	}
+
+	return inTransaction;
+}
+
 #pragma mark -- Queue
 
 - (void)queueWithBlock:(void (^)(RASqlite *db))block
@@ -1287,7 +1310,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	}
 }
 
-- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void(^)(RASqlite *db, BOOL *commit))block
+- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *db, BOOL *commit))block
 {
 	[self queueWithBlock:^(RASqlite *db) {
 		// Check if we're already within a transaction. There are two
@@ -1300,8 +1323,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 			[NSException raise:RASqliteNestedTransactionException
 						format:@"A nested transaction have been detected, this is not allowed."];
 		}
-
-		[self setInTransaction:YES];
 		[self beginTransaction:transaction];
 
 		BOOL commit = NO;
@@ -1312,11 +1333,10 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		} else {
 			[self rollBack];
 		}
-		[self setInTransaction:NO];
 	}];
 }
 
-- (void)queueTransactionWithBlock:(void(^)(RASqlite *db, BOOL *commit))block
+- (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL *commit))block
 {
 	[self queueTransaction:RASqliteTransactionDeferred withBlock:block];
 }

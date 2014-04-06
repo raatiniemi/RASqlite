@@ -541,7 +541,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void(^)(RASqlite *db, BOOL *commit))block;
+- (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *db, BOOL *commit))block;
 
 /**
  Execute a deferred transaction block on the query thread.
@@ -559,7 +559,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)queueTransactionWithBlock:(void(^)(RASqlite *db, BOOL *commit))block;
+- (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL *commit))block;
 
 #pragma mark - Helpers
 

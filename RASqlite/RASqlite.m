@@ -162,6 +162,17 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
  */
 - (BOOL)inTransaction;
 
+#pragma mark -- Queue
+
+/**
+ Execute an internal block on the database specified queue.
+
+ @param block Block to be executed.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)queueInternalBlock:(void (^)(void))block;
+
 @end
 
 @implementation RASqlite
@@ -300,7 +311,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 {
 	NSError __block *error = [self error];
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// Check if the database already is active, not need to open it.
 			sqlite3 *database = [self database];
 			if ( !database ) {
@@ -319,17 +330,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				// No need to attempt to open the database, it's already open.
 				RASqliteLog(RASqliteLogLevelDebug, @"Database is already open.");
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		char *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 
 		// If an error occurred performing the query set the error. However,
 		// do not override the existing error, if it exists.
@@ -441,7 +442,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			NSDictionary *tables = [self structure];
 			if ( tables ) {
 				// Get the pointer for the method, performance improvement.
@@ -461,17 +462,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				[NSException raise:RASqliteCheckDatabaseException
 							format:@"Unable to check database structure, none has been supplied."];
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 	}
 
 	return valid;
@@ -505,7 +496,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// Check whether the defined columns and the table columns match.
 			NSArray *tColumns = [self fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
 			if ( [tColumns count] > 0 ) {
@@ -563,17 +554,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` do not exist with any structure within the database.", table);
 				valid = NO;
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 	}
 
 	return valid;
@@ -593,7 +574,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			NSDictionary *tables = [self structure];
 			if ( tables ) {
 				// Get the pointer for the method, performance improvement.
@@ -617,17 +598,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				[NSException raise:RASqliteCheckDatabaseException
 							format:@"Unable to create database structure, none has been supplied."];
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 	}
 
 	return created;
@@ -659,7 +630,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// The create query will be constructed with a list of items, each
 			// item represent their column name, data type, constraints, etc.
 			NSMutableArray *list = [[NSMutableArray alloc] init];
@@ -718,17 +689,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 			} else {
 				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have not been created.", table);
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 	}
 
 	return created;
@@ -754,7 +715,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// Attempt to remove the database table.
 			removed = [self execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]];
 			if ( removed ) {
@@ -762,17 +723,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 			} else {
 				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have not been removed.", table);
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 	}
 
 	return removed;
@@ -899,7 +850,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	NSMutableArray __block *results;
 
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// If database is not open, attempt to open it.
 			if ( ![self database] ) {
 				error = [self open];
@@ -959,17 +910,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				}
 				sqlite3_finalize(statement);
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 
 		// If an error occurred performing the query set the error. However,
 		// do not override the existing error, if it exists.
@@ -997,7 +938,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	NSDictionary __block *row;
 
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// If database is not open, attempt to open it.
 			if ( ![self database] ) {
 				error = [self open];
@@ -1039,17 +980,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				}
 				sqlite3_finalize(statement);
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 
 		// If an error occurred performing the query set the error. However,
 		// do not override the existing error, if it exists.
@@ -1078,7 +1009,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	NSError __block *error = [self error];
 
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// If database is not open, attempt to open it.
 			if ( ![self database] ) {
 				error = [self open];
@@ -1110,17 +1041,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				}
 				sqlite3_finalize(statement);
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 
 		// If an error occurred performing the query set the error. However,
 		// do not override the existing error, if it exists.
@@ -1148,7 +1069,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 {
 	NSError __block *error = [self error];
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// If database is not open, attempt to open it.
 			if ( ![self database] ) {
 				error = [self open];
@@ -1175,17 +1096,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				RASqliteLog(RASqliteLogLevelError, @"Unable to begin transaction: %@", message);
 				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 
 		// If an error occurred performing the query set the error. However,
 		// do not override the existing error, if it exists.
@@ -1206,7 +1117,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 {
 	NSError __block *error = [self error];
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			char *errmsg;
 			int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &errmsg);
 			if ( code != SQLITE_OK ) {
@@ -1214,17 +1125,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				RASqliteLog(RASqliteLogLevelError, @"Unable to rollback transaction: %@", message);
 				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 
 		// If an error occurred performing the query set the error. However,
 		// do not override the existing error, if it exists.
@@ -1240,7 +1141,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 {
 	NSError __block *error = [self error];
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			char *errmsg;
 			int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &errmsg);
 			if ( code != SQLITE_OK ) {
@@ -1248,17 +1149,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				RASqliteLog(RASqliteLogLevelError, @"Unable to commit transaction: %@", message);
 				error = [NSError code:RASqliteErrorTransaction message:message];
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 
 		// If an error occurred performing the query set the error. However,
 		// do not override the existing error, if it exists.
@@ -1273,13 +1164,20 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (BOOL)inTransaction
 {
 	BOOL __block inTransaction = NO;
-	void (^block)(void) = ^(void) {
+	[self queueInternalBlock:^{
 		// Using the `sqlite3_get_autocommit` to check whether the database is
 		// currently in a transaction.
 		// http://sqlite.org/c3ref/get_autocommit.html
 		inTransaction = sqlite3_get_autocommit([self database]) == 0;
-	};
+	}];
 
+	return inTransaction;
+}
+
+#pragma mark -- Queue
+
+- (void)queueInternalBlock:(void (^)(void))block
+{
 	// Attempt to retrieve the name from the current dispatch queue, and
 	// compare it against the name of the query dispatch queue. If the name
 	// matches we're on the correct queue.
@@ -1287,27 +1185,17 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
 		block();
 	} else {
-		dispatch_sync([self queue], block);
+		dispatch_sync([self queue], ^{
+			block();
+		});
 	}
-
-	return inTransaction;
 }
-
-#pragma mark -- Queue
 
 - (void)queueWithBlock:(void (^)(RASqlite *db))block
 {
-	// Attempt to retrieve the name from the current dispatch queue, and
-	// compare it against the name of the query dispatch queue. If the name
-	// matches we're on the correct queue.
-	void *name = dispatch_get_specific(RASqliteKeyQueueName);
-	if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
+	[self queueInternalBlock:^{
 		block(self);
-	} else {
-		dispatch_sync([self queue], ^{
-			block(self);
-		});
-	}
+	}];
 }
 
 - (void)queueTransaction:(RASqliteTransaction)transaction withBlock:(void (^)(RASqlite *db, BOOL *commit))block

@@ -71,7 +71,13 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 
 // -- -- Import
 
+// Event delegation protocol for database actions.
+#import "RASqliteDelegate.h"
+
+// Definition for column structure.
 #import "RASqliteColumn.h"
+
+// Consistent way of dealing with `nil` values within dictionaries.
 #import "NSDictionary+RASqlite.h"
 
 /**
@@ -79,7 +85,7 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-@interface RASqlite : NSObject {
+@interface RASqlite : NSObject <RASqliteDelegate> {
 @protected
 	NSError *_error;
 }

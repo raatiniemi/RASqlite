@@ -56,6 +56,7 @@
 		2D0E88321845A3C7006EEDC3 /* RASqliteColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RASqliteColumn.m; path = RASqlite/RASqliteColumn.m; sourceTree = "<group>"; };
 		2D1D7472182EDBA70049BB3A /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../license.txt; sourceTree = "<group>"; };
 		2D1D7473182EDBA70049BB3A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		2D23484D18F1524A0004DB5E /* RASqliteDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RASqliteDelegate.h; sourceTree = "<group>"; };
 		2D3C78EC1834701400259D3E /* NSMutableDictionary+RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableDictionary+RASqlite.h"; path = "RASqlite/NSMutableDictionary+RASqlite.h"; sourceTree = "<group>"; };
 		2D3C78ED1834701400259D3E /* NSMutableDictionary+RASqlite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSMutableDictionary+RASqlite.m"; path = "RASqlite/NSMutableDictionary+RASqlite.m"; sourceTree = "<group>"; };
 		2D3C78EF1834707B00259D3E /* NSDictionary+RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSDictionary+RASqlite.h"; path = "RASqlite/NSDictionary+RASqlite.h"; sourceTree = "<group>"; };
@@ -160,6 +161,7 @@
 				2D1D7473182EDBA70049BB3A /* README.md */,
 				2D3C78F2183473AE00259D3E /* Row */,
 				2D42BD451849A66800D0BA89 /* Supporting Files */,
+				2D23484D18F1524A0004DB5E /* RASqliteDelegate.h */,
 			);
 			path = RASqlite;
 			sourceTree = "<group>";

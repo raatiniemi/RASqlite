@@ -55,7 +55,7 @@
 {
 	if ( self = [super init] ) {
 		// Verify the supplied column name, can not be `nil`.
-		if ( name == nil ) {
+		if ( !name ) {
 			[NSException raise:NSInvalidArgumentException
 						format:@"The supplied column name can not be `nil`."];
 		}
@@ -93,6 +93,16 @@
 		_nullable = NO;
 	}
 	return self;
+}
+
+- (instancetype)initWithName:(NSString *)name
+{
+	return [self initWithName:name type:RASqliteText];
+}
+
+- (instancetype)init
+{
+	return [self initWithName:nil];
 }
 
 #pragma mark - Setters

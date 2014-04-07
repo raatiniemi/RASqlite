@@ -58,19 +58,19 @@ typedef NS_ENUM(short int, RASqliteDataType) {
 @property (strong, atomic, readonly) NSString *type;
 
 /// Stores the default value for the column.
-@property (strong, nonatomic, readwrite) id defaultValue;
+@property (strong, nonatomic) id defaultValue;
 
 /// Stores whether or not the column is a primary key.
-@property (nonatomic, readwrite, getter = isPrimaryKey) BOOL primaryKey;
+@property (nonatomic, getter = isPrimaryKey) BOOL primaryKey;
 
 /// Stores whether or not the column is auto incremental.
-@property (nonatomic, readwrite, getter = isAutoIncrement) BOOL autoIncrement;
+@property (nonatomic, getter = isAutoIncrement) BOOL autoIncrement;
 
 /// Stores whether or not the column is unique.
-@property (nonatomic, readwrite, getter = isUnique) BOOL unique;
+@property (nonatomic, getter = isUnique) BOOL unique;
 
 /// Stores whether or not the column is nullable.
-@property (nonatomic, readwrite, getter = isNullable) BOOL nullable;
+@property (nonatomic, getter = isNullable) BOOL nullable;
 
 #pragma mark - Initialization
 
@@ -87,5 +87,27 @@ typedef NS_ENUM(short int, RASqliteDataType) {
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 - (instancetype)initWithName:(NSString *)name type:(RASqliteDataType)type;
+
+/**
+ Initialize with column name, will use `RASqliteText` as data type.
+
+ @param name Name of the column.
+
+ @code
+ [[RASqliteColumn alloc] initWithName:@"id"];
+ @endcode
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (instancetype)initWithName:(NSString *)name;
+
+/**
+ Initialize column without name and type, will raise an exception.
+
+ @throws NSInvalidArgumentException Since no name have been supplied.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (instancetype)init;
 
 @end

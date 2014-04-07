@@ -45,19 +45,19 @@ static dispatch_queue_t _queue;
 	NSMutableArray *user = [[NSMutableArray alloc] init];
 	RASqliteColumn *column;
 
-	column = [[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger];
+	column = RAColumn(@"id", RASqliteInteger);
 	[column setAutoIncrement:YES];
 	[column setPrimaryKey:YES];
 	[user addObject:column];
 
-	column = [[RASqliteColumn alloc] initWithName:@"name" type:RASqliteText];
+	column = RAColumn(@"name", RASqliteText);
 	[user addObject:column];
 
-	column = [[RASqliteColumn alloc] initWithName:@"email" type:RASqliteText];
+	column = RAColumn(@"email", RASqliteText);
 	[column setNullable:YES];
 	[user addObject:column];
 
-	column = [[RASqliteColumn alloc] initWithName:@"level" type:RASqliteInteger];
+	column = RAColumn(@"level", RASqliteInteger);
 	[column setDefaultValue:@1];
 	[user addObject:column];
 

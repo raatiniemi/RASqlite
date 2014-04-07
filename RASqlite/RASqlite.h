@@ -9,6 +9,15 @@
 #import <Foundation/Foundation.h>
 #import <sqlite3.h>
 
+// Event delegation protocol for database actions.
+#import "RASqliteDelegate.h"
+
+// Definition for column structure.
+#import "RASqliteColumn.h"
+
+// Consistent way of dealing with `nil` values within dictionaries.
+#import "NSDictionary+RASqlite.h"
+
 // -- -- Exception
 
 /// Exception name for issues with column constrains.
@@ -69,16 +78,20 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
                     file:[[NSString stringWithUTF8String:__FILE__] lastPathComponent]\
                     line:__LINE__]
 
-// -- -- Import
+/**
+ Shorthand for column initialization.
 
-// Event delegation protocol for database actions.
-#import "RASqliteDelegate.h"
+ @param name Name of the column.
+ @param type Type of the column.
 
-// Definition for column structure.
-#import "RASqliteColumn.h"
+ @return Initialized column.
 
-// Consistent way of dealing with `nil` values within dictionaries.
-#import "NSDictionary+RASqlite.h"
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
+{
+	return [[RASqliteColumn alloc] initWithName:name type:type];
+};
 
 /**
  RASqlite is a simple library for working with SQLite databases on iOS and Mac OS X.

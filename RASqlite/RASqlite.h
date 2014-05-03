@@ -68,12 +68,36 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelDebug;
 static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
 #endif
 
-/// Macro for forwarding the log message call with the file and line number.
-#define RASqliteLog( l, f, ... )\
-    [self logWithMessage:[NSString stringWithFormat:(f), ##__VA_ARGS__]\
-                   level:l\
-                    file:[[NSString stringWithUTF8String:__FILE__] lastPathComponent]\
-                    line:__LINE__]
+/**
+ Macro for sending messages to the log, depending on the level.
+
+ @param level Level of logg message.
+ @param format Message format with arguments.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ The default RASqliteLog is only used if it is not defined, hence it is possible
+ to override the default logging mechanism with a custom, application specific.
+
+ @par
+ To override this macro you have to import the file with your custom macro
+ within the *-Prefix.pch file. Otherwise `ifndef` will not recognize that the
+ macro already have been defined.
+ */
+#ifndef RASqliteLog
+#define RASqliteLog( level, format, ... )\
+	do {\
+		if ( level > _RASqliteLogLevel ) {\
+			NSLog(\
+				@"<%@: (%d)> %@",\
+				[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
+				__LINE__,\
+				[NSString stringWithFormat:(format), ##__VA_ARGS__]\
+			);\
+		}\
+	} while(NO)
+#endif
 
 /**
  Shorthand for column initialization.
@@ -606,22 +630,5 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
  that one query will be executed between the execute-call and the call to this method.
  */
 - (NSNumber *)rowCount;
-
-#pragma mark - Logging
-
-/**
- Log messages within the library.
-
- @param message Message to be sent to the log.
- @param level Priority level of the message.
- @param file File from which the message originated.
- @param line Line number of the message within the file.
-
- @author Tobias Raatiniemi <tobias.raatiniemi@genesis.se>
-
- @note
- Is primarily used with the `RASqliteLog` macro.
- */
-- (void)logWithMessage:(NSString *)message level:(RASqliteLogLevel)level file:(NSString *)file line:(int)line;
 
 @end

@@ -1255,13 +1255,4 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	return count;
 }
 
-#pragma mark - Logging
-
-- (void)logWithMessage:(NSString *)message level:(RASqliteLogLevel)level file:(NSString *)file line:(int)line
-{
-	if ( level >= _RASqliteLogLevel ) {
-		NSLog(@"<%@:(%d)> %@", file, line, message);
-	}
-}
-
 @end

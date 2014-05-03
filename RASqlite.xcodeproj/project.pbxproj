@@ -25,7 +25,6 @@
 		2D5992AE181D1B780006A177 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992AD181D1B780006A177 /* main.m */; };
 		2D5992B7181D1C080006A177 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D5992B6181D1C080006A177 /* libsqlite3.dylib */; };
 		2D5992BC181D26610006A177 /* RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D5992BB181D26610006A177 /* RASqlite.m */; };
-		2D995DDE18A0A08B0013C1AB /* RASqliteIndex.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D995DDD18A0A08B0013C1AB /* RASqliteIndex.m */; };
 		2DE1B55118281C5500CF85B2 /* RATerminalModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DE1B55018281C5500CF85B2 /* RATerminalModel.m */; };
 		2DF94A8318332B75004F6D8E /* NSError+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DF94A8218332B75004F6D8E /* NSError+RASqlite.m */; };
 /* End PBXBuildFile section */
@@ -77,8 +76,6 @@
 		2D5992B6181D1C080006A177 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		2D5992BA181D26610006A177 /* RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RASqlite.h; sourceTree = "<group>"; };
 		2D5992BB181D26610006A177 /* RASqlite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RASqlite.m; sourceTree = "<group>"; };
-		2D995DDC18A0A08B0013C1AB /* RASqliteIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RASqliteIndex.h; path = RASqlite/RASqliteIndex.h; sourceTree = "<group>"; };
-		2D995DDD18A0A08B0013C1AB /* RASqliteIndex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RASqliteIndex.m; path = RASqlite/RASqliteIndex.m; sourceTree = "<group>"; };
 		2DE1B54F18281C5500CF85B2 /* RATerminalModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RATerminalModel.h; sourceTree = "<group>"; };
 		2DE1B55018281C5500CF85B2 /* RATerminalModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RATerminalModel.m; sourceTree = "<group>"; };
 		2DF94A8118332B75004F6D8E /* NSError+RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+RASqlite.h"; sourceTree = "<group>"; };
@@ -130,8 +127,6 @@
 			children = (
 				2D0E88311845A3C7006EEDC3 /* RASqliteColumn.h */,
 				2D0E88321845A3C7006EEDC3 /* RASqliteColumn.m */,
-				2D995DDC18A0A08B0013C1AB /* RASqliteIndex.h */,
-				2D995DDD18A0A08B0013C1AB /* RASqliteIndex.m */,
 			);
 			name = Structure;
 			path = ..;
@@ -347,7 +342,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2D995DDE18A0A08B0013C1AB /* RASqliteIndex.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -35,18 +35,7 @@ typedef NS_ENUM(short int, RASqliteDataType) {
 
  @todo Implement support for foreign keys, with a helper struct or object.
  */
-@interface RASqliteColumn : NSObject {
-@protected
-	NSString *_name;
-	RASqliteDataType _numericType;
-	NSString *_type;
-	id _defaultValue;
-
-	BOOL _primaryKey;
-	BOOL _autoIncrement;
-	BOOL _unique;
-	BOOL _nullable;
-}
+@interface RASqliteColumn : NSObject
 
 /// Stores the name of the column.
 @property (strong, atomic, readonly) NSString *name;
@@ -109,5 +98,64 @@ typedef NS_ENUM(short int, RASqliteDataType) {
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 - (instancetype)init;
+
+#pragma mark - Setters
+
+/**
+ Stores the default value for the column.
+
+ @param defaultValue Value to be used as column default value.
+
+ @throws NSException If value is not correct data type.
+ @throws NSException If column type is blob, not yet implemented.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)setDefaultValue:(id)defaultValue;
+
+/**
+ Stores whether or not the column is a primary key.
+
+ @param primaryKey `YES` if the column should be primary key, otherwise `NO`.
+
+ @throws NSException If column is nullable.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)setPrimaryKey:(BOOL)primaryKey;
+
+/**
+ Stores whether or not the column is auto incremental.
+
+ @param autoIncrement `YES` if column should auto increment, otherwise `NO`.
+
+ @throws NSException If column is not type `RASqliteInteger`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)setAutoIncrement:(BOOL)autoIncrement;
+
+/**
+ Stores whether or not the column is unique.
+
+ @param unique `YES` if the column should be unique, otherwise `NO`.
+
+ @throws NSException If column is nullable.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)setUnique:(BOOL)unique;
+
+/**
+ Stores whether or not the column is nullable.
+
+ @param nullable `YES` if coulmn should be nullable, otherwise `NO`.
+
+ @throws NSException If column is primary key.
+ @throws NSException If column is unique.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (void)setNullable:(BOOL)nullable;
 
 @end

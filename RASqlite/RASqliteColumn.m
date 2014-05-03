@@ -12,12 +12,34 @@
 
 #import "RASqlite.h"
 
+/// Name for `integer` type in SQLite.
+static NSString *_integer = @"INTEGER";
+
+/// Name for `real` type in SQLite.
+static NSString *_real = @"REAL";
+
+/// Name for `blob` type in SQLite.
+static NSString *_blob = @"BLOB";
+
+/// Name for `text` type in SQLite.
+static NSString *_text = @"TEXT";
+
 /**
  Defines the column for the table, used while creating and checking structure.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 @interface RASqliteColumn () {
+@private
+	NSString *_name;
+	RASqliteDataType _numericType;
+	NSString *_type;
+	id _defaultValue;
+
+	BOOL _primaryKey;
+	BOOL _autoIncrement;
+	BOOL _unique;
+	BOOL _nullable;
 }
 
 /// Stores the name of the column.
@@ -63,19 +85,19 @@
 		// Check that the column type is a valid column type.
 		switch (type) {
 			case RASqliteInteger:
-				[self setType:@"INTEGER"];
+				[self setType:_integer];
 				break;
 
 			case RASqliteReal:
-				[self setType:@"REAL"];
+				[self setType:_real];
 				break;
 
 			case RASqliteBlob:
-				[self setType:@"BLOB"];
+				[self setType:_blob];
 				break;
 
 			case RASqliteText:
-				[self setType:@"TEXT"];
+				[self setType:_text];
 				break;
 
 			default:

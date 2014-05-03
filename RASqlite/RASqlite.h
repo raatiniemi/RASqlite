@@ -9,9 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <sqlite3.h>
 
-// Event delegation protocol for database actions.
-#import "RASqliteDelegate.h"
-
 // Definition for column structure.
 #import "RASqliteColumn.h"
 
@@ -98,7 +95,7 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-@interface RASqlite : NSObject <RASqliteDelegate> {
+@interface RASqlite : NSObject {
 @protected
 	NSError *_error;
 }

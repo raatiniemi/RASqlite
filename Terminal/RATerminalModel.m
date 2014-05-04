@@ -69,14 +69,10 @@ static dispatch_queue_t _queue;
 
 - (void)setDatabase:(sqlite3 *)database
 {
-	// Protection from rewriting the database pointer mid execution. The pointer
-	// have to be resetted before setting a new instance.
-	if ( _database == nil || database == nil ) {
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
 		_database = database;
-	} else {
-		// Incase an rewrite have been attempted, this should be logged.
-		RASqliteLog(RASqliteLogLevelWarning, @"Database pointer rewrite attempt.");
-	}
+	});
 }
 
 - (sqlite3 *)database
@@ -88,14 +84,10 @@ static dispatch_queue_t _queue;
 
 - (void)setQueue:(dispatch_queue_t)queue
 {
-	// Protection from rewriting the queue pointer mid execution. The pointer
-	// have to be resetted before setting a new instance.
-	if ( _queue == nil || queue == nil ) {
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
 		_queue = queue;
-	} else {
-		// Incase an rewrite have been attempted, this should be logged.
-		RASqliteLog(RASqliteLogLevelWarning, @"Queue pointer rewrite attempt.");
-	}
+	});
 }
 
 - (dispatch_queue_t)queue

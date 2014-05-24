@@ -115,6 +115,16 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 };
 
 /**
+ Shorthand for builing an `NSString` with format.
+
+ @param format Format to be used for the string.
+ @param ... Arguments to be appended to the string.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+#define RASqliteSF( format, ... ) [NSString stringWithFormat:(format), ##__VA_ARGS__]
+
+/**
  RASqlite is a simple library for working with SQLite databases on iOS and Mac OS X.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>

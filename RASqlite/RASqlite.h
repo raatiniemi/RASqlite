@@ -60,12 +60,12 @@ typedef NS_ENUM(short int, RASqliteLogLevel) {
 	RASqliteLogLevelError
 };
 
-#if DEBUG
+#if kRASqliteDebug
 /// Stores the level of logging within the library.
 static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelDebug;
 #else
 /// Stores the level of logging within the library.
-static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelWarning;
+static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelInfo;
 #endif
 
 /**

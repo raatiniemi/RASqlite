@@ -33,7 +33,7 @@ static dispatch_queue_t _queue;
 
 - (id)init
 {
-	if ( self = [super initWithName:@"user.db"] ) {
+	if ( self = [super initWithPath:@"/tmp/rasqlite-user.db"] ) {
 	}
 	return self;
 }

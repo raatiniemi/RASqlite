@@ -9,6 +9,7 @@
 // -- -- RASqlite
 
 #import "RASqlite.h"
+#import "RASqlite+RATable.h"
 
 /**
  Model for working with the sample user database.

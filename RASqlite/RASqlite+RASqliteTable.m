@@ -1,12 +1,12 @@
 //
-//  RASqlite+RATable.m
+//  RASqlite+RASqliteTable.m
 //  RASqlite
 //
 //  Created by Tobias Raatiniemi on 2014-05-24.
 //  Copyright (c) 2014 Raatiniemi. All rights reserved.
 //
 
-#import "RASqlite+RATable.h"
+#import "RASqlite+RASqliteTable.h"
 
 // -- -- Exception
 
@@ -19,7 +19,7 @@ static NSString *RASqliteCheckTableException = @"Check table";
 /// Exception name for issues with table removal.
 static NSString *RASqliteRemoveTableException = @"Remove table";
 
-@implementation RASqlite (RATable)
+@implementation RASqlite (RASqliteTable)
 
 - (BOOL)check
 {
@@ -41,15 +41,32 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 			NSDictionary *tables = [db structure];
 			if ( tables ) {
 				// Get the pointer for the method, performance improvement.
-				SEL selector = @selector(checkTable:withColumns:);
+				SEL selector = @selector(checkTable:withColumns:status:);
 
-				typedef BOOL (*check) (id, SEL, NSString*, NSDictionary*);
+				typedef BOOL (*check) (id, SEL, NSString*, NSArray*, RASqliteTableCheckStatus**);
 				check checkTable = (check)[db methodForSelector:selector];
 
+				// Checking whether the database instance have implemented
+				// methods for before and after table check handling.
+				BOOL isBeforeAvailable = [db respondsToSelector:@selector(beforeTableCheck:)];
+				BOOL isAfterAvailable = [db respondsToSelector:@selector(afterTableCheck:withStatus:)];
+
+				RASqliteTableCheckStatus *status;
 				for ( NSString *table in tables ) {
-					if ( !checkTable(db, selector, table, [tables objectForKey:table]) ) {
-						valid = NO;
-						break;
+					// If the before check method is available and it returns
+					// `NO` we should move on to the next table.
+					if ( isBeforeAvailable && ![db beforeTableCheck:table] ) {
+						continue;
+					}
+
+					status = RASqliteTableCheckStatusClean;
+					checkTable(db, selector, table, [tables objectForKey:table], &status);
+
+					// If the after check method is available we have to execute it,
+					// sending the current status of the table.
+					// This way we can determind what to do about the changes (if any).
+					if ( isAfterAvailable ) {
+						[db afterTableCheck:table withStatus:status];
 					}
 				}
 			} else {
@@ -67,13 +84,13 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 {
 	if ( !table ) {
 		// Raise an exception, no valid table name.
-		[NSException raise:RASqliteCheckTableException
+		[NSException raise:NSInvalidArgumentException
 					format:@"Unable to check table without valid name."];
 	}
 
 	if ( !columns ) {
 		// Raise an exception, no defined columns.
-		[NSException raise:RASqliteCheckTableException
+		[NSException raise:NSInvalidArgumentException
 					format:@"Unable to check table without defined columns."];
 	}
 
@@ -93,7 +110,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 	if ( !error ) {
 		[self queueWithBlock:^(RASqlite *db) {
 			// Check whether the defined columns and the table columns match.
-			NSArray *tColumns = [db fetch:[NSString stringWithFormat:@"PRAGMA table_info(%@)", table]];
+			NSArray *tColumns = [db fetch:RASqliteSF(@"PRAGMA table_info(%@)", table)];
 			if ( [tColumns count] > 0 ) {
 				if ( [tColumns count] == [columns count] ) {
 					unsigned int index = 0;
@@ -155,6 +172,12 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 	return valid;
 }
 
+
+- (BOOL)checkTable:(NSString *)table withColumns:(NSArray *)columns status:(RASqliteTableCheckStatus **)status
+{
+	return [self checkTable:table withColumns:columns];
+}
+
 - (BOOL)create
 {
 	// Keeps track on whether the structure was created.
@@ -203,13 +226,13 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 {
 	if ( !table ) {
 		// Raise an exception, no valid table name.
-		[NSException raise:RASqliteCheckTableException
+		[NSException raise:NSInvalidArgumentException
 					format:@"Unable to create table without valid name."];
 	}
 
 	if ( !columns ) {
 		// Raise an exception, no defined columns.
-		[NSException raise:RASqliteCheckTableException
+		[NSException raise:NSInvalidArgumentException
 					format:@"Unable to create table without defined columns."];
 	}
 
@@ -294,7 +317,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 {
 	if ( !table ) {
 		// Raise an exception, no valid table name.
-		[NSException raise:RASqliteRemoveTableException
+		[NSException raise:NSInvalidArgumentException
 					format:@"Unable to remove table without valid name."];
 	}
 
@@ -312,7 +335,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 	if ( !error ) {
 		[self queueWithBlock:^(RASqlite *db) {
 			// Attempt to remove the database table.
-			removed = [db execute:[NSString stringWithFormat:@"DROP TABLE IF EXISTS %@", table]];
+			removed = [db execute:RASqliteSF(@"DROP TABLE IF EXISTS %@", table)];
 			if ( removed ) {
 				RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have been removed.", table);
 			} else {

@@ -7,13 +7,13 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "RASqlite+RATable.h"
+#import "RASqlite+RASqliteTable.h"
 
 /// Base directory for the unit test databases.
 static NSString *_directory = @"/tmp/rasqlite";
 
 /**
- Unit test for RASqlite.
+ Unit test for the core functionality of RASqlite.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */

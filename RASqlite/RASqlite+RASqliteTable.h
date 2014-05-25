@@ -1,5 +1,5 @@
 //
-//  RASqlite+RATable.h
+//  RASqlite+RASqliteTable.h
 //  RASqlite
 //
 //  Created by Tobias Raatiniemi on 2014-05-24.
@@ -7,8 +7,9 @@
 //
 
 #import "RASqlite.h"
+#import "RASqliteTableDelegate.h"
 
-@interface RASqlite (RATable)
+@interface RASqlite (RASqliteTable) <RASqliteTableDelegate>
 
 /**
  Check structure for the database.
@@ -30,6 +31,19 @@
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 - (BOOL)checkTable:(NSString *)table withColumns:(NSArray *)columns;
+
+/**
+ Check structure for database table.
+
+ @param table Name of the table to check.
+ @param columns Array with column definitions.
+ @param status Status of the table.
+
+ @return `YES` if table structure is as defined, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)checkTable:(NSString *)table withColumns:(NSArray *)columns status:(RASqliteTableCheckStatus **)status;
 
 /**
  Create the database structure.

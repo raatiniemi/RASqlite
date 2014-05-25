@@ -556,34 +556,4 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
  */
 - (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL *commit))block;
 
-#pragma mark - Helpers
-
-/**
- Retrieve id for the last inserted row.
-
- @return Id for the last inserted row.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
-
- @note
- This method should only be called from within a block sent to either the `queueWithBlock:`
- or `queueTransactionWithBlock:` methods, otherwise there's a theoretical possibility
- that one query will be executed between the insert and the call to this method.
- */
-- (NSNumber *)lastInsertId;
-
-/**
- Returns the number of rows affected by the last query.
-
- @return Number of rows affected by the last query.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
-
- @note
- This method should only be called from within a block sent to either the `queueWithBlock:`
- or `queueTransactionWithBlock:` methods, otherwise there's a theoretical possibility
- that one query will be executed between the execute-call and the call to this method.
- */
-- (NSNumber *)rowCount;
-
 @end

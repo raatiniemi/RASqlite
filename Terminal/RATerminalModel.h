@@ -9,6 +9,7 @@
 // -- -- RASqlite
 
 #import "RASqlite.h"
+#import "RASqlite+RASqliteHelper.h"
 #import "RASqlite+RASqliteTable.h"
 
 /**

@@ -915,30 +915,4 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	[self queueTransaction:RASqliteTransactionDeferred withBlock:block];
 }
 
-#pragma mark - Helpers
-
-- (NSNumber *)lastInsertId
-{
-	NSNumber __block *insertId;
-	if ( ![self error] && [self database] ) {
-		[self queueWithBlock:^(RASqlite *db) {
-			insertId = @(sqlite3_last_insert_rowid([self database]));
-		}];
-	}
-
-	return insertId;
-}
-
-- (NSNumber *)rowCount
-{
-	NSNumber __block *count;
-	if ( ![self error] && [self database] ) {
-		[self queueWithBlock:^(RASqlite *db) {
-			count = @(sqlite3_changes([self database]));
-		}];
-	}
-
-	return count;
-}
-
 @end

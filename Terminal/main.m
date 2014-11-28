@@ -13,12 +13,6 @@ int main(int argc, const char * argv[])
 {
 	@autoreleasepool {
 		RATerminalModel *model = [[RATerminalModel alloc] init];
-		[model queueWithBlock:^(RASqlite *db) {
-			if ( ![db check] ) {
-				[db deleteTable:@"user"];
-				[db create];
-			}
-		}];
 
 		// Check if we were able to find the specified user.
 		NSDictionary *user = [model getUser:@"raatiniemi"];

@@ -34,6 +34,27 @@ static dispatch_queue_t _queue;
 - (id)init
 {
 	if ( self = [super initWithPath:@"/tmp/rasqlite-user.db"] ) {
+		[self queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
+			// Iterate over the table structure.
+			for ( NSString *table in [self structure] ) {
+				NSArray *columns = [[self structure] objectForKey:table];
+
+				// Check if the structure for the table have changed.
+				if ( !( *commit = [db checkTable:table withColumns:columns] ) ) {
+					// The structure have changed, delete the table and
+					// recreate it with the new column structure.
+					*commit = [db deleteTable:table];
+					if ( *commit ) {
+						*commit = [db createTable:table withColumns:columns];
+					}
+				}
+
+				// If either of the operations fails the transaction is failed.
+				if ( !*commit ) {
+					break;
+				}
+			}
+		}];
 	}
 	return self;
 }

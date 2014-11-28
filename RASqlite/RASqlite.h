@@ -527,9 +527,9 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 
  @code
  [database queueTransaction:RASqliteTransactionDeferred withBlock:^(RASqlite *db, BOOL *commit) {
-	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
-	if ( commit ) {
-		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
+	*commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+	if ( *commit ) {
+		*commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 	}
  }];
  @endcode
@@ -545,9 +545,9 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 
  @code
  [database queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
-	commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
-	if ( commit ) {
-		commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
+	*commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+	if ( *commit ) {
+		*commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 	}
  }];
  @endcode

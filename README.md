@@ -170,9 +170,9 @@ And, the equivalent RASqlite transaction types are as follows.
 There're two methods available when working with transactions. With the `queueTransaction:withBlock:`-method you can specify which type of transaction you'd want to use, and with the `queueTransactionWithBlock:`-method the default type is used (which is deferred).
 
 	[database queueTransaction:RASqliteTransactionExclusive withBlock:^(RASqlite *db, BOOL *commit) {
-		commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
-		if ( commit ) {
-			commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
+		*commit = [db execute:@"DELETE FROM foo WHERE bar = ?" withParam:@"baz"];
+		if ( *commit ) {
+			*commit = [db execute:@"DELETE FROM bar WHERE baz = ?" withParam:@"qux"];
 		}
 	 }];
 

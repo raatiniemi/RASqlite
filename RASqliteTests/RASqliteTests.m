@@ -220,6 +220,17 @@ static NSString *_directory = @"/tmp/rasqlite";
  */
 - (void)testTransactionDeleteRollback;
 
+/**
+ Execute transaction while database is closed.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+
+ @note
+ There have been issues with the `inTransaction`-method due to non-initialized
+ database, since it would attempt to insert `nil` as the `sqlite3`-pointer.
+ */
+- (void)testTransactionWithClosedDatabase;
+
 @end
 
 @implementation RASqliteTests
@@ -595,6 +606,32 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
 					@"Rollback transaction with delete did delete row.");
+}
+
+- (void)testTransactionWithClosedDatabase
+{
+	NSString *path = [_directory stringByAppendingString:@"/transaction"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	[columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+	XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
+				  @"Unable to create table for `%s`: %@",
+				  __PRETTY_FUNCTION__,
+				  [[rasqlite error] localizedDescription]);
+
+	// Force close the database instance.
+	[rasqlite close];
+
+	[rasqlite queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
+		*commit = [db execute:@"INSERT INTO foo(id) VALUES(1)"];
+		XCTAssertTrue(*commit, @"Unable to insert for `%s`: %@",
+					  __PRETTY_FUNCTION__,
+					  [[db error] localizedDescription]);
+	}];
+
+	XCTAssertNotNil([rasqlite fetchRow:@"SELECT id FROM foo WHERE id = 1"],
+					@"Commit transaction with insert did not insert row.");
 }
 
 @end

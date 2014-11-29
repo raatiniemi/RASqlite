@@ -854,6 +854,10 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		// Using the `sqlite3_get_autocommit` to check whether the database is
 		// currently in a transaction.
 		// http://sqlite.org/c3ref/get_autocommit.html
+		//
+		// If we do not have an active database instance we can not decide
+		// whether the database is in an transaction. This scenario should only
+		// occur if we are accessing the database from a secondary source.
 		inTransaction = [self database] && sqlite3_get_autocommit([self database]) == 0;
 	}];
 

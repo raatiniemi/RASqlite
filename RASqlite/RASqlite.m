@@ -576,7 +576,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 								break;
 							} else {
 								// Something has gone wrong, leave the loop.
-								NSString *message = RASqliteSF(@"Unable to fetch row, received code `%i`.", code);
+								const char *errmsg = sqlite3_errmsg([self database]);
+								NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
 								RASqliteLog(RASqliteLogLevelError, @"%@", message);
 								error = [NSError code:RASqliteErrorQuery message:message];
 							}
@@ -590,7 +591,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 					}
 				} else {
 					// Something went wrong...
-					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`, received code `%i`.", sql, code);
+					const char *errmsg = sqlite3_errmsg([self database]);
+					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
 					RASqliteLog(RASqliteLogLevelError, @"%@", message);
 					error = [NSError code:RASqliteErrorQuery message:message];
 				}
@@ -654,13 +656,17 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 						} else if ( code == SQLITE_DONE ) {
 							RASqliteLog(RASqliteLogLevelDebug, @"No rows were found with query: %@", sql);
 						} else {
-							NSString *message = RASqliteSF(@"Failed to retrieve result, received code: `%i`", code);
+							// Something went wrong...
+							const char *errmsg = sqlite3_errmsg([self database]);
+							NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
 							RASqliteLog(RASqliteLogLevelError, @"%@", message);
 							error = [NSError code:RASqliteErrorQuery message:message];
 						}
 					}
 				} else {
-					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`, received code `%i`.", sql, code);
+					// Something went wrong...
+					const char *errmsg = sqlite3_errmsg([self database]);
+					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
 					RASqliteLog(RASqliteLogLevelError, @"%@", message);
 					error = [NSError code:RASqliteErrorQuery message:message];
 				}
@@ -715,13 +721,17 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 					if ( !error ) {
 						code = sqlite3_step(statement);
 						if ( code != SQLITE_DONE ) {
-							NSString *message = RASqliteSF(@"Failed to execute query, received code: `%i`", code);
+							// Something went wrong...
+							const char *errmsg = sqlite3_errmsg([self database]);
+							NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
 							RASqliteLog(RASqliteLogLevelError, @"%@", message);
 							error = [NSError code:RASqliteErrorQuery message:message];
 						}
 					}
 				} else {
-					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`, recived code `%i`.", sql, code);
+					// Something went wrong...
+					const char *errmsg = sqlite3_errmsg([self database]);
+					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
 					RASqliteLog(RASqliteLogLevelError, @"%@", message);
 					error = [NSError code:RASqliteErrorQuery message:message];
 				}

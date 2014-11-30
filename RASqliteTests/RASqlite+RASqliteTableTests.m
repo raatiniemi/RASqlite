@@ -289,7 +289,26 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 - (void)testCheckWithNullableMissmatch
 {
-#warning Implement test for nullable missmatch.
+	NSString *path = [_directory stringByAppendingString:@"/check"];
+	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+	NSMutableArray *columns = [[NSMutableArray alloc] init];
+	RASqliteColumn *column;
+
+	column = [[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger];
+	[column setNullable:YES];
+	[columns addObject:column];
+
+	// Create the table with the first structure.
+	XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
+				  @"Unable to create table for checking nullable missmatch.");
+
+	// Modify the nullable structure.
+	[[columns objectAtIndex:0] setNullable:NO];
+
+	// Check if the `checkTable:withColumns:` notice the change.
+	XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
+				   @"Check with nullable missmatch failed.");
 }
 
 - (void)testCheckWithUniqueKeyMissmatch

@@ -707,32 +707,32 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	[self queueInternalBlock:^{
 		// If we don't have a valid database instance we have attempt to open it.
-		[self database] || [self open];
+		if ( [self database] || [self open] ) {
+			const char *sql;
+			switch (type) {
+				case RASqliteTransactionExclusive:
+					sql = "BEGIN EXCLUSIVE TRANSACTION";
+					break;
+				case RASqliteTransactionImmediate:
+					sql = "BEGIN IMMEDIATE TRANSACTION";
+					break;
+				case RASqliteTransactionDeferred:
+				default:
+					sql = "BEGIN DEFERRED TRANSACTION";
+					break;
+			}
 
-		const char *sql;
-		switch (type) {
-			case RASqliteTransactionExclusive:
-				sql = "BEGIN EXCLUSIVE TRANSACTION";
-				break;
-			case RASqliteTransactionImmediate:
-				sql = "BEGIN IMMEDIATE TRANSACTION";
-				break;
-			case RASqliteTransactionDeferred:
-			default:
-				sql = "BEGIN DEFERRED TRANSACTION";
-				break;
-		}
+			char *errmsg;
+			int code = sqlite3_exec([self database], sql, 0, 0, &errmsg);
 
-		char *errmsg;
-		int code = sqlite3_exec([self database], sql, 0, 0, &errmsg);
+			success = (code == SQLITE_OK);
+			if ( !success ) {
+				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+				RASqliteLog(RASqliteLogLevelError, @"Unable to begin transaction: %@", message);
 
-		success = (code == SQLITE_OK);
-		if ( !success ) {
-			NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-			RASqliteLog(RASqliteLogLevelError, @"Unable to begin transaction: %@", message);
-
-			NSError *error = [NSError code:RASqliteErrorTransaction message:message];
-			[self setError:error];
+				NSError *error = [NSError code:RASqliteErrorTransaction message:message];
+				[self setError:error];
+			}
 		}
 	}];
 

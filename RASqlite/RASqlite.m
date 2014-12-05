@@ -646,11 +646,13 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (BOOL)execute:(NSString *)sql withParams:(NSArray *)params
 {
-	NSError __block *error = [self error];
+	BOOL __block success = NO;
 
 	[self queueInternalBlock:^{
 		// If we don't have a valid database instance we have attempt to open it.
 		if ( [self database] || [self open] ) {
+			NSError *error;
+
 			sqlite3_stmt *statement;
 			int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -658,12 +660,17 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				// If we have parameters, we need to bind them to the statement.
 				if ( !params || [self bindColumns:params toStatement:&statement] ) {
 					code = sqlite3_step(statement);
-					if ( code != SQLITE_DONE ) {
+					if ( code == SQLITE_DONE ) {
+						// Statement have been successfully executed.
+						success = YES;
+					} else {
 						// Something went wrong...
 						const char *errmsg = sqlite3_errmsg([self database]);
 						NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
 						RASqliteLog(RASqliteLogLevelError, @"%@", message);
+
 						error = [NSError code:RASqliteErrorQuery message:message];
+						[self setError:error];
 					}
 				}
 			} else {
@@ -671,18 +678,15 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				const char *errmsg = sqlite3_errmsg([self database]);
 				NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
 				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+
 				error = [NSError code:RASqliteErrorQuery message:message];
+				[self setError:error];
 			}
 			sqlite3_finalize(statement);
 		}
 	}];
 
-	// If an error occurred performing the query set the error.
-	if ( error ) {
-		[self setError:error];
-	}
-
-	return error == nil;
+	return success;
 }
 
 - (BOOL)execute:(NSString *)sql withParam:(id)param

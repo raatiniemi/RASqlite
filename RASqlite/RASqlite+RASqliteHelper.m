@@ -13,11 +13,12 @@
 - (NSNumber *)lastInsertId
 {
 	NSNumber __block *insertId;
-	if ( ![self error] && [self database] ) {
-		[self queueWithBlock:^(RASqlite *db) {
-			insertId = @(sqlite3_last_insert_rowid([self database]));
-		}];
-	}
+
+	[self queueWithBlock:^(RASqlite *db) {
+		if ( [db database] ) {
+			insertId = @(sqlite3_last_insert_rowid([db database]));
+		}
+	}];
 
 	return insertId;
 }
@@ -25,11 +26,12 @@
 - (NSNumber *)rowCount
 {
 	NSNumber __block *count;
-	if ( ![self error] && [self database] ) {
-		[self queueWithBlock:^(RASqlite *db) {
-			count = @(sqlite3_changes([self database]));
-		}];
-	}
+
+	[self queueWithBlock:^(RASqlite *db) {
+		if ( [db database] ) {
+			count = @(sqlite3_changes([db database]));
+		}
+	}];
 
 	return count;
 }

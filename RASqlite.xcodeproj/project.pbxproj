@@ -259,10 +259,10 @@
 		2D6EEBC91914FFD80026F45C /* Category */ = {
 			isa = PBXGroup;
 			children = (
-				2D80261E193063F0005DCFBE /* RASqlite */,
 				2D6EEBCC1914FFFB0026F45C /* NSDictionary */,
 				2D6EEBCA1914FFE10026F45C /* NSError */,
 				2D6EEBCB1914FFED0026F45C /* NSMutableDictionary */,
+				2D80261E193063F0005DCFBE /* RASqlite */,
 			);
 			name = Category;
 			sourceTree = "<group>";

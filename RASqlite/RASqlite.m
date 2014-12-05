@@ -84,11 +84,11 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
  @param columns Parameters to bind to the statement.
  @param statement Statement on which the parameters will be binded.
 
- @return `nil` if binding is successful, otherwise an error object.
+ @return `YES` if binding is successful, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (NSError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement;
+- (BOOL)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement;
 
 /**
  Fetch the retrieved columns from the SQL query.
@@ -403,7 +403,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 #pragma mark - Query
 
-- (NSError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement
+- (BOOL)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement
 {
 	NSError *error;
 
@@ -439,19 +439,20 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		}
 
 		// Check if an error has occurred.
-		if ( !error && code != SQLITE_OK ) {
+		if ( code != SQLITE_OK ) {
 			NSString *message = RASqliteSF(@"Unable to bind type `%@`.", [column class]);
 			RASqliteLog(RASqliteLogLevelError, @"%@", message);
 			error = [NSError code:RASqliteErrorBind message:message];
 		}
 
 		if ( error ) {
+			[self setError:error];
 			break;
 		}
 		index++;
 	}
 
-	return error;
+	return error == nil;
 }
 
 - (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement withError:(NSError **)error
@@ -529,12 +530,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
 				if ( code == SQLITE_OK ) {
-					if ( params ) {
-						// If we have parameters, we need to bind them to the statement.
-						error = [self bindColumns:params toStatement:&statement];
-					}
-
-					if ( !error ) {
+					// If we have parameters, we need to bind them to the statement.
+					if ( !params || [self bindColumns:params toStatement:&statement] ) {
 						// Get the pointer for the method, performance improvement.
 						SEL selector = @selector(fetchColumns:withError:);
 
@@ -614,12 +611,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
 				if ( code == SQLITE_OK ) {
-					if ( params ) {
-						// If we have parameters, we need to bind them to the statement.
-						error = [self bindColumns:params toStatement:&statement];
-					}
-
-					if ( !error ) {
+					// If we have parameters, we need to bind them to the statement.
+					if ( !params || [self bindColumns:params toStatement:&statement] ) {
 						code = sqlite3_step(statement);
 						if ( code == SQLITE_ROW ) {
 							row = [self fetchColumns:&statement withError:&error];
@@ -684,12 +677,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
 				if ( code == SQLITE_OK ) {
-					if ( params ) {
-						// If we have parameters, we need to bind them to the statement.
-						error = [self bindColumns:params toStatement:&statement];
-					}
-
-					if ( !error ) {
+					// If we have parameters, we need to bind them to the statement.
+					if ( !params || [self bindColumns:params toStatement:&statement] ) {
 						code = sqlite3_step(statement);
 						if ( code != SQLITE_DONE ) {
 							// Something went wrong...

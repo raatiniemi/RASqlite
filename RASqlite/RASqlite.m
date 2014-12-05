@@ -439,8 +439,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		if ( code != SQLITE_OK ) {
 			NSString *message = RASqliteSF(@"Unable to bind type `%@`.", [column class]);
 			RASqliteLog(RASqliteLogLevelError, @"%@", message);
-			error = [NSError code:RASqliteErrorBind message:message];
 
+			error = [NSError code:RASqliteErrorBind message:message];
 			[self setError:error];
 			break;
 		}

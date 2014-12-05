@@ -376,9 +376,13 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 							retry = NO;
 						}
 					} else if ( code != SQLITE_OK ) {
-						NSString *message = RASqliteSF(@"Unable to close database, received code `%i`.", code);
+						// Something went wrong...
+						const char *errmsg = sqlite3_errmsg(database);
+						NSString *message = RASqliteSF(@"Unable to close database: %s", errmsg);
 						RASqliteLog(RASqliteLogLevelError, @"%@", message);
+
 						error = [NSError code:RASqliteErrorClose message:message];
+						[self setError:error];
 					} else {
 						[self setDatabase:nil];
 						RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
@@ -390,11 +394,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 			RASqliteLog(RASqliteLogLevelDebug, @"Database is already closed.");
 		}
 	}];
-
-	// If an error occurred performing the query set the error.
-	if ( error ) {
-		[self setError:error];
-	}
 
 	return error == nil;
 }

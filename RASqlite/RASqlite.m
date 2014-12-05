@@ -298,42 +298,40 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	return _database;
 }
 
-- (NSError *)openWithFlags:(int)flags
+- (BOOL)openWithFlags:(int)flags
 {
-	NSError __block *error = [self error];
-	if ( !error ) {
-		[self queueInternalBlock:^{
-			// Check if the database already is active, not need to open it.
-			sqlite3 *database = [self database];
-			if ( !database ) {
-				int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
-				if ( code == SQLITE_OK ) {
-					// The database was successfully opened.
-					[self setDatabase:database];
-					RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
-				} else {
-					// Something went wrong...
-					NSString *message = RASqliteSF(@"Unable to open database, received code `%i`.", code);
-					RASqliteLog(RASqliteLogLevelError, @"%@", message);
-					error = [NSError code:RASqliteErrorOpen message:message];
-				}
-			} else {
-				// No need to attempt to open the database, it's already open.
-				RASqliteLog(RASqliteLogLevelDebug, @"Database is already open.");
-			}
-		}];
+	NSError __block *error;
 
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
+	[self queueInternalBlock:^{
+		// Check if the database already is active, not need to open it.
+		sqlite3 *database = [self database];
+		if ( !database ) {
+			int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
+			if ( code == SQLITE_OK ) {
+				// The database was successfully opened.
+				[self setDatabase:database];
+				RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
+			} else {
+				// Something went wrong...
+				NSString *message = RASqliteSF(@"Unable to open database, received code `%i`.", code);
+				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+				error = [NSError code:RASqliteErrorOpen message:message];
+			}
+		} else {
+			// No need to attempt to open the database, it's already open.
+			RASqliteLog(RASqliteLogLevelDebug, @"Database is already open.");
 		}
+	}];
+
+	// If an error occurred performing the query set the error.
+	if ( error ) {
+		[self setError:error];
 	}
 
-	return error;
+	return error == nil;
 }
 
-- (NSError *)open
+- (BOOL)open
 {
 	return [self openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE];
 }

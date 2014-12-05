@@ -188,11 +188,10 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 
  @param flags Flags for how to open the database.
 
- @return `nil` if database was successfully opened, otherwise an error object.
+ @return `YES` if database was successfully opened, otherwise `NO`.
 
  @code
- NSError *error = [model openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE];
- if ( error ) {
+ if ( ![db openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE] ) {
 	// An error has occurred, handle it.
  }
  @endcode
@@ -204,12 +203,12 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
  the `open`-method will be automatically called before performing a query, unless
  the database is already open.
  */
-- (NSError *)openWithFlags:(int)flags;
+- (BOOL)openWithFlags:(int)flags;
 
 /**
  Open database with default flags.
 
- @return `nil` if database was successfully opened, otherwise an error object.
+ @return `YES` if database was successfully opened, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
 
@@ -222,7 +221,7 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
  means that if the file do not exists, it will be created. And, it's open for
  both read and write operations.
  */
-- (NSError *)open;
+- (BOOL)open;
 
 /**
  Close the database.

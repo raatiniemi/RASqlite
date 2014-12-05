@@ -438,14 +438,12 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 			code = sqlite3_bind_blob(*statement, index, [column bytes], length, SQLITE_TRANSIENT);
 		}
 
-		// Check if an error has occurred.
+		// Check if the binding of the column was successful.
 		if ( code != SQLITE_OK ) {
 			NSString *message = RASqliteSF(@"Unable to bind type `%@`.", [column class]);
 			RASqliteLog(RASqliteLogLevelError, @"%@", message);
 			error = [NSError code:RASqliteErrorBind message:message];
-		}
 
-		if ( error ) {
 			[self setError:error];
 			break;
 		}

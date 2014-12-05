@@ -593,55 +593,53 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params
 {
-	NSError __block *error = [self error];
 	NSDictionary __block *row;
 
-	if ( !error ) {
-		[self queueInternalBlock:^{
-			// If we don't have a valid database instance we have attempt to open it.
-			if ( [self database] || [self open] ) {
-				sqlite3_stmt *statement;
-				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
+	[self queueInternalBlock:^{
+		// If we don't have a valid database instance we have attempt to open it.
+		if ( [self database] || [self open] ) {
+			NSError __block *error;
 
-				if ( code == SQLITE_OK ) {
-					// If we have parameters, we need to bind them to the statement.
-					if ( !params || [self bindColumns:params toStatement:&statement] ) {
-						code = sqlite3_step(statement);
-						if ( code == SQLITE_ROW ) {
-							row = [self fetchColumns:&statement withError:&error];
+			sqlite3_stmt *statement;
+			int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
-							// If the error variable have been populated, something
-							// has gone wrong and we need to reset the row variable.
-							if ( error || [row count] == 0 ) {
-								row = nil;
-							}
-						} else if ( code == SQLITE_DONE ) {
-							RASqliteLog(RASqliteLogLevelDebug, @"No rows were found with query: %@", sql);
-						} else {
-							// Something went wrong...
-							const char *errmsg = sqlite3_errmsg([self database]);
-							NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
-							RASqliteLog(RASqliteLogLevelError, @"%@", message);
-							error = [NSError code:RASqliteErrorQuery message:message];
+			if ( code == SQLITE_OK ) {
+				// If we have parameters, we need to bind them to the statement.
+				if ( !params || [self bindColumns:params toStatement:&statement] ) {
+					code = sqlite3_step(statement);
+					if ( code == SQLITE_ROW ) {
+						row = [self fetchColumns:&statement withError:&error];
+
+						// If the error variable have been populated, something
+						// has gone wrong and we need to reset the row variable.
+						if ( error || [row count] == 0 ) {
+							row = nil;
 						}
+					} else if ( code == SQLITE_DONE ) {
+						RASqliteLog(RASqliteLogLevelDebug, @"No rows were found with query: %@", sql);
+					} else {
+						// Something went wrong...
+						const char *errmsg = sqlite3_errmsg([self database]);
+						NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
+						RASqliteLog(RASqliteLogLevelError, @"%@", message);
+						error = [NSError code:RASqliteErrorQuery message:message];
 					}
-				} else {
-					// Something went wrong...
-					const char *errmsg = sqlite3_errmsg([self database]);
-					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-					RASqliteLog(RASqliteLogLevelError, @"%@", message);
-					error = [NSError code:RASqliteErrorQuery message:message];
 				}
-				sqlite3_finalize(statement);
+			} else {
+				// Something went wrong...
+				const char *errmsg = sqlite3_errmsg([self database]);
+				NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
+				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+				error = [NSError code:RASqliteErrorQuery message:message];
 			}
-		}];
+			sqlite3_finalize(statement);
 
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
+			// If an error occurred performing the query set the error.
+			if ( error ) {
+				[self setError:error];
+			}
 		}
-	}
+	}];
 
 	return row;
 }

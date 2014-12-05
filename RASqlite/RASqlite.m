@@ -198,15 +198,14 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (instancetype)initWithPath:(NSString *)path
 {
 	if ( self = [super init] ) {
-		// Assign the database path.
-		[self setPath:path];
-
 		// Check if the path is writeable, among other things.
-		if( ![self checkPath:[self path]] ) {
+		if( ![self checkPath:path] ) {
 			// There is something wrong with the path, raise an exception.
 			[NSException raise:RASqliteInvalidPathException
-						format:@"The supplied path `%@` can not be used.", [self path]];
+						format:@"The supplied path `%@` can not be used.", path];
 		}
+		// Assign the database path.
+		[self setPath:path];
 
 		// Create the thread for running queries, using the name for the database file.
 		NSString *thread = RASqliteSF(RASqliteThreadFormat, [[self path] lastPathComponent]);

@@ -305,6 +305,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		// Check if the database already is active, not need to open it.
 		sqlite3 *database = [self database];
 		if ( !database ) {
+			// Attempt to open the database.
 			int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
 			if ( code == SQLITE_OK ) {
 				// The database was successfully opened.
@@ -312,20 +313,18 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
 			} else {
 				// Something went wrong...
-				NSString *message = RASqliteSF(@"Unable to open database, received code `%i`.", code);
+				const char *errmsg = sqlite3_errmsg(database);
+				NSString *message = RASqliteSF(@"Unable to open database: %s", errmsg);
 				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+
 				error = [NSError code:RASqliteErrorOpen message:message];
+				[self setError:error];
 			}
 		} else {
 			// No need to attempt to open the database, it's already open.
 			RASqliteLog(RASqliteLogLevelDebug, @"Database is already open.");
 		}
 	}];
-
-	// If an error occurred performing the query set the error.
-	if ( error ) {
-		[self setError:error];
-	}
 
 	return error == nil;
 }

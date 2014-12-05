@@ -94,7 +94,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
  Fetch the retrieved columns from the SQL query.
 
  @param statement Statement from which to retrieve the columns.
- @param error If an error occurred, variable will be populated (pass-by-reference).
 
  @return Row with the column names and their values.
 
@@ -104,7 +103,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
  The dictionary will contain the Foundation representations of the SQLite data types,
  e.g. `SQLITE_INTEGER` will be `NSNumber`, `SQLITE_NULL` will be `NSNull`, etc.
  */
-- (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement withError:(NSError **)error;
+- (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement;
 
 #pragma mark -- Transaction
 
@@ -450,7 +449,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	return error == nil;
 }
 
-- (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement withError:(NSError **)error
+- (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement
 {
 	unsigned int count = sqlite3_column_count(*statement);
 	NSMutableDictionary *row = [[NSMutableDictionary alloc] initWithCapacity:count];
@@ -460,8 +459,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	unsigned int index;
 	int type;
-	// Loop through the columns, or until an error is encountered.
-	for ( index = 0; !*error && index < count; index++ ) {
+	// Loop through the columns.
+	for ( index = 0; index < count; index++ ) {
 		name = sqlite3_column_name(*statement, index);
 		column = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
 
@@ -501,12 +500,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		}
 	}
 
-	// If the error variable have been populated, something has gone wrong and
-	// we need to reset the row variable.
-	if ( *error ) {
-		row = nil;
-	}
-
 	return row;
 }
 
@@ -528,9 +521,9 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				// If we have parameters, we need to bind them to the statement.
 				if ( !params || [self bindColumns:params toStatement:&statement] ) {
 					// Get the pointer for the method, performance improvement.
-					SEL selector = @selector(fetchColumns:withError:);
+					SEL selector = @selector(fetchColumns:);
 
-					typedef NSDictionary* (*fetch) (id, SEL, sqlite3_stmt**, NSError **);
+					typedef NSDictionary* (*fetch) (id, SEL, sqlite3_stmt**);
 					fetch fetchColumns = (fetch)[self methodForSelector:selector];
 
 					NSDictionary *row;
@@ -542,7 +535,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 						code = sqlite3_step(statement);
 
 						if ( code == SQLITE_ROW ) {
-							row = fetchColumns(self, selector, &statement, &error);
+							row = fetchColumns(self, selector, &statement);
 							[results addObject:row];
 						} else if ( code == SQLITE_DONE ) {
 							// Results have been fetch, leave the loop.
@@ -605,7 +598,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				if ( !params || [self bindColumns:params toStatement:&statement] ) {
 					code = sqlite3_step(statement);
 					if ( code == SQLITE_ROW ) {
-						row = [self fetchColumns:&statement withError:&error];
+						row = [self fetchColumns:&statement];
 
 						// If the error variable have been populated, something
 						// has gone wrong and we need to reset the row variable.

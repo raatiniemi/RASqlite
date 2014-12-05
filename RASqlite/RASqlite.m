@@ -660,41 +660,38 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 {
 	NSError __block *error = [self error];
 
-	if ( !error ) {
-		[self queueInternalBlock:^{
-			// If we don't have a valid database instance we have attempt to open it.
-			if ( [self database] || [self open] ) {
-				sqlite3_stmt *statement;
-				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
+	[self queueInternalBlock:^{
+		// If we don't have a valid database instance we have attempt to open it.
+		if ( [self database] || [self open] ) {
+			sqlite3_stmt *statement;
+			int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
-				if ( code == SQLITE_OK ) {
-					// If we have parameters, we need to bind them to the statement.
-					if ( !params || [self bindColumns:params toStatement:&statement] ) {
-						code = sqlite3_step(statement);
-						if ( code != SQLITE_DONE ) {
-							// Something went wrong...
-							const char *errmsg = sqlite3_errmsg([self database]);
-							NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
-							RASqliteLog(RASqliteLogLevelError, @"%@", message);
-							error = [NSError code:RASqliteErrorQuery message:message];
-						}
+			if ( code == SQLITE_OK ) {
+				// If we have parameters, we need to bind them to the statement.
+				if ( !params || [self bindColumns:params toStatement:&statement] ) {
+					code = sqlite3_step(statement);
+					if ( code != SQLITE_DONE ) {
+						// Something went wrong...
+						const char *errmsg = sqlite3_errmsg([self database]);
+						NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
+						RASqliteLog(RASqliteLogLevelError, @"%@", message);
+						error = [NSError code:RASqliteErrorQuery message:message];
 					}
-				} else {
-					// Something went wrong...
-					const char *errmsg = sqlite3_errmsg([self database]);
-					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-					RASqliteLog(RASqliteLogLevelError, @"%@", message);
-					error = [NSError code:RASqliteErrorQuery message:message];
 				}
-				sqlite3_finalize(statement);
+			} else {
+				// Something went wrong...
+				const char *errmsg = sqlite3_errmsg([self database]);
+				NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
+				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+				error = [NSError code:RASqliteErrorQuery message:message];
 			}
-		}];
-
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
+			sqlite3_finalize(statement);
 		}
+	}];
+
+	// If an error occurred performing the query set the error.
+	if ( error ) {
+		[self setError:error];
 	}
 
 	return error == nil;

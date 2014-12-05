@@ -746,26 +746,23 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (BOOL)rollBack
 {
-	NSError __block *error = [self error];
-	if ( !error ) {
-		[self queueInternalBlock:^{
-			char *errmsg;
-			int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &errmsg);
-			if ( code != SQLITE_OK ) {
-				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-				RASqliteLog(RASqliteLogLevelError, @"Unable to rollback transaction: %@", message);
-				error = [NSError code:RASqliteErrorTransaction message:message];
-			}
-		}];
+	BOOL __block success = NO;
 
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
+	[self queueInternalBlock:^{
+		char *errmsg;
+		int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &errmsg);
+
+		success = (code == SQLITE_OK);
+		if ( !success ) {
+			NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+			RASqliteLog(RASqliteLogLevelError, @"Unable to rollback transaction: %@", message);
+
+			NSError *error = [NSError code:RASqliteErrorTransaction message:message];
 			[self setError:error];
 		}
-	}
+	}];
 
-	return error == nil;
+	return success;
 }
 
 - (BOOL)commit

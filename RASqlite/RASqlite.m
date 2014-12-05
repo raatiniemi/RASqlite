@@ -340,7 +340,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 {
 	NSError __block *error = [self error];
 	if ( !error ) {
-		void (^block)(void) = ^(void) {
+		[self queueInternalBlock:^{
 			// Check if we have an active database instance, no need to attempt
 			// a close if we don't.
 			sqlite3 *database = [self database];
@@ -391,17 +391,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				// No need to close, it is already closed.
 				RASqliteLog(RASqliteLogLevelDebug, @"Database is already closed.");
 			}
-		};
-
-		// Attempt to retrieve the name from the current dispatch queue, and
-		// compare it against the name of the query dispatch queue. If the name
-		// matches we're on the correct queue.
-		void *name = dispatch_get_specific(RASqliteKeyQueueName);
-		if ( name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName) ) {
-			block();
-		} else {
-			dispatch_sync([self queue], block);
-		}
+		}];
 
 		// If an error occurred performing the query set the error. However,
 		// do not override the existing error, if it exists.

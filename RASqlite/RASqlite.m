@@ -517,71 +517,66 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params
 {
-	NSError __block *error = [self error];
 	NSMutableArray __block *results;
 
-	if ( !error ) {
-		[self queueInternalBlock:^{
-			// If we don't have a valid database instance we have attempt to open it.
-			if ( [self database] || [self open] ) {
-				sqlite3_stmt *statement;
-				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
+	[self queueInternalBlock:^{
+		// If we don't have a valid database instance we have attempt to open it.
+		if ( [self database] || [self open] ) {
+			NSError __block *error;
 
-				if ( code == SQLITE_OK ) {
-					// If we have parameters, we need to bind them to the statement.
-					if ( !params || [self bindColumns:params toStatement:&statement] ) {
-						// Get the pointer for the method, performance improvement.
-						SEL selector = @selector(fetchColumns:withError:);
+			sqlite3_stmt *statement;
+			int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
-						typedef NSDictionary* (*fetch) (id, SEL, sqlite3_stmt**, NSError **);
-						fetch fetchColumns = (fetch)[self methodForSelector:selector];
+			if ( code == SQLITE_OK ) {
+				// If we have parameters, we need to bind them to the statement.
+				if ( !params || [self bindColumns:params toStatement:&statement] ) {
+					// Get the pointer for the method, performance improvement.
+					SEL selector = @selector(fetchColumns:withError:);
 
-						NSDictionary *row;
-						results = [[NSMutableArray alloc] init];
+					typedef NSDictionary* (*fetch) (id, SEL, sqlite3_stmt**, NSError **);
+					fetch fetchColumns = (fetch)[self methodForSelector:selector];
 
-						// Looping through the results, until an error occurres or
-						// the query is done.
-						do {
-							code = sqlite3_step(statement);
+					NSDictionary *row;
+					results = [[NSMutableArray alloc] init];
 
-							if ( code == SQLITE_ROW ) {
-								row = fetchColumns(self, selector, &statement, &error);
-								[results addObject:row];
-							} else if ( code == SQLITE_DONE ) {
-								// Results have been fetch, leave the loop.
-								break;
-							} else {
-								// Something has gone wrong, leave the loop.
-								const char *errmsg = sqlite3_errmsg([self database]);
-								NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
-								RASqliteLog(RASqliteLogLevelError, @"%@", message);
-								error = [NSError code:RASqliteErrorQuery message:message];
-							}
-						} while ( !error );
-					}
+					// Looping through the results, until an error occurres or
+					// the query is done.
+					do {
+						code = sqlite3_step(statement);
 
-					// If the error variable have been populated, something
-					// has gone wrong and we need to reset the results variable.
-					if ( error ) {
-						results = nil;
-					}
-				} else {
-					// Something went wrong...
-					const char *errmsg = sqlite3_errmsg([self database]);
-					NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-					RASqliteLog(RASqliteLogLevelError, @"%@", message);
-					error = [NSError code:RASqliteErrorQuery message:message];
+						if ( code == SQLITE_ROW ) {
+							row = fetchColumns(self, selector, &statement, &error);
+							[results addObject:row];
+						} else if ( code == SQLITE_DONE ) {
+							// Results have been fetch, leave the loop.
+							break;
+						} else {
+							// Something has gone wrong, leave the loop.
+							const char *errmsg = sqlite3_errmsg([self database]);
+							NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
+							RASqliteLog(RASqliteLogLevelError, @"%@", message);
+							error = [NSError code:RASqliteErrorQuery message:message];
+						}
+					} while ( !error );
 				}
-				sqlite3_finalize(statement);
+			} else {
+				// Something went wrong...
+				const char *errmsg = sqlite3_errmsg([self database]);
+				NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
+				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+				error = [NSError code:RASqliteErrorQuery message:message];
 			}
-		}];
+			sqlite3_finalize(statement);
 
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
-			[self setError:error];
+			// If an error occurred performing the query set the error.
+			if ( error ) {
+				[self setError:error];
+
+				// Since an error has occurred we need to reset the results.
+				results = nil;
+			}
 		}
-	}
+	}];
 
 	return results;
 }

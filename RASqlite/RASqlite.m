@@ -703,43 +703,40 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (BOOL)beginTransaction:(RASqliteTransaction)type
 {
-	NSError __block *error = [self error];
-	if ( !error ) {
-		[self queueInternalBlock:^{
-			// If we don't have a valid database instance we have attempt to open it.
-			[self database] || [self open];
+	BOOL __block success = NO;
 
-			const char *sql;
-			switch (type) {
-				case RASqliteTransactionExclusive:
-					sql = "BEGIN EXCLUSIVE TRANSACTION";
-					break;
-				case RASqliteTransactionImmediate:
-					sql = "BEGIN IMMEDIATE TRANSACTION";
-					break;
-				case RASqliteTransactionDeferred:
-				default:
-					sql = "BEGIN DEFERRED TRANSACTION";
-					break;
-			}
+	[self queueInternalBlock:^{
+		// If we don't have a valid database instance we have attempt to open it.
+		[self database] || [self open];
 
-			char *errmsg;
-			int code = sqlite3_exec([self database], sql, 0, 0, &errmsg);
-			if ( code != SQLITE_OK ) {
-				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-				RASqliteLog(RASqliteLogLevelError, @"Unable to begin transaction: %@", message);
-				error = [NSError code:RASqliteErrorTransaction message:message];
-			}
-		}];
+		const char *sql;
+		switch (type) {
+			case RASqliteTransactionExclusive:
+				sql = "BEGIN EXCLUSIVE TRANSACTION";
+				break;
+			case RASqliteTransactionImmediate:
+				sql = "BEGIN IMMEDIATE TRANSACTION";
+				break;
+			case RASqliteTransactionDeferred:
+			default:
+				sql = "BEGIN DEFERRED TRANSACTION";
+				break;
+		}
 
-		// If an error occurred performing the query set the error. However,
-		// do not override the existing error, if it exists.
-		if ( ![self error] && error ) {
+		char *errmsg;
+		int code = sqlite3_exec([self database], sql, 0, 0, &errmsg);
+
+		success = (code == SQLITE_OK);
+		if ( !success ) {
+			NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+			RASqliteLog(RASqliteLogLevelError, @"Unable to begin transaction: %@", message);
+
+			NSError *error = [NSError code:RASqliteErrorTransaction message:message];
 			[self setError:error];
 		}
-	}
+	}];
 
-	return error == nil;
+	return success;
 }
 
 - (BOOL)beginTransaction

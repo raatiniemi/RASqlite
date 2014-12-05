@@ -331,7 +331,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 {
 	NSString *path = [_directory stringByAppendingString:@"/closed_database"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
-	XCTAssertNil([rasqlite close],
+	XCTAssertTrue([rasqlite close],
 				 @"Close non initialized database failed: %@", [[rasqlite error] localizedDescription]);
 }
 

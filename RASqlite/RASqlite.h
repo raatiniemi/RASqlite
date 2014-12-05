@@ -226,11 +226,11 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 /**
  Close the database.
 
- @return `nil` if database was successfully closed, otherwise an error object.
+ @return `YES` if database was successfully closed, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (NSError *)close;
+- (BOOL)close;
 
 #pragma mark - Query
 #pragma mark -- Fetch

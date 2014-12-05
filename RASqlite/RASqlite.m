@@ -587,7 +587,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	[self queueInternalBlock:^{
 		// If we don't have a valid database instance we have attempt to open it.
 		if ( [self database] || [self open] ) {
-			NSError __block *error;
+			NSError *error;
 
 			sqlite3_stmt *statement;
 			int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
@@ -611,7 +611,9 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 						const char *errmsg = sqlite3_errmsg([self database]);
 						NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
 						RASqliteLog(RASqliteLogLevelError, @"%@", message);
+
 						error = [NSError code:RASqliteErrorQuery message:message];
+						[self setError:error];
 					}
 				}
 			} else {
@@ -619,14 +621,11 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				const char *errmsg = sqlite3_errmsg([self database]);
 				NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
 				RASqliteLog(RASqliteLogLevelError, @"%@", message);
-				error = [NSError code:RASqliteErrorQuery message:message];
-			}
-			sqlite3_finalize(statement);
 
-			// If an error occurred performing the query set the error.
-			if ( error ) {
+				error = [NSError code:RASqliteErrorQuery message:message];
 				[self setError:error];
 			}
+			sqlite3_finalize(statement);
 		}
 	}];
 

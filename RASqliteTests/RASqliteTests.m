@@ -294,7 +294,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 - (void)testOpenWithNonExistingFile
 {
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:@"/tmp/none_existing_file"];
-	XCTAssertNotNil([rasqlite openWithFlags:SQLITE_OPEN_READWRITE],
+	XCTAssertFalse([rasqlite openWithFlags:SQLITE_OPEN_READWRITE],
 					@"Open database was successful with non existing file.");
 }
 
@@ -305,7 +305,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 	[manager createFileAtPath:path contents:nil attributes:nil];
 
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
-	XCTAssertNil([rasqlite openWithFlags:SQLITE_OPEN_READWRITE],
+	XCTAssertTrue([rasqlite openWithFlags:SQLITE_OPEN_READWRITE],
 				 @"Open database was failed with existing file: %@", [[rasqlite error] localizedDescription]);
 }
 
@@ -313,7 +313,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 {
 	NSString *path = [_directory stringByAppendingString:@"/create_file"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
-	XCTAssertNil([rasqlite openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE],
+	XCTAssertTrue([rasqlite openWithFlags:SQLITE_OPEN_CREATE|SQLITE_OPEN_READWRITE],
 				 @"Open database with create failed: %@", [[rasqlite error] localizedDescription]);
 }
 
@@ -321,8 +321,8 @@ static NSString *_directory = @"/tmp/rasqlite";
 {
 	NSString *path = [_directory stringByAppendingString:@"/open_database"];
 	RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
-	XCTAssertNil([rasqlite open], @"Open database failed: %@", [[rasqlite error] localizedDescription]);
-	XCTAssertNil([rasqlite open], @"Open already open database failed: %@", [[rasqlite error] localizedDescription]);
+	XCTAssertTrue([rasqlite open], @"Open database failed: %@", [[rasqlite error] localizedDescription]);
+	XCTAssertTrue([rasqlite open], @"Open already open database failed: %@", [[rasqlite error] localizedDescription]);
 }
 
 #pragma mark -- Close

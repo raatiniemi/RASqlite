@@ -535,13 +535,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	if ( !error ) {
 		[self queueInternalBlock:^{
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
-			}
-
-			// If an error already have occurred, we should not attempt to execute query.
-			if ( !error ) {
+			// If we don't have a valid database instance we have attempt to open it.
+			if ( [self database] || [self open] ) {
 				sqlite3_stmt *statement;
 				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -625,13 +620,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	if ( !error ) {
 		[self queueInternalBlock:^{
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
-			}
-
-			// If an error already have occurred, we should not attempt to execute query.
-			if ( !error ) {
+			// If we don't have a valid database instance we have attempt to open it.
+			if ( [self database] || [self open] ) {
 				sqlite3_stmt *statement;
 				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -700,13 +690,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 	if ( !error ) {
 		[self queueInternalBlock:^{
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
-			}
-
-			// If an error already have occurred, we should not attempt to execute query.
-			if ( !error ) {
+			// If we don't have a valid database instance we have attempt to open it.
+			if ( [self database] || [self open] ) {
 				sqlite3_stmt *statement;
 				int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
 
@@ -764,10 +749,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 	NSError __block *error = [self error];
 	if ( !error ) {
 		[self queueInternalBlock:^{
-			// If database is not open, attempt to open it.
-			if ( ![self database] ) {
-				error = [self open];
-			}
+			// If we don't have a valid database instance we have attempt to open it.
+			[self database] || [self open];
 
 			const char *sql;
 			switch (type) {

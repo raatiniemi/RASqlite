@@ -29,12 +29,6 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 	BOOL __block valid = YES;
 	NSError *error = [self error];
 
-	// Check whether we have a valid database instance.
-	// Attempt to open it if no errors have occurred yet.
-	if ( ![self database] && !error ) {
-		error = [self open];
-	}
-
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
 		[self queueWithBlock:^(RASqlite *db) {
@@ -99,12 +93,6 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 	// something is wrong with the database instance.
 	BOOL __block valid = YES;
 	NSError *error = [self error];
-
-	// Check whether we have a valid database instance.
-	// Attempt to open it if no errors have occurred yet.
-	if ( ![self database] && !error ) {
-		error = [self open];
-	}
 
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
@@ -184,12 +172,6 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 	BOOL __block created = NO;
 	NSError *error = [self error];
 
-	// Check whether we have a valid database instance.
-	// Attempt to open it if no errors have occurred yet.
-	if ( ![self database] && !error ) {
-		error = [self open];
-	}
-
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
 		[self queueWithBlock:^(RASqlite *db) {
@@ -239,12 +221,6 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 	// Keeps track on whether the table was created.
 	BOOL __block created = NO;
 	NSError *error = [self error];
-
-	// Check whether we have a valid database instance.
-	// Attempt to open it if no errors have occurred yet.
-	if ( ![self database] && !error ) {
-		error = [self open];
-	}
 
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {
@@ -324,12 +300,6 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 	// Keeps track on whether the table was created.
 	BOOL __block removed = NO;
 	NSError *error = [self error];
-
-	// Check whether we have a valid database instance.
-	// Attempt to open it if no errors have occurred yet.
-	if ( ![self database] && !error ) {
-		error = [self open];
-	}
 
 	// If an error has occurred we should not attempt to perform the action.
 	if ( !error ) {

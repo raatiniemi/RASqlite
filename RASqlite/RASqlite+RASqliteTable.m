@@ -109,28 +109,28 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 
 					// Check that the column name matches.
 					if ( ![[tColumn getColumn:@"name"] isEqualToString:[column name]] ) {
-						RASqliteLog(RASqliteLogLevelDebug, @"Column name at index `%i` do not match column given for structure `%@`.", index, table);
+						RASqliteDebugLog(@"Column name at index `%i` do not match column given for structure `%@`.", index, table);
 						valid = NO;
 						break;
 					}
 
 					// Check that the column type matches.
 					if ( ![[tColumn getColumn:@"type"] isEqualToString:[column type]] ) {
-						RASqliteLog(RASqliteLogLevelDebug, @"Column type at index `%i` do not match column given for structure `%@`.", index, table);
+						RASqliteDebugLog(@"Column type at index `%i` do not match column given for structure `%@`.", index, table);
 						valid = NO;
 						break;
 					}
 
 					// Check that whether the column matches the primary key setting.
 					if ( [column isPrimaryKey] != [[tColumn getColumn:@"pk"] boolValue] ) {
-						RASqliteLog(RASqliteLogLevelDebug, @"Column primary key option at index `%i` do not match column given for structure `%@`.", index, table);
+						RASqliteDebugLog(@"Column primary key option at index `%i` do not match column given for structure `%@`.", index, table);
 						valid = NO;
 						break;
 					}
 
 					// Check that whether the column matches the nullable setting.
 					if ( [column isNullable] == [[tColumn getColumn:@"notnull"] boolValue] ) {
-						RASqliteLog(RASqliteLogLevelDebug, @"Column nullable option at index `%i` do not match column given for structure `%@`.", index, table);
+						RASqliteDebugLog(@"Column nullable option at index `%i` do not match column given for structure `%@`.", index, table);
 						valid = NO;
 						break;
 					}
@@ -142,11 +142,11 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 					index++;
 				}
 			} else {
-				RASqliteLog(RASqliteLogLevelDebug, @"Number of specified columns for table `%@` do not matched the defined table count.", table);
+				RASqliteDebugLog(@"Number of specified columns for table `%@` do not matched the defined table count.", table);
 				valid = NO;
 			}
 		} else {
-			RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` do not exist with any structure within the database.", table);
+			RASqliteDebugLog(@"Table `%@` do not exist with any structure within the database.", table);
 			valid = NO;
 		}
 	}];
@@ -260,14 +260,14 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 		}
 		// Build the actual sql query for creating the table.
 		NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@(%@)", table, [list componentsJoinedByString:@","]];
-		RASqliteLog(RASqliteLogLevelDebug, @"Create query: %@", sql);
+		RASqliteDebugLog(@"Create query: %@", sql);
 
 		// Attempt to create the database table.
 		created = [db execute:sql];
 		if ( created ) {
-			RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have been created.", table);
+			RASqliteDebugLog(@"Table `%@` have been created.", table);
 		} else {
-			RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have not been created.", table);
+			RASqliteDebugLog(@"Table `%@` have not been created.", table);
 		}
 	}];
 
@@ -289,9 +289,9 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 		// Attempt to remove the database table.
 		removed = [db execute:RASqliteSF(@"DROP TABLE IF EXISTS %@", table)];
 		if ( removed ) {
-			RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have been removed.", table);
+			RASqliteDebugLog(@"Table `%@` have been removed.", table);
 		} else {
-			RASqliteLog(RASqliteLogLevelDebug, @"Table `%@` have not been removed.", table);
+			RASqliteDebugLog(@"Table `%@` have not been removed.", table);
 		}
 	}];
 

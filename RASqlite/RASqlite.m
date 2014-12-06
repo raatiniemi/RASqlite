@@ -251,7 +251,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 			// Attempt to create the directory.
 			BOOL created = [manager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:&error];
 			if ( !created ) {
-				RASqliteLog(RASqliteLogLevelError, @"Unable to create directory `%@` with error: %@", directory, [error localizedDescription]);
+				RASqliteErrorLog(@"Unable to create directory `%@` with error: %@", directory, [error localizedDescription]);
 				break;
 			}
 			// The directory have been created, change the directory flag.
@@ -287,7 +287,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		_database = database;
 	} else {
 		// Incase an rewrite have been attempted, this should be logged.
-		RASqliteLog(RASqliteLogLevelWarning, @"Attempt to rewrite database pointer.");
+		RASqliteWarningLog(@"Attempt to rewrite database pointer.");
 	}
 }
 
@@ -309,19 +309,19 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 			if ( code == SQLITE_OK ) {
 				// The database was successfully opened.
 				[self setDatabase:database];
-				RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
+				RASqliteInfoLog(@"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
 			} else {
 				// Something went wrong...
 				const char *errmsg = sqlite3_errmsg(database);
 				NSString *message = RASqliteSF(@"Unable to open database: %s", errmsg);
-				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+				RASqliteErrorLog(@"%@", message);
 
 				error = [NSError code:RASqliteErrorOpen message:message];
 				[self setError:error];
 			}
 		} else {
 			// No need to attempt to open the database, it's already open.
-			RASqliteLog(RASqliteLogLevelDebug, @"Database is already open.");
+			RASqliteDebugLog(@"Database is already open.");
 		}
 	}];
 
@@ -366,31 +366,31 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 						// Since every query against the same database is executed
 						// on the same queue it is highly unlikely that the database
 						// would be busy or locked, but better to be safe.
-						RASqliteLog(RASqliteLogLevelInfo, @"Database is busy/locked, retrying to close.");
+						RASqliteInfoLog(@"Database is busy/locked, retrying to close.");
 						retry = YES;
 
 						// Check if the retry timeout have been reached.
 						if ( attempt++ > [self retryTimeout] ) {
-							RASqliteLog(RASqliteLogLevelInfo, @"Retry timeout have been reached, unable to close database.");
+							RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
 							retry = NO;
 						}
 					} else if ( code != SQLITE_OK ) {
 						// Something went wrong...
 						const char *errmsg = sqlite3_errmsg(database);
 						NSString *message = RASqliteSF(@"Unable to close database: %s", errmsg);
-						RASqliteLog(RASqliteLogLevelError, @"%@", message);
+						RASqliteErrorLog(@"%@", message);
 
 						error = [NSError code:RASqliteErrorClose message:message];
 						[self setError:error];
 					} else {
 						[self setDatabase:nil];
-						RASqliteLog(RASqliteLogLevelInfo, @"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
+						RASqliteInfoLog(@"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
 					}
 				} while (retry);
 			}
 		} else {
 			// No need to close, it is already closed.
-			RASqliteLog(RASqliteLogLevelDebug, @"Database is already closed.");
+			RASqliteDebugLog(@"Database is already closed.");
 		}
 	}];
 
@@ -437,7 +437,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		// Check if the binding of the column was successful.
 		if ( code != SQLITE_OK ) {
 			NSString *message = RASqliteSF(@"Unable to bind type `%@`.", [column class]);
-			RASqliteLog(RASqliteLogLevelError, @"%@", message);
+			RASqliteErrorLog(@"%@", message);
 
 			error = [NSError code:RASqliteErrorBind message:message];
 			[self setError:error];
@@ -544,7 +544,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 							// Something has gone wrong, leave the loop.
 							const char *errmsg = sqlite3_errmsg([self database]);
 							NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
-							RASqliteLog(RASqliteLogLevelError, @"%@", message);
+							RASqliteErrorLog(@"%@", message);
 
 							error = [NSError code:RASqliteErrorQuery message:message];
 							[self setError:error];
@@ -558,7 +558,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				// Something went wrong...
 				const char *errmsg = sqlite3_errmsg([self database]);
 				NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+				RASqliteErrorLog(@"%@", message);
 
 				error = [NSError code:RASqliteErrorQuery message:message];
 				[self setError:error];
@@ -605,12 +605,12 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 							row = nil;
 						}
 					} else if ( code == SQLITE_DONE ) {
-						RASqliteLog(RASqliteLogLevelDebug, @"No rows were found with query: %@", sql);
+						RASqliteDebugLog(@"No rows were found with query: %@", sql);
 					} else {
 						// Something went wrong...
 						const char *errmsg = sqlite3_errmsg([self database]);
 						NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
-						RASqliteLog(RASqliteLogLevelError, @"%@", message);
+						RASqliteErrorLog(@"%@", message);
 
 						error = [NSError code:RASqliteErrorQuery message:message];
 						[self setError:error];
@@ -620,7 +620,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				// Something went wrong...
 				const char *errmsg = sqlite3_errmsg([self database]);
 				NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+				RASqliteErrorLog(@"%@", message);
 
 				error = [NSError code:RASqliteErrorQuery message:message];
 				[self setError:error];
@@ -667,7 +667,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 						// Something went wrong...
 						const char *errmsg = sqlite3_errmsg([self database]);
 						NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
-						RASqliteLog(RASqliteLogLevelError, @"%@", message);
+						RASqliteErrorLog(@"%@", message);
 
 						error = [NSError code:RASqliteErrorQuery message:message];
 						[self setError:error];
@@ -677,7 +677,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 				// Something went wrong...
 				const char *errmsg = sqlite3_errmsg([self database]);
 				NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-				RASqliteLog(RASqliteLogLevelError, @"%@", message);
+				RASqliteErrorLog(@"%@", message);
 
 				error = [NSError code:RASqliteErrorQuery message:message];
 				[self setError:error];
@@ -728,7 +728,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 			success = (code == SQLITE_OK);
 			if ( !success ) {
 				NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-				RASqliteLog(RASqliteLogLevelError, @"Unable to begin transaction: %@", message);
+				RASqliteErrorLog(@"Unable to begin transaction: %@", message);
 
 				NSError *error = [NSError code:RASqliteErrorTransaction message:message];
 				[self setError:error];
@@ -755,7 +755,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		success = (code == SQLITE_OK);
 		if ( !success ) {
 			NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-			RASqliteLog(RASqliteLogLevelError, @"Unable to rollback transaction: %@", message);
+			RASqliteErrorLog(@"Unable to rollback transaction: %@", message);
 
 			NSError *error = [NSError code:RASqliteErrorTransaction message:message];
 			[self setError:error];
@@ -776,7 +776,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 		success = (code == SQLITE_OK);
 		if ( !success ) {
 			NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-			RASqliteLog(RASqliteLogLevelError, @"Unable to commit transaction: %@", message);
+			RASqliteErrorLog(@"Unable to commit transaction: %@", message);
 
 			NSError *error = [NSError code:RASqliteErrorTransaction message:message];
 			[self setError:error];

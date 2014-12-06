@@ -134,7 +134,7 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 	NSError *_error;
 }
 
-/// Stores the first occurred error, `nil` if none has occurred.
+/// Stores the last occurred error, `nil` if none has occurred.
 @property (strong, atomic) NSError *error;
 
 #pragma mark - Initialization

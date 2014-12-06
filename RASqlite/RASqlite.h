@@ -99,6 +99,18 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelInfo;
 	} while(NO)
 #endif
 
+/// Shorthand logger for debug-messages.
+#define RASqliteDebugLog( format, ... ) RASqliteLog( RASqliteLogLevelDebug, format, ##__VA_ARGS__ )
+
+/// Shorthand logger for info-messages.
+#define RASqliteInfoLog( format, ... ) RASqliteLog( RASqliteLogLevelInfo, format, ##__VA_ARGS__ )
+
+/// Shorthand logger for warning-messages.
+#define RASqliteWarningLog( format, ... ) RASqliteLog( RASqliteLogLevelWarning, format, ##__VA_ARGS__ )
+
+/// Shorthand logger for error-messages.
+#define RASqliteErrorLog( format, ... ) RASqliteLog( RASqliteLogLevelError, format, ##__VA_ARGS__ )
+
 /**
  Shorthand for column initialization.
 

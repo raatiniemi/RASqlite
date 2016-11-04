@@ -10,15 +10,13 @@
 
 @implementation NSDictionary (RASqlite)
 
-- (id)getColumn:(NSString *)name
-{
-	return [self hasColumn:name] ? [self objectForKey:name] : [NSNull null];
+- (id)getColumn:(NSString *)name {
+    return [self hasColumn:name] ? [self objectForKey:name] : [NSNull null];
 }
 
-- (BOOL)hasColumn:(NSString *)name
-{
-	// The `objectForKey:` method returns `nil` if the key do not exists.
-	return [self objectForKey:name] != nil;
+- (BOOL)hasColumn:(NSString *)name {
+    // The `objectForKey:` method returns `nil` if the key do not exists.
+    return [self objectForKey:name] != nil;
 }
 
 @end

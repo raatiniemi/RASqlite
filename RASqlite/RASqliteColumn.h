@@ -12,20 +12,20 @@
 
 /// Available column data types.
 typedef NS_ENUM(short int, RASqliteDataType) {
-	/// Column data type for `NULL`.
-	RASqliteNull,
+    /// Column data type for `NULL`.
+            RASqliteNull,
 
-	/// Column data type for `INTEGER`.
-	RASqliteInteger,
+    /// Column data type for `INTEGER`.
+            RASqliteInteger,
 
-	/// Column data type for `REAL`.
-	RASqliteReal,
+    /// Column data type for `REAL`.
+            RASqliteReal,
 
-	/// Column data type for `TEXT`.
-	RASqliteText,
+    /// Column data type for `TEXT`.
+            RASqliteText,
 
-	/// Column data type for `BLOB`.
-	RASqliteBlob
+    /// Column data type for `BLOB`.
+            RASqliteBlob
 };
 
 /**
@@ -38,28 +38,28 @@ typedef NS_ENUM(short int, RASqliteDataType) {
 @interface RASqliteColumn : NSObject
 
 /// Stores the name of the column.
-@property (strong, atomic, readonly) NSString *name;
+@property(strong, atomic, readonly) NSString *name;
 
 /// Stores the type of the column, in its numeric form.
-@property (atomic, readonly) RASqliteDataType numericType;
+@property(atomic, readonly) RASqliteDataType numericType;
 
 /// Stores the type of the column.
-@property (strong, atomic, readonly) NSString *type;
+@property(strong, atomic, readonly) NSString *type;
 
 /// Stores the default value for the column.
-@property (strong, nonatomic) id defaultValue;
+@property(strong, nonatomic) id defaultValue;
 
 /// Stores whether or not the column is a primary key.
-@property (nonatomic, getter = isPrimaryKey) BOOL primaryKey;
+@property(nonatomic, getter = isPrimaryKey) BOOL primaryKey;
 
 /// Stores whether or not the column is auto incremental.
-@property (nonatomic, getter = isAutoIncrement) BOOL autoIncrement;
+@property(nonatomic, getter = isAutoIncrement) BOOL autoIncrement;
 
 /// Stores whether or not the column is unique.
-@property (nonatomic, getter = isUnique) BOOL unique;
+@property(nonatomic, getter = isUnique) BOOL unique;
 
 /// Stores whether or not the column is nullable.
-@property (nonatomic, getter = isNullable) BOOL nullable;
+@property(nonatomic, getter = isNullable) BOOL nullable;
 
 #pragma mark - Initialization
 

@@ -10,14 +10,14 @@
 
 /// Available status flags for checking tables.
 typedef NS_ENUM(short int, RASqliteTableCheckStatus) {
-	/// The table is clean, i.e. nothing have been changed.
-	RASqliteTableCheckStatusClean,
+    /// The table is clean, i.e. nothing have been changed.
+            RASqliteTableCheckStatusClean,
 
-	/// The table do not exists.
-	RASqliteTableCheckStatusNew,
+    /// The table do not exists.
+            RASqliteTableCheckStatusNew,
 
-	/// The table structure have been modified.
-	RASqliteTableCheckStatusModified
+    /// The table structure have been modified.
+            RASqliteTableCheckStatusModified
 };
 
 /**

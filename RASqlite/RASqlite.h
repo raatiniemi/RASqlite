@@ -33,31 +33,31 @@ static NSString *RASqliteIncompleteImplementationException = @"Incomplete implem
  http://www.sqlite.org/lang_transaction.html
  */
 typedef NS_ENUM(short int, RASqliteTransaction) {
-	/// No locks are acquired on the database until the database is first accessed.
-	RASqliteTransactionDeferred,
+    /// No locks are acquired on the database until the database is first accessed.
+            RASqliteTransactionDeferred,
 
-	/// Reserved locks are acquired on all database, without waiting for database access.
-	RASqliteTransactionImmediate,
+    /// Reserved locks are acquired on all database, without waiting for database access.
+            RASqliteTransactionImmediate,
 
-	/// An exclusive transaction causes EXCLUSIVE locks to be acquired on all databases.
-	RASqliteTransactionExclusive
+    /// An exclusive transaction causes EXCLUSIVE locks to be acquired on all databases.
+            RASqliteTransactionExclusive
 };
 
 // -- -- Logging
 
 /// Definition of available log levels.
 typedef NS_ENUM(short int, RASqliteLogLevel) {
-	/// Debug-level messages.
-	RASqliteLogLevelDebug,
+    /// Debug-level messages.
+            RASqliteLogLevelDebug,
 
-	/// Informational-level messages.
-	RASqliteLogLevelInfo,
+    /// Informational-level messages.
+            RASqliteLogLevelInfo,
 
-	/// Warning-level messages.
-	RASqliteLogLevelWarning,
+    /// Warning-level messages.
+            RASqliteLogLevelWarning,
 
-	/// Error-level messages.
-	RASqliteLogLevelError
+    /// Error-level messages.
+            RASqliteLogLevelError
 };
 
 #if kRASqliteDebug
@@ -86,30 +86,30 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelInfo;
  macro already have been defined.
  */
 #ifndef RASqliteLog
-#define RASqliteLog( level, format, ... )\
-	do {\
-		if ( level > _RASqliteLogLevel ) {\
-			NSLog(\
-				@"<%@: (%d)> %@",\
-				[[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
-				__LINE__,\
-				[NSString stringWithFormat:(format), ##__VA_ARGS__]\
-			);\
-		}\
-	} while(NO)
+#define RASqliteLog(level, format, ...)\
+    do {\
+        if ( level > _RASqliteLogLevel ) {\
+            NSLog(\
+                @"<%@: (%d)> %@",\
+                [[NSString stringWithUTF8String:__FILE__] lastPathComponent],\
+                __LINE__,\
+                [NSString stringWithFormat:(format), ##__VA_ARGS__]\
+            );\
+        }\
+    } while(NO)
 #endif
 
 /// Shorthand logger for debug-messages.
-#define RASqliteDebugLog( format, ... ) RASqliteLog( RASqliteLogLevelDebug, format, ##__VA_ARGS__ )
+#define RASqliteDebugLog(format, ...) RASqliteLog( RASqliteLogLevelDebug, format, ##__VA_ARGS__ )
 
 /// Shorthand logger for info-messages.
-#define RASqliteInfoLog( format, ... ) RASqliteLog( RASqliteLogLevelInfo, format, ##__VA_ARGS__ )
+#define RASqliteInfoLog(format, ...) RASqliteLog( RASqliteLogLevelInfo, format, ##__VA_ARGS__ )
 
 /// Shorthand logger for warning-messages.
-#define RASqliteWarningLog( format, ... ) RASqliteLog( RASqliteLogLevelWarning, format, ##__VA_ARGS__ )
+#define RASqliteWarningLog(format, ...) RASqliteLog( RASqliteLogLevelWarning, format, ##__VA_ARGS__ )
 
 /// Shorthand logger for error-messages.
-#define RASqliteErrorLog( format, ... ) RASqliteLog( RASqliteLogLevelError, format, ##__VA_ARGS__ )
+#define RASqliteErrorLog(format, ...) RASqliteLog( RASqliteLogLevelError, format, ##__VA_ARGS__ )
 
 /**
  Shorthand for column initialization.
@@ -121,9 +121,8 @@ static const RASqliteLogLevel _RASqliteLogLevel = RASqliteLogLevelInfo;
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
-{
-	return [[RASqliteColumn alloc] initWithName:name type:type];
+NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type) {
+    return [[RASqliteColumn alloc] initWithName:name type:type];
 };
 
 /**
@@ -134,7 +133,7 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-#define RASqliteSF( format, ... ) [NSString stringWithFormat:(format), ##__VA_ARGS__]
+#define RASqliteSF(format, ...) [NSString stringWithFormat:(format), ##__VA_ARGS__]
 
 /**
  RASqlite is a simple library for working with SQLite databases on iOS and Mac OS X.
@@ -143,11 +142,11 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
  */
 @interface RASqlite : NSObject {
 @protected
-	NSError *_error;
+    NSError *_error;
 }
 
 /// Stores the last occurred error, `nil` if none has occurred.
-@property (strong, atomic) NSError *error;
+@property(strong, atomic) NSError *error;
 
 #pragma mark - Initialization
 
@@ -178,13 +177,13 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type)
 #pragma mark - Database
 
 /// Stores the defined structure for the database tables.
-@property (nonatomic, readonly, copy) NSDictionary *structure;
+@property(nonatomic, readonly, copy) NSDictionary *structure;
 
 /// Handles the instance for the database.
-@property (atomic) sqlite3 *database;
+@property(atomic) sqlite3 *database;
 
 /// Queue on which all of the queries will be executed on.
-@property (atomic, strong) dispatch_queue_t queue;
+@property(atomic, strong) dispatch_queue_t queue;
 
 /**
  Retrieve the absolute path for the database file.

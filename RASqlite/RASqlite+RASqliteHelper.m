@@ -10,30 +10,28 @@
 
 @implementation RASqlite (RASqliteHelper)
 
-- (NSNumber *)lastInsertId
-{
-	NSNumber __block *insertId;
+- (NSNumber *)lastInsertId {
+    NSNumber __block *insertId;
 
-	[self queueWithBlock:^(RASqlite *db) {
-		if ( [db database] ) {
-			insertId = @(sqlite3_last_insert_rowid([db database]));
-		}
-	}];
+    [self queueWithBlock:^(RASqlite *db) {
+        if ([db database]) {
+            insertId = @(sqlite3_last_insert_rowid([db database]));
+        }
+    }];
 
-	return insertId;
+    return insertId;
 }
 
-- (NSNumber *)rowCount
-{
-	NSNumber __block *count;
+- (NSNumber *)rowCount {
+    NSNumber __block *count;
 
-	[self queueWithBlock:^(RASqlite *db) {
-		if ( [db database] ) {
-			count = @(sqlite3_changes([db database]));
-		}
-	}];
+    [self queueWithBlock:^(RASqlite *db) {
+        if ([db database]) {
+            count = @(sqlite3_changes([db database]));
+        }
+    }];
 
-	return count;
+    return count;
 }
 
 @end

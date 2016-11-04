@@ -3,7 +3,7 @@
 //  RASqlite
 //
 //  Created by Tobias Raatiniemi on 2013-11-27.
-//  Copyright (c) 2013-2014 Raatiniemi. All rights reserved.
+//  Copyright (c) 2013-2016 Raatiniemi. All rights reserved.
 //
 
 #import "RASqliteColumn.h"

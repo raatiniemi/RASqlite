@@ -3,7 +3,7 @@
 //  RASqliteTests
 //
 //  Created by Tobias Raatiniemi on 2013-11-30.
-//  Copyright (c) 2013-2014 Raatiniemi. All rights reserved.
+//  Copyright (c) 2013-2016 Raatiniemi. All rights reserved.
 //
 
 #import <XCTest/XCTest.h>

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2D043E711DCC606C00089E1E /* NSMutableDictionary+RASqliteTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D043E701DCC606C00089E1E /* NSMutableDictionary+RASqliteTests.m */; };
 		2D0E88331845A3C7006EEDC3 /* RASqliteColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D0E88321845A3C7006EEDC3 /* RASqliteColumn.m */; };
 		2D2A3B131858198800927DB8 /* RASqliteColumn.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D0E88321845A3C7006EEDC3 /* RASqliteColumn.m */; };
 		2D3721CF1932158400736B02 /* RASqlite+RASqliteTable.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D3721CE1932158400736B02 /* RASqlite+RASqliteTable.m */; };
@@ -64,6 +65,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2D043E701DCC606C00089E1E /* NSMutableDictionary+RASqliteTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableDictionary+RASqliteTests.m"; sourceTree = "<group>"; };
 		2D0E88311845A3C7006EEDC3 /* RASqliteColumn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RASqliteColumn.h; path = RASqlite/RASqliteColumn.h; sourceTree = "<group>"; };
 		2D0E88321845A3C7006EEDC3 /* RASqliteColumn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RASqliteColumn.m; path = RASqlite/RASqliteColumn.m; sourceTree = "<group>"; };
 		2D1D7472182EDBA70049BB3A /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../license.txt; sourceTree = "<group>"; };
@@ -132,6 +134,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2D043E6F1DCC604700089E1E /* NSMutableDictionary */ = {
+			isa = PBXGroup;
+			children = (
+				2D043E701DCC606C00089E1E /* NSMutableDictionary+RASqliteTests.m */,
+			);
+			name = NSMutableDictionary;
+			sourceTree = "<group>";
+		};
 		2D26F779182C1C930043E0C3 /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -322,6 +332,7 @@
 			children = (
 				4B37F1DBFAD311A5D72DA3E1 /* RASqlite */,
 				4B37FC88535CEED71E71AF47 /* NSDictionary */,
+				2D043E6F1DCC604700089E1E /* NSMutableDictionary */,
 			);
 			name = Category;
 			sourceTree = "<group>";
@@ -476,6 +487,7 @@
 				2D42BD681849AAA200D0BA89 /* NSMutableDictionary+RASqlite.m in Sources */,
 				2D42BD691849AAA200D0BA89 /* NSDictionary+RASqlite.m in Sources */,
 				2D42BD5F1849A66900D0BA89 /* RASqliteTests.m in Sources */,
+				2D043E711DCC606C00089E1E /* NSMutableDictionary+RASqliteTests.m in Sources */,
 				4B37FAE9F3C60BF2425B0CB2 /* RASqlite+RASqliteTableTests.m in Sources */,
 				4B37F27A90CEB1440E554422 /* NSDictionary+RASqliteTests.m in Sources */,
 			);

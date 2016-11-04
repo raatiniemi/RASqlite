@@ -1,0 +1,8 @@
+#!/bin/bash
+DEVICE_PLATFORM="iOS Simulator";
+DEVICE_NAME="iPhone 7";
+DEVICE_OS="10.0";
+
+xcodebuild clean test -project RASqlite.xcodeproj \
+    -scheme RASqliteTests \
+    -destination "platform=${DEVICE_PLATFORM},name=${DEVICE_NAME},OS=${DEVICE_OS}";

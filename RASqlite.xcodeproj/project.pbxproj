@@ -100,6 +100,7 @@
 		2DF94A8118332B75004F6D8E /* NSError+RASqlite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+RASqlite.h"; sourceTree = "<group>"; };
 		2DF94A8218332B75004F6D8E /* NSError+RASqlite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+RASqlite.m"; sourceTree = "<group>"; };
 		4B37F2615ADA86DDEDE475EB /* NSDictionary+RASqliteTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+RASqliteTests.m"; sourceTree = "<group>"; };
+		4B37F2BC9251248275FB4EED /* RASqliteTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RASqliteTests-Prefix.pch"; sourceTree = "<group>"; };
 		4B37FD7D98A999AF6AD5762A /* RASqlite+RASqliteTableTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RASqlite+RASqliteTableTests.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -213,6 +214,7 @@
 			children = (
 				2D42BD5A1849A66800D0BA89 /* RASqliteTests-Info.plist */,
 				2D42BD5B1849A66900D0BA89 /* InfoPlist.strings */,
+				4B37F2BC9251248275FB4EED /* RASqliteTests-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -629,7 +631,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "RASqlite/RASqlite-Prefix.pch";
+				GCC_PREFIX_HEADER = "RASqliteTests/RASqliteTests-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -673,7 +675,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "RASqlite/RASqlite-Prefix.pch";
+				GCC_PREFIX_HEADER = "RASqliteTests/RASqliteTests-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

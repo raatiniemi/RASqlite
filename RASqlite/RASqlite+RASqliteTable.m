@@ -51,7 +51,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
                 }
 
                 status = RASqliteTableCheckStatusClean;
-                checkTable(db, selector, table, [tables objectForKey:table], &status);
+                checkTable(db, selector, table, tables[table], &status);
 
                 // If the after check method is available we have to execute it,
                 // sending the current status of the table.
@@ -103,7 +103,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
                     }
 
                     // Retrieve the column definition from the table.
-                    NSDictionary *tColumn = [tColumns objectAtIndex:index];
+                    NSDictionary *tColumn = tColumns[index];
 
                     // Check that the column name matches.
                     if (![[tColumn getColumn:@"name"] isEqualToString:[column name]]) {
@@ -174,7 +174,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 
             // Loops through each of the tables and attempt to create their structure.
             for (NSString *table in tables) {
-                if (!createTable(db, selector, table, [tables objectForKey:table])) {
+                if (!createTable(db, selector, table, tables[table])) {
                     created = NO;
                     break;
                 }

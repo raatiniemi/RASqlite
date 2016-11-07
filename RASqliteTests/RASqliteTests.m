@@ -422,7 +422,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     XCTAssertTrue(insert, @"Insert failed: %@", [[rasqlite error] localizedDescription]);
 
     NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
-    XCTAssertEqualObjects(@"baz", [row objectForKey:@"bar"], @"Value for retrieved row do not match.");
+    XCTAssertEqualObjects(@"baz", row[@"bar"], @"Value for retrieved row do not match.");
 }
 
 - (void)testExecuteUpdate {
@@ -443,7 +443,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     XCTAssertTrue(update, @"Update failed: %@", [[rasqlite error] localizedDescription]);
 
     NSDictionary *row = [rasqlite fetchRow:@"SELECT bar FROM foo WHERE id = ?" withParam:@1];
-    XCTAssertEqualObjects(@"quux", [row objectForKey:@"bar"], @"Value for retrieved row do not match.");
+    XCTAssertEqualObjects(@"quux", row[@"bar"], @"Value for retrieved row do not match.");
 }
 
 - (void)testExecuteDelete {

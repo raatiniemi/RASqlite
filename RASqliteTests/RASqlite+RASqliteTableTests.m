@@ -270,8 +270,8 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Unable to create table for checking primary key mismatch.");
 
     // Modify the primary key order.
-    [[columns objectAtIndex:0] setPrimaryKey:NO];
-    [[columns objectAtIndex:1] setPrimaryKey:YES];
+    [columns[0] setPrimaryKey:NO];
+    [columns[1] setPrimaryKey:YES];
 
     // Check if the `checkTable:withColumns:` notice the change.
     XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
@@ -294,7 +294,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Unable to create table for checking nullable mismatch.");
 
     // Modify the nullable structure.
-    [[columns objectAtIndex:0] setNullable:NO];
+    [columns[0] setNullable:NO];
 
     // Check if the `checkTable:withColumns:` notice the change.
     XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],

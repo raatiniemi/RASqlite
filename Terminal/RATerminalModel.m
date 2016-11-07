@@ -36,7 +36,7 @@ static dispatch_queue_t _queue;
         [self queueTransactionWithBlock:^(RASqlite *db, BOOL *commit) {
             // Iterate over the table structure.
             for (NSString *table in [self structure]) {
-                NSArray *columns = [[self structure] objectForKey:table];
+                NSArray *columns = [self structure][table];
 
                 // Check if the structure for the table have changed.
                 if (!(*commit = [db checkTable:table withColumns:columns])) {
@@ -81,7 +81,7 @@ static dispatch_queue_t _queue;
     [user addObject:column];
 
     NSMutableDictionary *tables = [[NSMutableDictionary alloc] init];
-    [tables setObject:user forKey:@"user"];
+    tables[@"user"] = user;
 
     return tables;
 }

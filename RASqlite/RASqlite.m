@@ -221,7 +221,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (instancetype)initWithName:(NSString *)name {
     // Assemble the path for the database file.
     NSArray *directories = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    return [self initWithPath:RASqliteSF(@"%@/%@", [directories objectAtIndex:0], name)];
+    return [self initWithPath:RASqliteSF(@"%@/%@", directories[0], name)];
 }
 
 #pragma mark - Path
@@ -458,12 +458,12 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             case SQLITE_INTEGER: {
                 // TODO: Test on 32-bit machine.
                 long long int value = sqlite3_column_int64(*statement, index);
-                [row setColumn:column withObject:[NSNumber numberWithLongLong:value]];
+                [row setColumn:column withObject:@(value)];
                 break;
             }
             case SQLITE_FLOAT: {
                 double value = sqlite3_column_double(*statement, index);
-                [row setColumn:column withObject:[NSNumber numberWithDouble:value]];
+                [row setColumn:column withObject:@(value)];
                 break;
             }
             case SQLITE_BLOB: {

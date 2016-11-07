@@ -11,12 +11,11 @@
 @implementation NSMutableDictionary (RASqlite)
 
 - (void)setColumn:(NSString *)name withObject:(id)object {
-    // Incase the object value is `nil` we have to change the value to `NSNull`.
     if (object == nil) {
         object = [NSNull null];
     }
 
-    [self setObject:object forKey:name];
+    self[name] = object;
 }
 
 @end

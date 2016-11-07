@@ -242,6 +242,11 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         BOOL isDirectory = NO;
         BOOL exists = [manager fileExistsAtPath:directory isDirectory:&isDirectory];
 
+        if (exists && !isDirectory) {
+            directory = [directory stringByDeletingLastPathComponent];
+            continue;
+        }
+
         // If the path do not exists, we need to create it.
         if (!exists) {
             // Attempt to create the directory.
@@ -250,24 +255,18 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 RASqliteErrorLog(@"Unable to create directory `%@` with error: %@", directory, [error localizedDescription]);
                 break;
             }
-            // The directory have been created, change the directory flag.
-            isDirectory = YES;
         }
-        // Check if the directory is actually a directory. If it's not a string
-        // we need delete the last path component (i.e. filename).
-        if (!isDirectory) {
-            directory = [directory stringByDeletingLastPathComponent];
-        } else {
-            BOOL readable = [manager isReadableFileAtPath:directory];
-            BOOL writeable = [manager isWritableFileAtPath:directory];
 
-            // Check that the directory is both readable and writeable.
-            if (!readable || !writeable) {
-                [NSException raise:RASqliteFilesystemPermissionException
-                            format:@"The directory `%@` need to be readable and writeable.", directory];
-            }
-            isValidDirectory = YES;
+        BOOL readable = [manager isReadableFileAtPath:directory];
+        BOOL writeable = [manager isWritableFileAtPath:directory];
+
+        // Check that the directory is both readable and writeable.
+        if (!readable || !writeable) {
+            [NSException raise:RASqliteFilesystemPermissionException
+                        format:@"The directory `%@` need to be readable and writeable.", directory];
         }
+
+        isValidDirectory = YES;
     } while (!isValidDirectory);
 
     return isValidDirectory;

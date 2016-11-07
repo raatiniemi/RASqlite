@@ -439,7 +439,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 }
 
 - (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement {
-    unsigned int count = sqlite3_column_count(*statement);
+    NSUInteger count = (NSUInteger) sqlite3_column_count(*statement);
     NSMutableDictionary *row = [[NSMutableDictionary alloc] initWithCapacity:count];
 
     const char *name;

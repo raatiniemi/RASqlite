@@ -188,7 +188,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-    NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    NSArray *columns = @[RAColumn(@"id", RASqliteInteger)];
     XCTAssertThrows([rasqlite checkTable:nil withColumns:columns],
             @"Check without table name did not throw exception.");
 }
@@ -205,7 +205,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-    NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    NSArray *columns = @[RAColumn(@"id", RASqliteInteger)];
     XCTAssertFalse([rasqlite checkTable:@"foo" withColumns:columns],
             @"Check with non-existing table was successful.");
 }
@@ -215,17 +215,13 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    RASqliteColumn *column;
-
-    column = [[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger];
-    [columns addObject:column];
+    [columns addObject:RAColumn(@"foo", RASqliteInteger)];
 
     // Create the table with the first structure.
     XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
             @"Unable to create table for number of columns mismatch.");
 
-    column = [[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger];
-    [columns addObject:column];
+    [columns addObject:RAColumn(@"bar", RASqliteInteger)];
 
     // Check if the `checkTable:withColumns:` notice the change.
     XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
@@ -236,14 +232,13 @@ static NSString *_directory = @"/tmp/rasqlite";
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-    NSArray *columns;
-    columns = @[[[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger]];
+    NSArray *columns = @[RAColumn(@"foo", RASqliteInteger)];
 
     // Create the table with the first structure.
     XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
             @"Unable to create table for order of columns mismatch.");
 
-    columns = @[[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger]];
+    columns = @[RAColumn(@"bar", RASqliteInteger)];
 
     // Check if the `checkTable:withColumns:` notice the change.
     XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
@@ -257,11 +252,11 @@ static NSString *_directory = @"/tmp/rasqlite";
     NSMutableArray *columns = [[NSMutableArray alloc] init];
     RASqliteColumn *column;
 
-    column = [[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger];
+    column = RAColumn(@"foo", RASqliteInteger);
     [column setPrimaryKey:YES];
     [columns addObject:column];
 
-    column = [[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger];
+    column = RAColumn(@"bar", RASqliteInteger);
     [column setPrimaryKey:NO];
     [columns addObject:column];
 
@@ -285,7 +280,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     NSMutableArray *columns = [[NSMutableArray alloc] init];
     RASqliteColumn *column;
 
-    column = [[RASqliteColumn alloc] initWithName:@"foo" type:RASqliteInteger];
+    column = RAColumn(@"foo", RASqliteInteger);
     [column setNullable:YES];
     [columns addObject:column];
 
@@ -322,7 +317,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     NSString *path = [_directory stringByAppendingString:@"/create"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-    NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    NSArray *columns = @[RAColumn(@"id", RASqliteInteger)];
     XCTAssertThrows([rasqlite createTable:nil withColumns:columns],
             @"Create without table name did not throw exception.");
 }
@@ -340,10 +335,10 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"int" type:RASqliteInteger]];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"text" type:RASqliteText]];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"real" type:RASqliteReal]];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"blob" type:RASqliteBlob]];
+    [columns addObject:RAColumn(@"int", RASqliteInteger)];
+    [columns addObject:RAColumn(@"text", RASqliteText)];
+    [columns addObject:RAColumn(@"real", RASqliteReal)];
+    [columns addObject:RAColumn(@"blob", RASqliteBlob)];
 
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Create table was not successful: %@", [[rasqlite error] localizedDescription]);

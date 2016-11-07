@@ -351,7 +351,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     NSString *path = [_directory stringByAppendingString:@"/fetch"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-    NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    NSArray *columns = @[RAColumn(@"id", RASqliteInteger)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for fetch no result: %@",
             [[rasqlite error] localizedDescription]);
@@ -387,7 +387,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     NSString *path = [_directory stringByAppendingString:@"/fetch"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-    NSArray *columns = @[[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    NSArray *columns = @[RAColumn(@"id", RASqliteInteger)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for fetch no result: %@",
             [[rasqlite error] localizedDescription]);
@@ -412,8 +412,8 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteText]];
+    [columns addObject:RAColumn(@"id", RASqliteInteger)];
+    [columns addObject:RAColumn(@"bar", RASqliteText)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for execute: %@",
             [[rasqlite error] localizedDescription]);
@@ -430,8 +430,8 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteText]];
+    [columns addObject:RAColumn(@"id", RASqliteInteger)];
+    [columns addObject:RAColumn(@"bar", RASqliteText)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for execute: %@",
             [[rasqlite error] localizedDescription]);
@@ -451,8 +451,8 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteText]];
+    [columns addObject:RAColumn(@"id", RASqliteInteger)];
+    [columns addObject:RAColumn(@"bar", RASqliteText)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for execute: %@",
             [[rasqlite error] localizedDescription]);
@@ -477,7 +477,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    [columns addObject:RAColumn(@"id", RASqliteInteger)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for `%s`: %@",
             __PRETTY_FUNCTION__,
@@ -499,7 +499,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    [columns addObject:RAColumn(@"id", RASqliteInteger)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for `%s`: %@",
             __PRETTY_FUNCTION__,
@@ -524,7 +524,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    [columns addObject:RAColumn(@"id", RASqliteInteger)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for `%s`: %@",
             __PRETTY_FUNCTION__,
@@ -554,7 +554,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    [columns addObject:RAColumn(@"id", RASqliteInteger)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for `%s`: %@",
             __PRETTY_FUNCTION__,
@@ -587,7 +587,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     NSMutableArray *columns = [[NSMutableArray alloc] init];
-    [columns addObject:[[RASqliteColumn alloc] initWithName:@"id" type:RASqliteInteger]];
+    [columns addObject:RAColumn(@"id", RASqliteInteger)];
     XCTAssertTrue([rasqlite createTable:@"foo" withColumns:columns],
             @"Unable to create table for `%s`: %@",
             __PRETTY_FUNCTION__,

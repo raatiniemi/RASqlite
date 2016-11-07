@@ -47,7 +47,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testInitWithPath_withFailure;
+- (void)testInitWithPath_withReadonlyDirectory;
 
 /**
  Initialization successful test with `initWithName:`.
@@ -268,11 +268,35 @@ static NSString *_directory = @"/tmp/rasqlite";
     XCTAssertNotNil(rasqlite, @"Database initialization failed with directory `/tmp`.");
 }
 
-- (void)testInitWithPath_withFailure {
+- (void)testInitWithPath_withReadonlyDirectory {
     // Database initialization should not be successful with readonly directories
     // since the `checkPath:` method checks permissions, among other things.
     XCTAssertThrows([[RASqlite alloc] initWithPath:@"/db"],
             @"Database initialization was successful with the readonly directory `/`.");
+}
+
+- (void)testInitWithPath_createNewDirectoryInReadonlyDirectory {
+    XCTAssertThrows([[RASqlite alloc] initWithPath:@"/new-directory/db"],
+            @"Database initialization was successful with new directory in readonly directory.");
+}
+
+- (void)testInitWithPath_withNestedFilePath {
+    NSString *path = [_directory stringByAppendingString:@"/existing_file"];
+    NSFileManager *manager = [NSFileManager defaultManager];
+    [manager createFileAtPath:path contents:nil attributes:nil];
+    NSString *nestedFilePath = [path stringByAppendingString:@"/recursive_file"];
+
+    RASqlite *rasqlite = [[RASqlite alloc] initWithPath:nestedFilePath];
+
+    XCTAssertNotNil(rasqlite, @"Nested file path failed.");
+}
+
+- (void)testInitWithPath_withoutExistingDirectory {
+    NSString *path = [_directory stringByAppendingString:@"/none_existing_directory/file"];
+
+    RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
+
+    XCTAssertNotNil(rasqlite, @"Nested file path failed.");
 }
 
 - (void)testInitWithName_withSuccess {

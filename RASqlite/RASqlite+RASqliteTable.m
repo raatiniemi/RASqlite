@@ -92,60 +92,62 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
     [self queueWithBlock:^(RASqlite *db) {
         // Check whether the defined columns and the table columns match.
         NSArray *tColumns = [db fetch:RASqliteSF(@"PRAGMA table_info(%@)", table)];
-        if ([tColumns count] > 0) {
-            if ([tColumns count] == [columns count]) {
-                unsigned int index = 0;
-                for (RASqliteColumn *column in columns) {
-                    // The column have to be of type `RASqliteColumn`.
-                    if (![column isKindOfClass:[RASqliteColumn class]]) {
-                        [NSException raise:NSInvalidArgumentException
-                                    format:@"Column defined for table `%@` at index `%i` is not of type `RASqliteColumn.", table, index];
-                    }
-
-                    // Retrieve the column definition from the table.
-                    NSDictionary *tColumn = tColumns[index];
-
-                    // Check that the column name matches.
-                    if (![[tColumn getColumn:@"name"] isEqualToString:[column name]]) {
-                        RASqliteDebugLog(@"Column name at index `%i` do not match column given for structure `%@`.", index, table);
-                        valid = NO;
-                        break;
-                    }
-
-                    // Check that the column type matches.
-                    if (![[tColumn getColumn:@"type"] isEqualToString:[column type]]) {
-                        RASqliteDebugLog(@"Column type at index `%i` do not match column given for structure `%@`.", index, table);
-                        valid = NO;
-                        break;
-                    }
-
-                    // Check that whether the column matches the primary key setting.
-                    if ([column isPrimaryKey] != [[tColumn getColumn:@"pk"] boolValue]) {
-                        RASqliteDebugLog(@"Column primary key option at index `%i` do not match column given for structure `%@`.", index, table);
-                        valid = NO;
-                        break;
-                    }
-
-                    // Check that whether the column matches the nullable setting.
-                    if ([column isNullable] == [[tColumn getColumn:@"notnull"] boolValue]) {
-                        RASqliteDebugLog(@"Column nullable option at index `%i` do not match column given for structure `%@`.", index, table);
-                        valid = NO;
-                        break;
-                    }
-
-                    // TODO: Check the default value, `dflt_value` from tColumn.
-                    // TODO: Check for unique columns.
-                    // TODO: Check for autoincremental.
-
-                    index++;
-                }
-            } else {
-                RASqliteDebugLog(@"Number of specified columns for table `%@` do not matched the defined table count.", table);
-                valid = NO;
-            }
-        } else {
+        if (0 == [tColumns count]) {
             RASqliteDebugLog(@"Table `%@` do not exist with any structure within the database.", table);
             valid = NO;
+            return;
+        }
+
+        if ([tColumns count] != [columns count]) {
+            RASqliteDebugLog(@"Number of specified columns for table `%@` do not matched the defined table count.", table);
+            valid = NO;
+            return;
+        }
+
+        unsigned int index = 0;
+        for (RASqliteColumn *column in columns) {
+            // The column have to be of type `RASqliteColumn`.
+            if (![column isKindOfClass:[RASqliteColumn class]]) {
+                [NSException raise:NSInvalidArgumentException
+                            format:@"Column defined for table `%@` at index `%i` is not of type `RASqliteColumn.", table, index];
+            }
+
+            // Retrieve the column definition from the table.
+            NSDictionary *tColumn = tColumns[index];
+
+            // Check that the column name matches.
+            if (![[tColumn getColumn:@"name"] isEqualToString:[column name]]) {
+                RASqliteDebugLog(@"Column name at index `%i` do not match column given for structure `%@`.", index, table);
+                valid = NO;
+                break;
+            }
+
+            // Check that the column type matches.
+            if (![[tColumn getColumn:@"type"] isEqualToString:[column type]]) {
+                RASqliteDebugLog(@"Column type at index `%i` do not match column given for structure `%@`.", index, table);
+                valid = NO;
+                break;
+            }
+
+            // Check that whether the column matches the primary key setting.
+            if ([column isPrimaryKey] != [[tColumn getColumn:@"pk"] boolValue]) {
+                RASqliteDebugLog(@"Column primary key option at index `%i` do not match column given for structure `%@`.", index, table);
+                valid = NO;
+                break;
+            }
+
+            // Check that whether the column matches the nullable setting.
+            if ([column isNullable] == [[tColumn getColumn:@"notnull"] boolValue]) {
+                RASqliteDebugLog(@"Column nullable option at index `%i` do not match column given for structure `%@`.", index, table);
+                valid = NO;
+                break;
+            }
+
+            // TODO: Check the default value, `dflt_value` from tColumn.
+            // TODO: Check for unique columns.
+            // TODO: Check for autoincremental.
+
+            index++;
         }
     }];
 

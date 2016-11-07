@@ -30,40 +30,40 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 
     [self queueWithBlock:^(RASqlite *db) {
         NSDictionary *tables = [db structure];
-        if (tables) {
-            // Get the pointer for the method, performance improvement.
-            SEL selector = @selector(checkTable:withColumns:status:);
-
-            typedef BOOL (*check)(id, SEL, NSString *, NSArray *, RASqliteTableCheckStatus **);
-            check checkTable = (check) [db methodForSelector:selector];
-
-            // Checking whether the database instance have implemented
-            // methods for before and after table check handling.
-            BOOL isBeforeAvailable = [db respondsToSelector:@selector(beforeTableCheck:)];
-            BOOL isAfterAvailable = [db respondsToSelector:@selector(afterTableCheck:withStatus:)];
-
-            RASqliteTableCheckStatus *status;
-            for (NSString *table in tables) {
-                // If the before check method is available and it returns
-                // `NO` we should move on to the next table.
-                if (isBeforeAvailable && ![db beforeTableCheck:table]) {
-                    continue;
-                }
-
-                status = (RASqliteTableCheckStatus *) RASqliteTableCheckStatusClean;
-                checkTable(db, selector, table, tables[table], &status);
-
-                // If the after check method is available we have to execute it,
-                // sending the current status of the table.
-                // This way we can determined what to do about the changes (if any).
-                if (isAfterAvailable) {
-                    [db afterTableCheck:table withStatus:status];
-                }
-            }
-        } else {
+        if (!tables) {
             // Raise an exception, no structure have been supplied.
             [NSException raise:RASqliteCheckDatabaseException
                         format:@"Unable to check database structure, none has been supplied."];
+        }
+
+        // Get the pointer for the method, performance improvement.
+        SEL selector = @selector(checkTable:withColumns:status:);
+
+        typedef BOOL (*check)(id, SEL, NSString *, NSArray *, RASqliteTableCheckStatus **);
+        check checkTable = (check) [db methodForSelector:selector];
+
+        // Checking whether the database instance have implemented
+        // methods for before and after table check handling.
+        BOOL isBeforeAvailable = [db respondsToSelector:@selector(beforeTableCheck:)];
+        BOOL isAfterAvailable = [db respondsToSelector:@selector(afterTableCheck:withStatus:)];
+
+        RASqliteTableCheckStatus *status;
+        for (NSString *table in tables) {
+            // If the before check method is available and it returns
+            // `NO` we should move on to the next table.
+            if (isBeforeAvailable && ![db beforeTableCheck:table]) {
+                continue;
+            }
+
+            status = (RASqliteTableCheckStatus *) RASqliteTableCheckStatusClean;
+            checkTable(db, selector, table, tables[table], &status);
+
+            // If the after check method is available we have to execute it,
+            // sending the current status of the table.
+            // This way we can determined what to do about the changes (if any).
+            if (isAfterAvailable) {
+                [db afterTableCheck:table withStatus:status];
+            }
         }
     }];
 

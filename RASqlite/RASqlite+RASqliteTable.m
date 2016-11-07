@@ -263,9 +263,10 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
         created = [db execute:sql];
         if (created) {
             RASqliteDebugLog(@"Table `%@` have been created.", table);
-        } else {
-            RASqliteDebugLog(@"Table `%@` have not been created.", table);
+            return;
         }
+
+        RASqliteDebugLog(@"Table `%@` have not been created.", table);
     }];
 
     return created;
@@ -286,9 +287,10 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
         removed = [db execute:RASqliteSF(@"DROP TABLE IF EXISTS %@", table)];
         if (removed) {
             RASqliteDebugLog(@"Table `%@` have been removed.", table);
-        } else {
-            RASqliteDebugLog(@"Table `%@` have not been removed.", table);
+            return;
         }
+
+        RASqliteDebugLog(@"Table `%@` have not been removed.", table);
     }];
 
     return removed;

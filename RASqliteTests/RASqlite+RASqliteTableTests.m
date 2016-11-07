@@ -26,7 +26,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckWithoutStructure;
+- (void)testCheck_withoutStructure;
 
 // TODO: Test with structure with mock.
 
@@ -35,35 +35,35 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckTableWithoutTable;
+- (void)testCheckTableWithColumns_withoutTable;
 
 /**
  Attempt to check table without columns.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckTableWithoutColumns;
+- (void)testCheckTableWithColumns_withoutColumns;
 
 /**
  Attempt to check non-existing table.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckNonExistingTable;
+- (void)testCheckTableWithColumns_withoutExistingTable;
 
 /**
  Attempt to check table with different number of columns.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckNumberOfColumns;
+- (void)testCheckTableWithColumns_withIncorrectNumberOfColumns;
 
 /**
  Attempt to check table with different order on the columns.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckOrderOfColumns;
+- (void)testCheckTableWithColumns_withIncorrectOrderOfColumns;
 
 // TODO: Add test for default value.
 
@@ -72,21 +72,21 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckWithPrimaryKeyMismatch;
+- (void)testCheckTableWithColumns_withPrimaryKeyMismatch;
 
 /**
  Attempt to check table structure with nullable mismatch.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckWithNullableMismatch;
+- (void)testCheckTableWithColumns_withNullableMismatch;
 
 /**
  Attempt to check table structure with unique key mismatch.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckWithUniqueKeyMismatch;
+- (void)testCheckTableWithColumns_withUniqueKeyMismatch;
 
 #pragma mark - Create
 
@@ -95,7 +95,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCreateWithoutStructure;
+- (void)testCreate_withoutStructure;
 
 // TODO: Test with structure with mock.
 
@@ -104,28 +104,28 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCreateTableWithoutTable;
+- (void)testCreateTableWithColumns_withoutTable;
 
 /**
  Attempt to create table without columns.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCreateTableWithoutColumns;
+- (void)testCreateTableWithColumns_withoutColumns;
 
 /**
  Attempt to create table with available data types.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCreateTable;
+- (void)testCreateTableWithColumns_withSuccess;
 
 /**
  Attempt to create table with null data type.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCreateTableWithNullType;
+- (void)testCreateTableWithColumns_withNullType;
 
 #pragma mark - Delete
 
@@ -134,21 +134,21 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testDeleteTableWithoutTable;
+- (void)testDeleteTable_withoutTable;
 
 /**
  Attempt to delete table with invalid table name.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testDeleteTableFailure;
+- (void)testDeleteTable_withInvalidTableName;
 
 /**
  Delete table successfully.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testDeleteTableSuccess;
+- (void)testDeleteTable_withSuccess;
 
 @end
 
@@ -173,7 +173,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark - Check
 
-- (void)testCheckWithoutStructure {
+- (void)testCheck_withoutStructure {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -184,7 +184,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     }];
 }
 
-- (void)testCheckTableWithoutTable {
+- (void)testCheckTableWithColumns_withoutTable {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -193,7 +193,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Check without table name did not throw exception.");
 }
 
-- (void)testCheckTableWithoutColumns {
+- (void)testCheckTableWithColumns_withoutColumns {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -201,7 +201,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Check without columns did not throw exception.");
 }
 
-- (void)testCheckNonExistingTable {
+- (void)testCheckTableWithColumns_withoutExistingTable {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -210,7 +210,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Check with non-existing table was successful.");
 }
 
-- (void)testCheckNumberOfColumns {
+- (void)testCheckTableWithColumns_withIncorrectNumberOfColumns {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -228,7 +228,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Check with number of columns mismatch failed.");
 }
 
-- (void)testCheckOrderOfColumns {
+- (void)testCheckTableWithColumns_withIncorrectOrderOfColumns {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -245,7 +245,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Check with order of columns mismatch failed.");
 }
 
-- (void)testCheckWithPrimaryKeyMismatch {
+- (void)testCheckTableWithColumns_withPrimaryKeyMismatch {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -273,7 +273,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Check with primary key mismatch failed.");
 }
 
-- (void)testCheckWithNullableMismatch {
+- (void)testCheckTableWithColumns_withNullableMismatch {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -296,13 +296,13 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Check with nullable mismatch failed.");
 }
 
-- (void)testCheckWithUniqueKeyMismatch {
+- (void)testCheckTableWithColumns_withUniqueKeyMismatch {
 #warning Implement test for unique key missmatch.
 }
 
 #pragma mark - Create
 
-- (void)testCreateWithoutStructure {
+- (void)testCreate_withoutStructure {
     NSString *path = [_directory stringByAppendingString:@"/create"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -313,7 +313,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     }];
 }
 
-- (void)testCreateTableWithoutTable {
+- (void)testCreateTableWithColumns_withoutTable {
     NSString *path = [_directory stringByAppendingString:@"/create"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -322,7 +322,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Create without table name did not throw exception.");
 }
 
-- (void)testCreateTableWithoutColumns {
+- (void)testCreateTableWithColumns_withoutColumns {
     NSString *path = [_directory stringByAppendingString:@"/create"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -330,7 +330,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Create without columns did not throw exception.");
 }
 
-- (void)testCreateTable {
+- (void)testCreateTableWithColumns_withSuccess {
     NSString *path = [_directory stringByAppendingString:@"/create"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -344,7 +344,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Create table was not successful: %@", [[rasqlite error] localizedDescription]);
 }
 
-- (void)testCreateTableWithNullType {
+- (void)testCreateTableWithColumns_withNullType {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -358,7 +358,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark - Delete
 
-- (void)testDeleteTableWithoutTable {
+- (void)testDeleteTable_withoutTable {
     NSString *path = [_directory stringByAppendingString:@"/delete"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -366,7 +366,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Delete without table name did not throw exception.");
 }
 
-- (void)testDeleteTableFailure {
+- (void)testDeleteTable_withInvalidTableName {
     NSString *path = [_directory stringByAppendingString:@"/delete"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -374,13 +374,12 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Delete table with invalid name was successful.");
 }
 
-- (void)testDeleteTableSuccess {
+- (void)testDeleteTable_withSuccess {
     NSString *path = [_directory stringByAppendingString:@"/delete"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     XCTAssertTrue([rasqlite deleteTable:@"foo"],
             @"Delete table failed.");
 }
-
 
 @end

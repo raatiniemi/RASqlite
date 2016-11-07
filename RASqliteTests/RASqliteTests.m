@@ -26,28 +26,28 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testInit;
+- (void)testInit_notSupported;
 
 /**
  Test the initialization with `nil` path.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testInitWithNil;
+- (void)testInitWihPath_withNilPath;
 
 /**
  Initialization successful test with `initWithPath:`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testInitWithPathSuccess;
+- (void)testInitWithPath_withSuccess;
 
 /**
  Initialization failure test with `initWithPath:`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testInitWithPathFailure;
+- (void)testInitWithPath_withFailure;
 
 /**
  Initialization successful test with `initWithName:`.
@@ -58,7 +58,7 @@ static NSString *_directory = @"/tmp/rasqlite";
  Since the `initWithName:` will just call the designated initializer, i.e.
  `initWithPath:`, there's no need to test the failure.
  */
-- (void)testInitWithNameSuccess;
+- (void)testInitWithName_withSuccess;
 
 #pragma mark - Database
 
@@ -71,28 +71,28 @@ static NSString *_directory = @"/tmp/rasqlite";
  Normally when the file do not exists, the file will be created but to test the
  functionality the `SQLITE_OPEN_CREATE` flag have been omitted.
  */
-- (void)testOpenWithNonExistingFile;
+- (void)testOpenWithFlags_withoutExistingFile;
 
 /**
  Open database with existing database file.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testOpenWithExistingFile;
+- (void)testOpenWithFlags_withExistingFile;
 
 /**
  Open database, create database file.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testOpenCreateFile;
+- (void)testOpenWithFlags_createDatabaseFile;
 
 /**
  Attempt to open database with already open database.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testOpenAlreadyOpenDatabase;
+- (void)testOpen_withAlreadyOpenDatabase;
 
 #pragma mark -- Close
 
@@ -101,7 +101,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCloseNonInitializedDatabase;
+- (void)testClose_withoutInitializedDatabase;
 
 #pragma mark - Query
 
@@ -121,21 +121,21 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testFetchWithBadSyntax;
+- (void)testFetch_withInvalidSyntax;
 
 /**
  Attempt to fetch result.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testFetchResult;
+- (void)testFetch_withResult;
 
 /**
  Attempt to fetch result, none was found.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testFetchNoResult;
+- (void)testFetchWithParam_withoutResult;
 
 #pragma mark --- Row
 
@@ -144,21 +144,21 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testFetchRowWithBadSyntax;
+- (void)testFetchRow_withInvalidSyntax;
 
 /**
  Attempt to fetch row.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testFetchRow;
+- (void)testFetchRow_withRow;
 
 /**
  Attempt to fetch row, none was found.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testFetchRowNoResult;
+- (void)testFetchRowWithParam_withoutRow;
 
 #pragma mark -- Execute
 
@@ -167,28 +167,28 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testExecuteWithBadSyntax;
+- (void)testExecute_withInvalidSyntax;
 
 /**
  Attempt to execute insert.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testExecuteInsert;
+- (void)testExecute_withInsert;
 
 /**
  Attempt to execute update.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testExecuteUpdate;
+- (void)testExecute_withUpdate;
 
 /**
  Attempt to execute delete.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testExecuteDelete;
+- (void)testExecute_withDelete;
 
 #pragma mark - Transaction
 
@@ -197,28 +197,28 @@ static NSString *_directory = @"/tmp/rasqlite";
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testTransactionInsertCommit;
+- (void)testQueueTransactionWithBlock_commitInsert;
 
 /**
  Rollback transaction with insert query.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testTransactionInsertRollback;
+- (void)testQueueTransactionWithBlock_rollbackInsert;
 
 /**
  Commit transaction with delete query.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testTransactionDeleteCommit;
+- (void)testQueueTransactionWithBlock_commitDelete;
 
 /**
  Rollback transaction with delete query.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testTransactionDeleteRollback;
+- (void)testQueueTransactionWithBlock_rollbackDelete;
 
 /**
  Execute transaction while database is closed.
@@ -229,7 +229,7 @@ static NSString *_directory = @"/tmp/rasqlite";
  There have been issues with the `inTransaction`-method due to non-initialized
  database, since it would attempt to insert `nil` as the `sqlite3`-pointer.
  */
-- (void)testTransactionWithClosedDatabase;
+- (void)testQueueTransactionWithBlock_withClosedDatabase;
 
 @end
 
@@ -254,28 +254,28 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark - Initialization
 
-- (void)testInit {
+- (void)testInit_notSupported {
     XCTAssertThrows([[RASqlite alloc] init], @"`init` method did not fail.");
 }
 
-- (void)testInitWithNil {
+- (void)testInitWihPath_withNilPath {
     XCTAssertThrows([[RASqlite alloc] initWithPath:nil],
             @"`initWithPath:` did not fail with `nil` as path.");
 }
 
-- (void)testInitWithPathSuccess {
+- (void)testInitWithPath_withSuccess {
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:@"/tmp/db"];
     XCTAssertNotNil(rasqlite, @"Database initialization failed with directory `/tmp`.");
 }
 
-- (void)testInitWithPathFailure {
+- (void)testInitWithPath_withFailure {
     // Database initialization should not be successful with readonly directories
     // since the `checkPath:` method checks permissions, among other things.
     XCTAssertThrows([[RASqlite alloc] initWithPath:@"/db"],
             @"Database initialization was successful with the readonly directory `/`.");
 }
 
-- (void)testInitWithNameSuccess {
+- (void)testInitWithName_withSuccess {
     RASqlite *rasqlite = [[RASqlite alloc] initWithName:@"db"];
     XCTAssertNotNil(rasqlite, @"Database initialization failed with name `db`.");
 }
@@ -284,13 +284,13 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark -- Open
 
-- (void)testOpenWithNonExistingFile {
+- (void)testOpenWithFlags_withoutExistingFile {
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:@"/tmp/none_existing_file"];
     XCTAssertFalse([rasqlite openWithFlags:SQLITE_OPEN_READWRITE],
             @"Open database was successful with non existing file.");
 }
 
-- (void)testOpenWithExistingFile {
+- (void)testOpenWithFlags_withExistingFile {
     NSString *path = [_directory stringByAppendingString:@"/existing_file"];
     NSFileManager *manager = [NSFileManager defaultManager];
     [manager createFileAtPath:path contents:nil attributes:nil];
@@ -300,14 +300,14 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Open database was failed with existing file: %@", [[rasqlite error] localizedDescription]);
 }
 
-- (void)testOpenCreateFile {
+- (void)testOpenWithFlags_createDatabaseFile {
     NSString *path = [_directory stringByAppendingString:@"/create_file"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
     XCTAssertTrue([rasqlite openWithFlags:SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE],
             @"Open database with create failed: %@", [[rasqlite error] localizedDescription]);
 }
 
-- (void)testOpenAlreadyOpenDatabase {
+- (void)testOpen_withAlreadyOpenDatabase {
     NSString *path = [_directory stringByAppendingString:@"/open_database"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
     XCTAssertTrue([rasqlite open], @"Open database failed: %@", [[rasqlite error] localizedDescription]);
@@ -316,7 +316,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark -- Close
 
-- (void)testCloseNonInitializedDatabase {
+- (void)testClose_withoutInitializedDatabase {
     NSString *path = [_directory stringByAppendingString:@"/closed_database"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
     XCTAssertTrue([rasqlite close],
@@ -329,7 +329,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark --- Result
 
-- (void)testFetchWithBadSyntax {
+- (void)testFetch_withInvalidSyntax {
     NSString *path = [_directory stringByAppendingString:@"/fetch"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -337,7 +337,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     XCTAssertNotNil([rasqlite error], @"Error is `nil` with bad SQL syntax.");
 }
 
-- (void)testFetchResult {
+- (void)testFetch_withResult {
     NSString *path = [_directory stringByAppendingString:@"/fetch"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -347,7 +347,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             [[rasqlite error] localizedDescription]);
 }
 
-- (void)testFetchNoResult {
+- (void)testFetchWithParam_withoutResult {
     NSString *path = [_directory stringByAppendingString:@"/fetch"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -365,7 +365,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark --- Row
 
-- (void)testFetchRowWithBadSyntax {
+- (void)testFetchRow_withInvalidSyntax {
     NSString *path = [_directory stringByAppendingString:@"/fetch-row"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -373,17 +373,17 @@ static NSString *_directory = @"/tmp/rasqlite";
     XCTAssertNotNil([rasqlite error], @"Error is `nil` with bad SQL syntax.");
 }
 
-- (void)testFetchRow {
+- (void)testFetchRow_withRow {
     NSString *path = [_directory stringByAppendingString:@"/fetch"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
-    id result = [rasqlite fetchRow:@"SELECT 1 AS `id`"];
-    XCTAssertTrue([result isKindOfClass:[NSDictionary class]], @"Result is not type of `NSDictionary`.");
-    XCTAssertNotNil(result, @"Fetch result did not retrieve any results: %@",
+    id row = [rasqlite fetchRow:@"SELECT 1 AS `id`"];
+    XCTAssertTrue([row isKindOfClass:[NSDictionary class]], @"Result is not type of `NSDictionary`.");
+    XCTAssertNotNil(row, @"Fetch result did not retrieve any results: %@",
             [[rasqlite error] localizedDescription]);
 }
 
-- (void)testFetchRowNoResult {
+- (void)testFetchRowWithParam_withoutRow {
     NSString *path = [_directory stringByAppendingString:@"/fetch"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -392,14 +392,14 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Unable to create table for fetch no result: %@",
             [[rasqlite error] localizedDescription]);
 
-    id result = [rasqlite fetchRow:@"SELECT id FROM foo WHERE id = ?" withParam:@1];
-    XCTAssertNil(result, @"Fetch non-existing row did return `nil` value.");
+    id row = [rasqlite fetchRow:@"SELECT id FROM foo WHERE id = ?" withParam:@1];
+    XCTAssertNil(row, @"Fetch non-existing row did return `nil` value.");
     XCTAssertNil([rasqlite error], @"Fetch non-existing row triggered an error.");
 }
 
 #pragma mark -- Execute
 
-- (void)testExecuteWithBadSyntax {
+- (void)testExecute_withInvalidSyntax {
     NSString *path = [_directory stringByAppendingString:@"/execute"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -407,7 +407,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     XCTAssertNotNil([rasqlite error], @"Error is `nil` with bad SQL syntax.");
 }
 
-- (void)testExecuteInsert {
+- (void)testExecute_withInsert {
     NSString *path = [_directory stringByAppendingString:@"/execute"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -425,7 +425,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     XCTAssertEqualObjects(@"baz", row[@"bar"], @"Value for retrieved row do not match.");
 }
 
-- (void)testExecuteUpdate {
+- (void)testExecute_withUpdate {
     NSString *path = [_directory stringByAppendingString:@"/execute"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -446,7 +446,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     XCTAssertEqualObjects(@"quux", row[@"bar"], @"Value for retrieved row do not match.");
 }
 
-- (void)testExecuteDelete {
+- (void)testExecute_withDelete {
     NSString *path = [_directory stringByAppendingString:@"/execute"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -472,7 +472,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 #pragma mark - Transaction
 
-- (void)testTransactionInsertCommit {
+- (void)testQueueTransactionWithBlock_commitInsert {
     NSString *path = [_directory stringByAppendingString:@"/transaction"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -494,7 +494,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Commit transaction with insert did not insert row.");
 }
 
-- (void)testTransactionInsertRollback {
+- (void)testQueueTransactionWithBlock_rollbackInsert {
     NSString *path = [_directory stringByAppendingString:@"/transaction"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -519,7 +519,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Rollback transaction with insert did insert row.");
 }
 
-- (void)testTransactionDeleteCommit {
+- (void)testQueueTransactionWithBlock_commitDelete {
     NSString *path = [_directory stringByAppendingString:@"/transaction"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -549,7 +549,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Commit transaction with delete did not delete row.");
 }
 
-- (void)testTransactionDeleteRollback {
+- (void)testQueueTransactionWithBlock_rollbackDelete {
     NSString *path = [_directory stringByAppendingString:@"/transaction"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -582,7 +582,7 @@ static NSString *_directory = @"/tmp/rasqlite";
             @"Rollback transaction with delete did delete row.");
 }
 
-- (void)testTransactionWithClosedDatabase {
+- (void)testQueueTransactionWithBlock_withClosedDatabase {
     NSString *path = [_directory stringByAppendingString:@"/transaction"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 

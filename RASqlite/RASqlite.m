@@ -469,7 +469,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             case SQLITE_BLOB: {
                 // Retrieve the value and the number of bytes for the blob column.
                 const void *value = (void *) sqlite3_column_blob(*statement, index);
-                NSUInteger bytes = sqlite3_column_bytes(*statement, index);
+                NSUInteger bytes = (NSUInteger) sqlite3_column_bytes(*statement, index);
                 [row setColumn:column withObject:[NSData dataWithBytes:value length:bytes]];
                 break;
             }

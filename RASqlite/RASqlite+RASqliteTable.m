@@ -50,7 +50,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
                     continue;
                 }
 
-                status = RASqliteTableCheckStatusClean;
+                status = (RASqliteTableCheckStatus *) RASqliteTableCheckStatusClean;
                 checkTable(db, selector, table, tables[table], &status);
 
                 // If the after check method is available we have to execute it,

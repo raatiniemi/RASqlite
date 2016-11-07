@@ -178,26 +178,26 @@ There're two methods available when working with transactions. With the `queueTr
 
 The block method is supplied with two methods, first argument is the database instance, and the second argument is the boolean which controls whether the transaction should be committed or rolled back.
 
-In the above scenario if both `execute:withParam:`-calls is successful, the `commit`-variable will evaulate to `YES`, i.e. the transaction will be committed.
+In the above scenario if both `execute:withParam:`-calls is successful, the `commit`-variable will evaluate to `YES`, i.e. the transaction will be committed.
 
 ## Error handling
 Coming soon...
 
 ## Logging
-The default mechanism for logging messages uses the `NSLog`-macro. The message will include the filename and line number from which the logg message originated. There're four different logg levels available.
+The default mechanism for logging messages uses the `NSLog`-macro. The message will include the filename and line number from which the log message originated. There're four different log levels available.
 
 1. `RASqliteLogLevelDebug`
 2. `RASqliteLogLevelInfo`
 3. `RASqliteLogLevelWarning`
 4. `RASqliteLogLevelError`
 
-By default, if the `DEBUG`-constant is defined every logg level will be logged. If the constant is not defined only warnings and errors will be logged.
+By default, if the `DEBUG`-constant is defined every log level will be logged. If the constant is not defined only warnings and errors will be logged.
 
 ### Third party loggers
 If you'd rather use a third party logging method, all you have to do is override the `RASqliteLog`-macro. If you choose to do this, there're two things that you should be aware of.
 
 1. The file you define your custom macro in have to be imported within the `*-Prefix.pch` file, otherwise the `ifndef`-check will not recognize your macro and the default one will be used.
-2. The arguments for the macro can not be modified. The first argument is the logg level and the second one is the message with support for formats.
+2. The arguments for the macro can not be modified. The first argument is the log level and the second one is the message with support for formats.
 
 It is highly recommended that you copy the default macro and make your adjustments within the `do-while`.
 

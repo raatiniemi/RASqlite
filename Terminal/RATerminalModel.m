@@ -80,10 +80,10 @@ static dispatch_queue_t _queue;
     [column setDefaultValue:@1];
     [user addObject:column];
 
-    NSMutableDictionary *tabeller = [[NSMutableDictionary alloc] init];
-    [tabeller setObject:user forKey:@"user"];
+    NSMutableDictionary *tables = [[NSMutableDictionary alloc] init];
+    [tables setObject:user forKey:@"user"];
 
-    return tabeller;
+    return tables;
 }
 
 - (void)setDatabase:(sqlite3 *)database {

@@ -19,7 +19,7 @@ static char *RASqliteKeyQueueName = "me.raatiniemi.rasqlite.queue.name";
 // -- -- Exception
 
 /// Exception name for incorrect initialization.
-static NSString *RASqliteIcorrectInitializationException = @"Incorrect initialization";
+static NSString *RASqliteIncorrectInitializationException = @"Incorrect initialization";
 
 /// Exception name for initialization with an invalid path.
 static NSString *RASqliteInvalidPathException = @"Invalid path";
@@ -181,12 +181,12 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (id)init {
     // TODO: Implement support for in memory databases with init as method?
-    // Use designated initializator, e.g. from the `init` method run the
+    // Use designated initializer, e.g. from the `init` method run the
     // `initWithPath:`. If the path is @"" or `nil` the database should be
     // initialized as memory database.
 
     // Use of this method is not allowed, `initWithName:` or `initWithPath:` should be used.
-    [NSException raise:RASqliteIcorrectInitializationException
+    [NSException raise:RASqliteIncorrectInitializationException
                 format:@"Use of the `init` method is not allowed, use `initWithName:` or `initWithPath:` instead."];
 
     // Return nil, takes care of the return warning.
@@ -277,11 +277,10 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (void)setDatabase:(sqlite3 *)database {
     // Protection from rewriting the database pointer mid execution. The pointer
-    // have to be resetted before setting a new instance.
+    // have to be reset before setting a new instance.
     if ([self database] == nil || database == nil) {
         _database = database;
     } else {
-        // Incase an rewrite have been attempted, this should be logged.
         RASqliteWarningLog(@"Attempt to rewrite database pointer.");
     }
 }
@@ -344,7 +343,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 NSInteger attempt = 0;
 
                 // Repeat the close process until the database is closed, an error
-                // occurres, or the retry attempts have been depleted.
+                // occurs, or the retry attempts have been depleted.
                 do {
                     // Reset the retry control and attempt to close the database.
                     retry = NO;
@@ -409,12 +408,12 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         } else if (isKindOfClass(column, selector, [NSNumber class])) {
             const char *type = [column objCType];
             if (strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0) {
-                // Both double and float should be binded as double.
+                // Both double and float should be bound as double.
                 code = sqlite3_bind_double(*statement, index, [column doubleValue]);
             } else if (strcmp(type, @encode(long)) == 0 || strcmp(type, @encode(long long)) == 0) {
                 code = sqlite3_bind_int64(*statement, index, [column longLongValue]);
             } else {
-                // Every data type that is not specified should be binded as int.
+                // Every data type that is not specified should be bound as an int.
                 code = sqlite3_bind_int(*statement, index, [column intValue]);
             }
         } else if (isKindOfClass(column, selector, [NSNull class])) {
@@ -517,7 +516,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                     NSDictionary *row;
                     results = [[NSMutableArray alloc] init];
 
-                    // Looping through the results, until an error occurres or
+                    // Looping through the results, until an error occurs or
                     // the query is done.
                     do {
                         code = sqlite3_step(statement);

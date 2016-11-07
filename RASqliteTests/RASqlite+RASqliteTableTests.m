@@ -68,25 +68,25 @@ static NSString *_directory = @"/tmp/rasqlite";
 // TODO: Add test for default value.
 
 /**
- Attempt to check table structure with primary key miss match.
+ Attempt to check table structure with primary key mismatch.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckWithPrimaryKeyMissmatch;
+- (void)testCheckWithPrimaryKeyMismatch;
 
 /**
- Attempt to check table structure with nullable missmatch.
+ Attempt to check table structure with nullable mismatch.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckWithNullableMissmatch;
+- (void)testCheckWithNullableMismatch;
 
 /**
- Attempt to check table structure with unique key missmatch.
+ Attempt to check table structure with unique key mismatch.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (void)testCheckWithUniqueKeyMissmatch;
+- (void)testCheckWithUniqueKeyMismatch;
 
 #pragma mark - Create
 
@@ -154,7 +154,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 @implementation RASqlite_RASqliteTableTests
 
-#pragma mark - Setup/teardown
+#pragma mark - Setup/tear down
 
 - (void)setUp {
     [super setUp];
@@ -222,14 +222,14 @@ static NSString *_directory = @"/tmp/rasqlite";
 
     // Create the table with the first structure.
     XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
-            @"Unable to create table for number of columns missmatch.");
+            @"Unable to create table for number of columns mismatch.");
 
     column = [[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger];
     [columns addObject:column];
 
     // Check if the `checkTable:withColumns:` notice the change.
     XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
-            @"Check with number of columns missmatch failed.");
+            @"Check with number of columns mismatch failed.");
 }
 
 - (void)testCheckOrderOfColumns {
@@ -241,16 +241,16 @@ static NSString *_directory = @"/tmp/rasqlite";
 
     // Create the table with the first structure.
     XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
-            @"Unable to create table for order of columns missmatch.");
+            @"Unable to create table for order of columns mismatch.");
 
     columns = @[[[RASqliteColumn alloc] initWithName:@"bar" type:RASqliteInteger]];
 
     // Check if the `checkTable:withColumns:` notice the change.
     XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
-            @"Check with order of columns missmatch failed.");
+            @"Check with order of columns mismatch failed.");
 }
 
-- (void)testCheckWithPrimaryKeyMissmatch {
+- (void)testCheckWithPrimaryKeyMismatch {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -267,7 +267,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
     // Create the table with the first structure.
     XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
-            @"Unable to create table for checking primary key missmatch.");
+            @"Unable to create table for checking primary key mismatch.");
 
     // Modify the primary key order.
     [[columns objectAtIndex:0] setPrimaryKey:NO];
@@ -275,10 +275,10 @@ static NSString *_directory = @"/tmp/rasqlite";
 
     // Check if the `checkTable:withColumns:` notice the change.
     XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
-            @"Check with primary key missmatch failed.");
+            @"Check with primary key mismatch failed.");
 }
 
-- (void)testCheckWithNullableMissmatch {
+- (void)testCheckWithNullableMismatch {
     NSString *path = [_directory stringByAppendingString:@"/check"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
@@ -291,17 +291,17 @@ static NSString *_directory = @"/tmp/rasqlite";
 
     // Create the table with the first structure.
     XCTAssertTrue([rasqlite createTable:@"baz" withColumns:columns],
-            @"Unable to create table for checking nullable missmatch.");
+            @"Unable to create table for checking nullable mismatch.");
 
     // Modify the nullable structure.
     [[columns objectAtIndex:0] setNullable:NO];
 
     // Check if the `checkTable:withColumns:` notice the change.
     XCTAssertFalse([rasqlite checkTable:@"baz" withColumns:columns],
-            @"Check with nullable missmatch failed.");
+            @"Check with nullable mismatch failed.");
 }
 
-- (void)testCheckWithUniqueKeyMissmatch {
+- (void)testCheckWithUniqueKeyMismatch {
 #warning Implement test for unique key missmatch.
 }
 

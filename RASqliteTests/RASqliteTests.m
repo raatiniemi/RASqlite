@@ -235,7 +235,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 
 @implementation RASqliteTests
 
-#pragma mark - Setup/teardown
+#pragma mark - Setup/tear down
 
 - (void)setUp {
     [super setUp];
@@ -272,7 +272,7 @@ static NSString *_directory = @"/tmp/rasqlite";
     // Database initialization should not be successful with readonly directories
     // since the `checkPath:` method checks permissions, among other things.
     XCTAssertThrows([[RASqlite alloc] initWithPath:@"/db"],
-            @"Database initilization was successful with the readonly directory `/`.");
+            @"Database initialization was successful with the readonly directory `/`.");
 }
 
 - (void)testInitWithNameSuccess {
@@ -366,7 +366,7 @@ static NSString *_directory = @"/tmp/rasqlite";
 #pragma mark --- Row
 
 - (void)testFetchRowWithBadSyntax {
-    NSString *path = [_directory stringByAppendingString:@"/fetchrow"];
+    NSString *path = [_directory stringByAppendingString:@"/fetch-row"];
     RASqlite *rasqlite = [[RASqlite alloc] initWithPath:path];
 
     XCTAssertNil([rasqlite fetchRow:@"foo"], @"Fetched row with bad SQL syntax.");

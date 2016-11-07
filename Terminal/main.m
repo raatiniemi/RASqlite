@@ -30,7 +30,7 @@ int main(int argc, const char *argv[]) {
                 } else if (![model error]) {
                     NSLog(@"No users exists.");
                 } else {
-                    // We have to reset the error variable, if an error occurres,
+                    // We have to reset the error variable, if an error occurs,
                     // after we have handled it. Otherwise, the database instance
                     // won't be able to execute any more queries.
                     [model setError:nil];
@@ -38,7 +38,7 @@ int main(int argc, const char *argv[]) {
             } else {
                 NSLog(@"User could not be removed.");
 
-                // We have to reset the error variable, if an error occurres,
+                // We have to reset the error variable, if an error occurs,
                 // after we have handled it. Otherwise, the database instance
                 // won't be able to execute any more queries.
                 [model setError:nil];
@@ -51,13 +51,13 @@ int main(int argc, const char *argv[]) {
             } else {
                 NSLog(@"User could not be created.");
 
-                // We have to reset the error variable, if an error occurres,
+                // We have to reset the error variable, if an error occurs,
                 // after we have handled it. Otherwise, the database instance
                 // won't be able to execute any more queries.
                 [model setError:nil];
             }
         } else {
-            // We have to reset the error variable, if an error occurres, after
+            // We have to reset the error variable, if an error occurs, after
             // we have handled it. Otherwise, the database instance won't be able
             // to execute any more queries.
             [model setError:nil];

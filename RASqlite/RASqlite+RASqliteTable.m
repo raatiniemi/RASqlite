@@ -55,7 +55,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 
                 // If the after check method is available we have to execute it,
                 // sending the current status of the table.
-                // This way we can determind what to do about the changes (if any).
+                // This way we can determined what to do about the changes (if any).
                 if (isAfterAvailable) {
                     [db afterTableCheck:table withStatus:status];
                 }

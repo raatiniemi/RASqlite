@@ -164,27 +164,27 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
 
     [self queueWithBlock:^(RASqlite *db) {
         NSDictionary *tables = [self structure];
-        if (tables) {
-            // Get the pointer for the method, performance improvement.
-            SEL selector = @selector(createTable:withColumns:);
-
-            typedef BOOL (*create)(id, SEL, NSString *, NSDictionary *);
-            create createTable = (create) [db methodForSelector:selector];
-
-            // Change the created check before going in to the create loop.
-            created = YES;
-
-            // Loops through each of the tables and attempt to create their structure.
-            for (NSString *table in tables) {
-                if (!createTable(db, selector, table, tables[table])) {
-                    created = NO;
-                    break;
-                }
-            }
-        } else {
+        if (!tables) {
             // Raise an exception, no structure have been supplied.
             [NSException raise:RASqliteCheckDatabaseException
                         format:@"Unable to create database structure, none has been supplied."];
+        }
+
+        // Get the pointer for the method, performance improvement.
+        SEL selector = @selector(createTable:withColumns:);
+
+        typedef BOOL (*create)(id, SEL, NSString *, NSDictionary *);
+        create createTable = (create) [db methodForSelector:selector];
+
+        // Change the created check before going in to the create loop.
+        created = YES;
+
+        // Loops through each of the tables and attempt to create their structure.
+        for (NSString *table in tables) {
+            if (!createTable(db, selector, table, tables[table])) {
+                created = NO;
+                break;
+            }
         }
     }];
 

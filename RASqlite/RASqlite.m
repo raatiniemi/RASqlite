@@ -294,26 +294,28 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     [self queueInternalBlock:^{
         // Check if the database already is active, not need to open it.
         sqlite3 *database = [self database];
-        if (!database) {
-            // Attempt to open the database.
-            int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
-            if (code == SQLITE_OK) {
-                // The database was successfully opened.
-                [self setDatabase:database];
-                RASqliteInfoLog(@"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
-            } else {
-                // Something went wrong...
-                const char *errmsg = sqlite3_errmsg(database);
-                NSString *message = RASqliteSF(@"Unable to open database: %s", errmsg);
-                RASqliteErrorLog(@"%@", message);
-
-                error = [NSError code:RASqliteErrorOpen message:message];
-                [self setError:error];
-            }
-        } else {
+        if (database) {
             // No need to attempt to open the database, it's already open.
             RASqliteDebugLog(@"Database is already open.");
+            return;
         }
+
+        // Attempt to open the database.
+        int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
+        if (code == SQLITE_OK) {
+            // The database was successfully opened.
+            [self setDatabase:database];
+            RASqliteInfoLog(@"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
+            return;
+        }
+
+        // Something went wrong...
+        const char *errmsg = sqlite3_errmsg(database);
+        NSString *message = RASqliteSF(@"Unable to open database: %s", errmsg);
+        RASqliteErrorLog(@"%@", message);
+
+        error = [NSError code:RASqliteErrorOpen message:message];
+        [self setError:error];
     }];
 
     return error == nil;

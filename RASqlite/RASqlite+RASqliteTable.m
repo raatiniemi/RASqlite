@@ -189,7 +189,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
     return created;
 }
 
-- (BOOL)createTable:(NSString *)table withColumns:(NSDictionary *)columns {
+- (BOOL)createTable:(NSString *)table withColumns:(NSArray *)columns {
     if (!table) {
         // Raise an exception, no valid table name.
         [NSException raise:NSInvalidArgumentException

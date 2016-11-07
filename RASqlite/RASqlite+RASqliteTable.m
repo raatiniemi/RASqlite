@@ -256,7 +256,7 @@ static NSString *RASqliteRemoveTableException = @"Remove table";
             [list addObject:item];
         }
         // Build the actual sql query for creating the table.
-        NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@(%@)", table, [list componentsJoinedByString:@","]];
+        NSString *sql = RASqliteSF(@"CREATE TABLE IF NOT EXISTS %@(%@)", table, [list componentsJoinedByString:@","]);
         RASqliteDebugLog(@"Create query: %@", sql);
 
         // Attempt to create the database table.

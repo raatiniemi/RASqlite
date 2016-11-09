@@ -35,9 +35,9 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 // Importing categories for Foundation objects that should not be made available
 // for the rest of the application. These are specific for RASqlite.
 #import "NSError+RASqlite.h"
-#import "NSMutableDictionary+RASqlite.h"
 
 #import "RASqliteBinder.h"
+#import "RASqliteMapper.h"
 
 /**
  RASqlite is a simple library for working with SQLite databases on iOS and Mac OS X.
@@ -91,21 +91,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 - (BOOL)bindParameters:(NSArray *)parameters toStatement:(sqlite3_stmt **)statement;
-
-/**
- Fetch the retrieved columns from the SQL query.
-
- @param statement Statement from which to retrieve the columns.
-
- @return Row with the column names and their values.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
-
- @note
- The dictionary will contain the Foundation representations of the SQLite data types,
- e.g. `SQLITE_INTEGER` will be `NSNumber`, `SQLITE_NULL` will be `NSNull`, etc.
- */
-- (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement;
 
 #pragma mark -- Transaction
 
@@ -401,59 +386,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     return error == nil;
 }
 
-- (NSDictionary *)fetchColumns:(sqlite3_stmt **)statement {
-    NSUInteger count = (NSUInteger) sqlite3_column_count(*statement);
-    NSMutableDictionary *row = [[NSMutableDictionary alloc] initWithCapacity:count];
-
-    const char *name;
-    NSString *column;
-
-    unsigned int index;
-    int type;
-    // Loop through the columns.
-    for (index = 0; index < count; index++) {
-        name = sqlite3_column_name(*statement, index);
-        column = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
-
-        // Check which column type the current index is and bind the column value.
-        type = sqlite3_column_type(*statement, index);
-        switch (type) {
-            case SQLITE_INTEGER: {
-                // TODO: Test on 32-bit machine.
-                long long int value = sqlite3_column_int64(*statement, index);
-                [row setColumn:column withObject:@(value)];
-                break;
-            }
-            case SQLITE_FLOAT: {
-                double value = sqlite3_column_double(*statement, index);
-                [row setColumn:column withObject:@(value)];
-                break;
-            }
-            case SQLITE_BLOB: {
-                // Retrieve the value and the number of bytes for the blob column.
-                const void *value = (void *) sqlite3_column_blob(*statement, index);
-                NSUInteger bytes = (NSUInteger) sqlite3_column_bytes(*statement, index);
-                [row setColumn:column withObject:[NSData dataWithBytes:value length:bytes]];
-                break;
-            }
-            case SQLITE_NULL: {
-                [row setColumn:column withObject:[NSNull null]];
-                break;
-            }
-            case SQLITE_TEXT:
-            default: {
-                // Sqlite do not seem to fully support UTF-16 yet, so no need to
-                // implement support for the `sqlite3_column_text16` functionality.
-                const char *value = (const char *) sqlite3_column_text(*statement, index);
-                [row setColumn:column withObject:[NSString stringWithCString:value encoding:NSUTF8StringEncoding]];
-                break;
-            }
-        }
-    }
-
-    return row;
-}
-
 #pragma mark -- Fetch
 
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params {
@@ -474,7 +406,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                     SEL selector = @selector(fetchColumns:);
 
                     typedef NSDictionary *(*fetch)(id, SEL, sqlite3_stmt **);
-                    fetch fetchColumns = (fetch) [self methodForSelector:selector];
+                    fetch fetchColumns = (fetch) [[RASqliteMapper class] methodForSelector:selector];
 
                     NSDictionary *row;
                     results = [[NSMutableArray alloc] init];
@@ -544,7 +476,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 if (!params || [self bindParameters:params toStatement:&statement]) {
                     code = sqlite3_step(statement);
                     if (code == SQLITE_ROW) {
-                        row = [self fetchColumns:&statement];
+                        row = [[RASqliteMapper class] fetchColumns:&statement];
 
                         // If the error variable have been populated, something
                         // has gone wrong and we need to reset the row variable.

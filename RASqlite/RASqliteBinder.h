@@ -20,4 +20,6 @@
  */
 + (NSError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement;
 
+- (id)init __unavailable;
+
 @end

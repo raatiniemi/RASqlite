@@ -83,14 +83,14 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 /**
  Bind the parameters to the statement.
 
- @param columns Parameters to bind to the statement.
+ @param parameters Parameters to bind to the statement.
  @param statement Statement on which the parameters will be binded.
 
  @return `YES` if binding is successful, otherwise `NO`.
 
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
-- (BOOL)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement;
+- (BOOL)bindParameters:(NSArray *)parameters toStatement:(sqlite3_stmt **)statement;
 
 /**
  Fetch the retrieved columns from the SQL query.
@@ -392,8 +392,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 #pragma mark - Query
 
-- (BOOL)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement {
-    NSError *error = [RASqliteBinder bindColumns:columns toStatement:statement];
+- (BOOL)bindParameters:(NSArray *)parameters toStatement:(sqlite3_stmt **)statement {
+    NSError *error = [RASqliteBinder bindParameters:parameters toStatement:statement];
     if ( error ) {
         [self setError:error];
     }
@@ -469,7 +469,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
             if (code == SQLITE_OK) {
                 // If we have parameters, we need to bind them to the statement.
-                if (!params || [self bindColumns:params toStatement:&statement]) {
+                if (!params || [self bindParameters:params toStatement:&statement]) {
                     // Get the pointer for the method, performance improvement.
                     SEL selector = @selector(fetchColumns:);
 
@@ -541,7 +541,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
             if (code == SQLITE_OK) {
                 // If we have parameters, we need to bind them to the statement.
-                if (!params || [self bindColumns:params toStatement:&statement]) {
+                if (!params || [self bindParameters:params toStatement:&statement]) {
                     code = sqlite3_step(statement);
                     if (code == SQLITE_ROW) {
                         row = [self fetchColumns:&statement];
@@ -602,7 +602,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
             if (code == SQLITE_OK) {
                 // If we have parameters, we need to bind them to the statement.
-                if (!params || [self bindColumns:params toStatement:&statement]) {
+                if (!params || [self bindParameters:params toStatement:&statement]) {
                     code = sqlite3_step(statement);
                     if (code == SQLITE_DONE) {
                         // Statement have been successfully executed.

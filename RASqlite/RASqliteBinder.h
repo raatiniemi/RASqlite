@@ -11,14 +11,14 @@
 @interface RASqliteBinder : NSObject
 
 /**
- Bind columns to a statement.
+ Bind parameters to a statement.
 
- @param columns Columns to bind.
+ @param parameters Parameters to bind.
  @param statement Statement to be bound.
 
  @return An error if one occurred, otherwise `nil`.
  */
-+ (NSError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement;
++ (NSError *)bindParameters:(NSArray *)parameters toStatement:(sqlite3_stmt **)statement;
 
 - (id)init __unavailable;
 

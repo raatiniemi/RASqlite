@@ -15,39 +15,39 @@ typedef BOOL (*isClass)(id, SEL, Class);
 
 @interface RASqliteBinder () {
 @private
-    NSArray *_columns;
+    NSArray *_parameters;
     sqlite3_stmt **_statement;
 
     SEL _selector;
     isClass _isKindOfClass;
 }
 
-- (instancetype)initWithColumns:(NSArray *)columns andStatement:(sqlite3_stmt **)statement;
+- (instancetype)initWithParameters:(NSArray *)parameters andStatement:(sqlite3_stmt **)statement;
 
 - (NSError *)bind;
 
-- (int)bindColumn:(id)column toIndex:(unsigned int)index;
+- (int)bindParameter:(id)parameter toIndex:(unsigned int)index;
 
 - (int)bindNullToIndex:(unsigned int)index;
 
-- (int)bindText:(id)column toIndex:(unsigned int)index;
+- (int)bindText:(id)parameter toIndex:(unsigned int)index;
 
-- (int)bindNumber:(id)column toIndex:(unsigned int)index;
+- (int)bindNumber:(id)parameter toIndex:(unsigned int)index;
 
-- (int)bindBlob:(id)column toIndex:(unsigned int)index;
+- (int)bindBlob:(id)parameter toIndex:(unsigned int)index;
 
 @end
 
 @implementation RASqliteBinder
 
-+ (NSError *)bindColumns:(NSArray *)columns toStatement:(sqlite3_stmt **)statement {
-    RASqliteBinder *binder = [[RASqliteBinder alloc] initWithColumns:columns andStatement:statement];
++ (NSError *)bindParameters:(NSArray *)parameters toStatement:(sqlite3_stmt **)statement {
+    RASqliteBinder *binder = [[RASqliteBinder alloc] initWithParameters:parameters andStatement:statement];
     return [binder bind];
 }
 
-- (instancetype)initWithColumns:(NSArray *)columns andStatement:(sqlite3_stmt **)statement {
+- (instancetype)initWithParameters:(NSArray *)parameters andStatement:(sqlite3_stmt **)statement {
     if ( self = [super init] ) {
-        _columns = columns;
+        _parameters = parameters;
         _statement = statement;
 
         // Get the pointer for the method, performance improvement.
@@ -62,14 +62,14 @@ typedef BOOL (*isClass)(id, SEL, Class);
     NSError *error;
 
     unsigned int index = 1;
-    for (id column in _columns) {
-        int code = [self bindColumn:column toIndex:index];
+    for (id parameter in _parameters) {
+        int code = [self bindParameter:parameter toIndex:index];
         if (code == SQLITE_OK) {
             index++;
             continue;
         }
 
-        NSString *message = RASqliteSF(@"Unable to bind type `%@`.", [column class]);
+        NSString *message = RASqliteSF(@"Unable to bind type `%@`.", [parameter class]);
         RASqliteErrorLog(@"%@", message);
 
         error = [NSError code:RASqliteErrorBind message:message];
@@ -79,50 +79,50 @@ typedef BOOL (*isClass)(id, SEL, Class);
     return error;
 }
 
-- (int)bindColumn:(id)column toIndex:(unsigned int)index {
-    if (_isKindOfClass(column, _selector, [NSNull class])) {
+- (int)bindParameter:(id)parameter toIndex:(unsigned int)index {
+    if (_isKindOfClass(parameter, _selector, [NSNull class])) {
         return [self bindNullToIndex:index];
     }
 
-    if (_isKindOfClass(column, _selector, [NSString class])) {
-        return [self bindText:column toIndex:index];
+    if (_isKindOfClass(parameter, _selector, [NSString class])) {
+        return [self bindText:parameter toIndex:index];
     }
 
-    if (_isKindOfClass(column, _selector, [NSNumber class])) {
-        return [self bindNumber:column toIndex:index];
+    if (_isKindOfClass(parameter, _selector, [NSNumber class])) {
+        return [self bindNumber:parameter toIndex:index];
     }
 
-    return [self bindBlob:column toIndex:index];
+    return [self bindBlob:parameter toIndex:index];
 }
 
 - (int)bindNullToIndex:(unsigned int)index {
     return sqlite3_bind_null(*_statement, index);
 }
 
-- (int)bindText:(id)column toIndex:(unsigned int)index {
+- (int)bindText:(id)parameter toIndex:(unsigned int)index {
     // Sqlite do not seem to fully support UTF-16 yet, so no need to
     // implement support for the `sqlite3_bind_text16` functionality.
-    return sqlite3_bind_text(*_statement, index, [column UTF8String], -1, SQLITE_TRANSIENT);
+    return sqlite3_bind_text(*_statement, index, [parameter UTF8String], -1, SQLITE_TRANSIENT);
 }
 
-- (int)bindNumber:(id)column toIndex:(unsigned int)index {
-    const char *type = [column objCType];
+- (int)bindNumber:(id)parameter toIndex:(unsigned int)index {
+    const char *type = [parameter objCType];
 
     if (strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0) {
-        return sqlite3_bind_double(*_statement, index, [column doubleValue]);
+        return sqlite3_bind_double(*_statement, index, [parameter doubleValue]);
     }
 
     if (strcmp(type, @encode(long)) == 0 || strcmp(type, @encode(long long)) == 0) {
-        return sqlite3_bind_int64(*_statement, index, [column longLongValue]);
+        return sqlite3_bind_int64(*_statement, index, [parameter longLongValue]);
     }
 
-    return sqlite3_bind_int(*_statement, index, [column intValue]);
+    return sqlite3_bind_int(*_statement, index, [parameter intValue]);
 }
 
-- (int)bindBlob:(id)column toIndex:(unsigned int)index {
-    unsigned int length = (unsigned int) [column length];
+- (int)bindBlob:(id)parameter toIndex:(unsigned int)index {
+    unsigned int length = (unsigned int) [parameter length];
 
-    return sqlite3_bind_blob(*_statement, index, [column bytes], length, SQLITE_TRANSIENT);
+    return sqlite3_bind_blob(*_statement, index, [parameter bytes], length, SQLITE_TRANSIENT);
 }
 
 @end

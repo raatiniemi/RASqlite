@@ -47,6 +47,7 @@
 		2DF94A8318332B75004F6D8E /* NSError+RASqlite.m in Sources */ = {isa = PBXBuildFile; fileRef = 2DF94A8218332B75004F6D8E /* NSError+RASqlite.m */; };
 		4B37F27A90CEB1440E554422 /* NSDictionary+RASqliteTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B37F2615ADA86DDEDE475EB /* NSDictionary+RASqliteTests.m */; };
 		4B37F72C6A609CDCE2DE7F53 /* RASqliteBinderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B37F0E7DD5BA2730F872043 /* RASqliteBinderTests.m */; };
+		4B37F78BCA20DEA94AB9DCA0 /* RASqlite_ConcurrencyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B37F346164AFA4FC2B6A148 /* RASqlite_ConcurrencyTests.m */; };
 		4B37FAE9F3C60BF2425B0CB2 /* RASqlite+RASqliteTableTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B37FD7D98A999AF6AD5762A /* RASqlite+RASqliteTableTests.m */; };
 /* End PBXBuildFile section */
 
@@ -113,6 +114,7 @@
 		4B37F0E7DD5BA2730F872043 /* RASqliteBinderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RASqliteBinderTests.m; sourceTree = "<group>"; };
 		4B37F2615ADA86DDEDE475EB /* NSDictionary+RASqliteTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+RASqliteTests.m"; sourceTree = "<group>"; };
 		4B37F2BC9251248275FB4EED /* RASqliteTests-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RASqliteTests-Prefix.pch"; sourceTree = "<group>"; };
+		4B37F346164AFA4FC2B6A148 /* RASqlite_ConcurrencyTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RASqlite_ConcurrencyTests.m; sourceTree = "<group>"; };
 		4B37FD7D98A999AF6AD5762A /* RASqlite+RASqliteTableTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RASqlite+RASqliteTableTests.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -358,6 +360,7 @@
 		2D80262D193068AF005DCFBE /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				4B37F346164AFA4FC2B6A148 /* RASqlite_ConcurrencyTests.m */,
 				2D42BD5E1849A66900D0BA89 /* RASqliteTests.m */,
 				4B37F0E7DD5BA2730F872043 /* RASqliteBinderTests.m */,
 			);
@@ -514,6 +517,7 @@
 				4B37FAE9F3C60BF2425B0CB2 /* RASqlite+RASqliteTableTests.m in Sources */,
 				4B37F27A90CEB1440E554422 /* NSDictionary+RASqliteTests.m in Sources */,
 				4B37F72C6A609CDCE2DE7F53 /* RASqliteBinderTests.m in Sources */,
+				4B37F78BCA20DEA94AB9DCA0 /* RASqlite_ConcurrencyTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

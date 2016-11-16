@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <sqlite3.h>
 
+#import "RASqliteQueue.h"
+
 // Definition for column structure.
 #import "RASqliteColumn.h"
 
@@ -181,9 +183,6 @@ NS_INLINE RASqliteColumn *RAColumn(NSString *name, RASqliteDataType type) {
 
 /// Handles the instance for the database.
 @property(atomic) sqlite3 *database;
-
-/// Queue on which all of the queries will be executed on.
-@property(atomic, strong) dispatch_queue_t queue;
 
 /**
  Retrieve the absolute path for the database file.

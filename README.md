@@ -104,13 +104,10 @@ When using a single instance of the database, each of the query methods are thre
 
 1. `setDatabase:`
 2. `database`
-3. `setQueue:`
-4. `queue`
 
-These methods should point to a static sqlite3 and dispatch_queue_t variable, as shown below.
+These methods should point to a static `sqlite3` variable, as shown below.
 
 	static sqlite3 *_database;
-	static dispatch_queue_t _queue;
 	@implementation RASqliteThreadSafe
 	- (void)setDatabase:(sqlite3 *)database
 	{
@@ -122,17 +119,6 @@ These methods should point to a static sqlite3 and dispatch_queue_t variable, as
 	- (sqlite3 *)database
 	{
 		return _database;
-	}
-	- (void)setQueue:(dispatch_queue_t)queue
-	{
-		static dispatch_once_t onceToken;
-		dispatch_once(&onceToken, ^{
-			_queue = queue;
-		});
-	}
-	- (dispatch_queue_t)queue
-	{
-		return _queue;
 	}
 	@end
 

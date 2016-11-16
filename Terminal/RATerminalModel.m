@@ -17,16 +17,6 @@
  */
 static sqlite3 *_database;
 
-/**
- Instance for the queue.
-
- @note
- Since we only want a single queue to execute against the database, we have
- to declare the static variable. Otherwise we might get IO errors or memory
- issues when accessing/writing to the database from several threads.
- */
-static dispatch_queue_t _queue;
-
 @implementation RATerminalModel
 
 #pragma mark - Initialization
@@ -95,19 +85,6 @@ static dispatch_queue_t _queue;
 
 - (sqlite3 *)database {
     return _database;
-}
-
-#pragma mark - Queue
-
-- (void)setQueue:(dispatch_queue_t)queue {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _queue = queue;
-    });
-}
-
-- (dispatch_queue_t)queue {
-    return _queue;
 }
 
 #pragma mark - Handle users

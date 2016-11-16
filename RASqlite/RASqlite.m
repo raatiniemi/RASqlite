@@ -8,14 +8,6 @@
 
 #import "RASqlite.h"
 
-// -- -- Threading
-
-/// Format for the name of the query threads.
-static NSString *RASqliteThreadFormat = @"me.raatiniemi.rasqlite.%@";
-
-/// The key used for setting/getting the name for the dispatch queue.
-static char *RASqliteKeyQueueName = "me.raatiniemi.rasqlite.queue.name";
-
 // -- -- Exception
 
 /// Exception name for incorrect initialization.
@@ -48,7 +40,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 @private
     sqlite3 *_database;
 
-    dispatch_queue_t _queue;
+    RASqliteQueue *_queue;
 
     NSString *_path;
 
@@ -139,24 +131,11 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
  */
 - (BOOL)inTransaction;
 
-#pragma mark -- Queue
-
-/**
- Execute an internal block on the database specified queue.
-
- @param block Block to be executed.
-
- @author Tobias Raatiniemi <raatiniemi@gmail.com>
- */
-- (void)queueInternalBlock:(void (^)(void))block;
-
 @end
 
 @implementation RASqlite
 
 @synthesize database = _database;
-
-@synthesize queue = _queue;
 
 @synthesize path = _path;
 
@@ -191,13 +170,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         // Assign the database path.
         [self setPath:path];
 
-        // Create the thread for running queries, using the name for the database file.
-        NSString *thread = RASqliteSF(RASqliteThreadFormat, [[self path] lastPathComponent]);
-        [self setQueue:dispatch_queue_create([thread UTF8String], NULL)];
-
-        // Set the name of the query queue to the container. It will be used to
-        // check if the current queue is the query queue.
-        dispatch_queue_set_specific([self queue], RASqliteKeyQueueName, (void *) [thread UTF8String], NULL);
+        _queue = [RASqliteQueue sharedQueue];
 
         // Set the number of retry attempts before a timeout is triggered.
         [self setRetryTimeout:0];
@@ -278,7 +251,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (BOOL)openWithFlags:(int)flags {
     NSError __block *error;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         // Check if the database already is active, not need to open it.
         sqlite3 *database = [self database];
         if (database) {
@@ -315,7 +288,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (BOOL)close {
     NSError __block *error;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         // Check if we have an active database instance, no need to attempt
         // a close if we don't.
         sqlite3 *database = [self database];
@@ -391,7 +364,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (NSArray *)fetch:(NSString *)sql withParams:(NSArray *)params {
     NSMutableArray __block *results;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         // If we don't have a valid database instance we have attempt to open it.
         if ([self database] || [self open]) {
             NSError __block *error;
@@ -463,7 +436,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (NSDictionary *)fetchRow:(NSString *)sql withParams:(NSArray *)params {
     NSDictionary __block *row;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         // If we don't have a valid database instance we have attempt to open it.
         if ([self database] || [self open]) {
             NSError *error;
@@ -524,7 +497,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (BOOL)execute:(NSString *)sql withParams:(NSArray *)params {
     BOOL __block success = NO;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         // If we don't have a valid database instance we have attempt to open it.
         if ([self database] || [self open]) {
             NSError *error;
@@ -578,7 +551,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (BOOL)beginTransaction:(RASqliteTransaction)type {
     BOOL __block success = NO;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         // If we don't have a valid database instance we have attempt to open it.
         if ([self database] || [self open]) {
             const char *sql;
@@ -619,7 +592,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (BOOL)rollBack {
     BOOL __block success = NO;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         char *errmsg;
         int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &errmsg);
 
@@ -639,7 +612,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (BOOL)commit {
     BOOL __block success = NO;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         char *errmsg;
         int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &errmsg);
 
@@ -659,7 +632,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 - (BOOL)inTransaction {
     BOOL __block inTransaction = NO;
 
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         // Using the `sqlite3_get_autocommit` to check whether the database is
         // currently in a transaction.
         // http://sqlite.org/c3ref/get_autocommit.html
@@ -675,22 +648,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 #pragma mark -- Queue
 
-- (void)queueInternalBlock:(void (^)(void))block {
-    // Attempt to retrieve the name from the current dispatch queue, and
-    // compare it against the name of the query dispatch queue. If the name
-    // matches we're on the correct queue.
-    void *name = dispatch_get_specific(RASqliteKeyQueueName);
-    if (name == dispatch_queue_get_specific([self queue], RASqliteKeyQueueName)) {
-        block();
-    } else {
-        dispatch_sync([self queue], ^{
-            block();
-        });
-    }
-}
-
 - (void)queueWithBlock:(void (^)(RASqlite *db))block {
-    [self queueInternalBlock:^{
+    [_queue dispatchBlock:^{
         block(self);
     }];
 }

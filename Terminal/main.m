@@ -10,7 +10,7 @@
 
 int main(int argc, const char *argv[]) {
     @autoreleasepool {
-        RATerminalModel *model = [[RATerminalModel alloc] init];
+        RATerminalModel *model = [RATerminalModel sharedModel];
 
         // Check if we were able to find the specified user.
         NSDictionary *user = [model getUser:@"raatiniemi"];

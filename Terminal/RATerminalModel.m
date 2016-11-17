@@ -8,14 +8,7 @@
 
 #import "RATerminalModel.h"
 
-/**
- Instance for the database.
-
- @note
- Since we only want a single instance to the database in real application
- environments for each model, we have to declare the variable static.
- */
-static sqlite3 *_database;
+static RATerminalModel *_sharedModel = nil;
 
 @implementation RATerminalModel
 
@@ -48,6 +41,15 @@ static sqlite3 *_database;
     return self;
 }
 
++ (RATerminalModel *)sharedModel {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedModel = [[RATerminalModel alloc] init];
+    });
+
+    return _sharedModel;
+}
+
 #pragma mark - Database
 
 - (NSDictionary *)structure {
@@ -74,17 +76,6 @@ static sqlite3 *_database;
     tables[@"user"] = user;
 
     return tables;
-}
-
-- (void)setDatabase:(sqlite3 *)database {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        _database = database;
-    });
-}
-
-- (sqlite3 *)database {
-    return _database;
 }
 
 #pragma mark - Handle users

@@ -135,8 +135,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 @implementation RASqlite
 
-@synthesize database = _database;
-
 @synthesize path = _path;
 
 @synthesize retryTimeout = _retryTimeout;
@@ -234,43 +232,27 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 #pragma mark - Database
 
-- (void)setDatabase:(sqlite3 *)database {
-    // Protection from rewriting the database pointer mid execution. The pointer
-    // have to be reset before setting a new instance.
-    if ([self database] == nil || database == nil) {
-        _database = database;
-    } else {
-        RASqliteWarningLog(@"Attempt to rewrite database pointer.");
-    }
-}
-
-- (sqlite3 *)database {
-    return _database;
-}
-
 - (BOOL)openWithFlags:(int)flags {
     NSError __block *error;
 
     [_queue dispatchBlock:^{
         // Check if the database already is active, not need to open it.
-        sqlite3 *database = [self database];
-        if (database) {
+        if (_database) {
             // No need to attempt to open the database, it's already open.
             RASqliteDebugLog(@"Database is already open.");
             return;
         }
 
         // Attempt to open the database.
-        int code = sqlite3_open_v2([[self path] UTF8String], &database, flags, NULL);
+        int code = sqlite3_open_v2([[self path] UTF8String], &_database, flags, NULL);
         if (code == SQLITE_OK) {
             // The database was successfully opened.
-            [self setDatabase:database];
             RASqliteInfoLog(@"Database `%@` have successfully been opened.", [[self path] lastPathComponent]);
             return;
         }
 
         // Something went wrong...
-        const char *errmsg = sqlite3_errmsg(database);
+        const char *errmsg = sqlite3_errmsg(_database);
         NSString *message = RASqliteSF(@"Unable to open database: %s", errmsg);
         RASqliteErrorLog(@"%@", message);
 
@@ -291,8 +273,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     [_queue dispatchBlock:^{
         // Check if we have an active database instance, no need to attempt
         // a close if we don't.
-        sqlite3 *database = [self database];
-        if (database) {
+        if (_database) {
             // We have to check whether we have an active transaction. The
             // `sqlite3_close` will close the database even if a transaction
             // lock have been acquired.
@@ -308,7 +289,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 do {
                     // Reset the retry control and attempt to close the database.
                     retry = NO;
-                    code = sqlite3_close(database);
+                    code = sqlite3_close(_database);
 
                     // Check whether the database is busy or locked.
                     // By default, sqlite3 do not check if a transaction is
@@ -327,14 +308,14 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                         }
                     } else if (code != SQLITE_OK) {
                         // Something went wrong...
-                        const char *errmsg = sqlite3_errmsg(database);
+                        const char *errmsg = sqlite3_errmsg(_database);
                         NSString *message = RASqliteSF(@"Unable to close database: %s", errmsg);
                         RASqliteErrorLog(@"%@", message);
 
                         error = [NSError code:RASqliteErrorClose message:message];
                         [self setError:error];
                     } else {
-                        [self setDatabase:nil];
+                        _database = nil;
                         RASqliteInfoLog(@"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
                     }
                 } while (retry);
@@ -366,11 +347,11 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
     [_queue dispatchBlock:^{
         // If we don't have a valid database instance we have attempt to open it.
-        if ([self database] || [self open]) {
+        if (_database || [self open]) {
             NSError __block *error;
 
             sqlite3_stmt *statement;
-            int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
+            int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
 
             if (code == SQLITE_OK) {
                 // If we have parameters, we need to bind them to the statement.
@@ -397,7 +378,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                             break;
                         } else {
                             // Something has gone wrong, leave the loop.
-                            const char *errmsg = sqlite3_errmsg([self database]);
+                            const char *errmsg = sqlite3_errmsg(_database);
                             NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
                             RASqliteErrorLog(@"%@", message);
 
@@ -411,7 +392,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 }
             } else {
                 // Something went wrong...
-                const char *errmsg = sqlite3_errmsg([self database]);
+                const char *errmsg = sqlite3_errmsg(_database);
                 NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
                 RASqliteErrorLog(@"%@", message);
 
@@ -438,11 +419,11 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
     [_queue dispatchBlock:^{
         // If we don't have a valid database instance we have attempt to open it.
-        if ([self database] || [self open]) {
+        if (_database || [self open]) {
             NSError *error;
 
             sqlite3_stmt *statement;
-            int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
+            int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
 
             if (code == SQLITE_OK) {
                 // If we have parameters, we need to bind them to the statement.
@@ -460,7 +441,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                         RASqliteDebugLog(@"No rows were found with query: %@", sql);
                     } else {
                         // Something went wrong...
-                        const char *errmsg = sqlite3_errmsg([self database]);
+                        const char *errmsg = sqlite3_errmsg(_database);
                         NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
                         RASqliteErrorLog(@"%@", message);
 
@@ -470,7 +451,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 }
             } else {
                 // Something went wrong...
-                const char *errmsg = sqlite3_errmsg([self database]);
+                const char *errmsg = sqlite3_errmsg(_database);
                 NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
                 RASqliteErrorLog(@"%@", message);
 
@@ -499,11 +480,11 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
     [_queue dispatchBlock:^{
         // If we don't have a valid database instance we have attempt to open it.
-        if ([self database] || [self open]) {
+        if (_database || [self open]) {
             NSError *error;
 
             sqlite3_stmt *statement;
-            int code = sqlite3_prepare_v2([self database], [sql UTF8String], -1, &statement, NULL);
+            int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
 
             if (code == SQLITE_OK) {
                 // If we have parameters, we need to bind them to the statement.
@@ -514,7 +495,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                         success = YES;
                     } else {
                         // Something went wrong...
-                        const char *errmsg = sqlite3_errmsg([self database]);
+                        const char *errmsg = sqlite3_errmsg(_database);
                         NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
                         RASqliteErrorLog(@"%@", message);
 
@@ -524,7 +505,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 }
             } else {
                 // Something went wrong...
-                const char *errmsg = sqlite3_errmsg([self database]);
+                const char *errmsg = sqlite3_errmsg(_database);
                 NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
                 RASqliteErrorLog(@"%@", message);
 
@@ -553,7 +534,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
     [_queue dispatchBlock:^{
         // If we don't have a valid database instance we have attempt to open it.
-        if ([self database] || [self open]) {
+        if (_database || [self open]) {
             const char *sql;
             switch (type) {
                 case RASqliteTransactionExclusive:
@@ -569,7 +550,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             }
 
             char *errmsg;
-            int code = sqlite3_exec([self database], sql, 0, 0, &errmsg);
+            int code = sqlite3_exec(_database, sql, 0, 0, &errmsg);
 
             success = (code == SQLITE_OK);
             if (!success) {
@@ -594,7 +575,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
     [_queue dispatchBlock:^{
         char *errmsg;
-        int code = sqlite3_exec([self database], "ROLLBACK TRANSACTION", 0, 0, &errmsg);
+        int code = sqlite3_exec(_database, "ROLLBACK TRANSACTION", 0, 0, &errmsg);
 
         success = (code == SQLITE_OK);
         if (!success) {
@@ -614,7 +595,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
     [_queue dispatchBlock:^{
         char *errmsg;
-        int code = sqlite3_exec([self database], "COMMIT TRANSACTION", 0, 0, &errmsg);
+        int code = sqlite3_exec(_database, "COMMIT TRANSACTION", 0, 0, &errmsg);
 
         success = (code == SQLITE_OK);
         if (!success) {
@@ -638,8 +619,8 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         // http://sqlite.org/c3ref/get_autocommit.html
         //
         // If we don't have a valid database instance we have attempt to open it.
-        if ([self database] || [self open]) {
-            inTransaction = sqlite3_get_autocommit([self database]) == 0;
+        if (_database || [self open]) {
+            inTransaction = sqlite3_get_autocommit(_database) == 0;
         }
     }];
 
@@ -681,6 +662,32 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (void)queueTransactionWithBlock:(void (^)(RASqlite *db, BOOL *commit))block {
     [self queueTransaction:RASqliteTransactionDeferred withBlock:block];
+}
+
+#pragma mark -- Helper
+
+- (NSNumber *)lastInsertId {
+    NSNumber __block *insertId;
+
+    [_queue dispatchBlock:^{
+        if (_database) {
+            insertId = @(sqlite3_last_insert_rowid(_database));
+        }
+    }];
+
+    return insertId;
+}
+
+- (NSNumber *)rowCount {
+    NSNumber __block *count;
+
+    [_queue dispatchBlock:^{
+        if (_database) {
+            count = @(sqlite3_changes(_database));
+        }
+    }];
+
+    return count;
 }
 
 @end

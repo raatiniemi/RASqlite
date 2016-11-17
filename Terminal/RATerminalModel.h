@@ -9,7 +9,6 @@
 // -- -- RASqlite
 
 #import "RASqlite.h"
-#import "RASqlite+RASqliteHelper.h"
 #import "RASqlite+RASqliteTable.h"
 
 /**
@@ -18,6 +17,13 @@
  @author Tobias Raatiniemi <raatiniemi@gmail.com>
  */
 @interface RATerminalModel : RASqlite
+
+/**
+ Get the shared model.
+
+ @return Shared model.
+ */
++ (RATerminalModel *)sharedModel;
 
 /**
  Get the user information based on the username.

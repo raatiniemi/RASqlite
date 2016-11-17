@@ -100,29 +100,20 @@ If you use the supplied methods, in the designed way, for executing your queries
 Note: You should however still have an application layer for validation, i.e. validate that the users input data is within reasonable limits. E.g. the age of a person do not exceed 200 years.
 
 ## Thread safety
-When using a single instance of the database, each of the query methods are thread-safe. However, if you are executing queries with multiple instances against the same database it is highly recommended that you extend the `RASqlite`-class and override these methods:
+When using a single instance of the database, each of the query methods are thread-safe. However, if you are executing queries with multiple instances against the same database it is highly recommended that you create a shared instance of the `RASqlite`-class.
 
-1. `setDatabase:`
-2. `database`
-
-These methods should point to a static `sqlite3` variable, as shown below.
-
-	static sqlite3 *_database;
-	@implementation RASqliteThreadSafe
-	- (void)setDatabase:(sqlite3 *)database
+	static RASqlite *_sharedInstance;
+	@implementation Model
+	+ (RASqlite *)sharedInstance
 	{
 		static dispatch_once_t onceToken;
 		dispatch_once(&onceToken, ^{
-			_database = database;
+			_sharedInstance = [[RASqlite alloc] initWithPath:@"path-to.db"];
 		});
-	}
-	- (sqlite3 *)database
-	{
-		return _database;
+
+		return _sharedInstance;
 	}
 	@end
-
-By overriding the `setDatabase:` and `database` methods you also gain a performance boost since each new database instance do not have to open the connection again. However, the memory imprint will be marginally increased, this should not be an issue unless you have a lot of different databases.
 
 ## Working with queues
 The query methods are always executed on the same database instance queue. However, if you are executing queries from multiple different threads it is not always guaranteed that the queries are executed in the order you'd want. In these situations you should use the `queueWithBlock:`-method.

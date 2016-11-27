@@ -11,6 +11,7 @@
 
 #import "RASqliteLog.h"
 #import "RASqliteQueue.h"
+#import "RASqliteTransaction.h"
 
 // Definition for column structure.
 #import "RASqliteColumn.h"
@@ -25,26 +26,6 @@ static NSString *RASqliteColumnConstrainException = @"Column constrain";
 
 /// Exception name for incomplete implementation.
 static NSString *RASqliteIncompleteImplementationException = @"Incomplete implementation";
-
-// -- -- Transaction
-
-/**
- Definition of available transaction types.
-
- @note
- More information about transaction types within sqlite can be found here:
- http://www.sqlite.org/lang_transaction.html
- */
-typedef NS_ENUM(short int, RASqliteTransaction) {
-    /// No locks are acquired on the database until the database is first accessed.
-            RASqliteTransactionDeferred,
-
-    /// Reserved locks are acquired on all database, without waiting for database access.
-            RASqliteTransactionImmediate,
-
-    /// An exclusive transaction causes EXCLUSIVE locks to be acquired on all databases.
-            RASqliteTransactionExclusive
-};
 
 /**
  Shorthand for column initialization.

@@ -30,6 +30,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 #import "RASqliteBinder.h"
 #import "RASqliteMapper.h"
+#import "RASqliteQueue.h"
 
 /**
  RASqlite is a simple library for working with SQLite databases on iOS and Mac OS X.

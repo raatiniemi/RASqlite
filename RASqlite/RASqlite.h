@@ -10,7 +10,6 @@
 #import <sqlite3.h>
 
 #import "RASqliteLog.h"
-#import "RASqliteQueue.h"
 #import "RASqliteTransaction.h"
 
 // Definition for column structure.

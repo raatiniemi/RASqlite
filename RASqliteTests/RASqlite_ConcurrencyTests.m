@@ -6,6 +6,7 @@
 //  Copyright (c) 2016 Raatiniemi. All rights reserved.
 //
 
+#import <XCTest/XCTest.h>
 #import "RASqlite.h"
 #import "RASqlite+RASqliteTable.h"
 

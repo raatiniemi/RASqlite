@@ -3,6 +3,7 @@
 // Copyright (c) 2016 Raatiniemi. All rights reserved.
 //
 
+#import <XCTest/XCTest.h>
 #import "NSDictionary+RASqlite.h"
 
 @interface NSDictionary_RASqliteTests : XCTestCase

@@ -6,6 +6,7 @@
 //  Copyright (c) 2014-2016 Raatiniemi. All rights reserved.
 //
 
+#import <XCTest/XCTest.h>
 #import "RASqlite+RASqliteTable.h"
 
 /// Base directory for the unit test databases.

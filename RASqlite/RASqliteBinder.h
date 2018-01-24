@@ -6,6 +6,7 @@
 //  Copyright (c) 2016 Raatiniemi. All rights reserved.
 //
 
+#import <Foundation/Foundation.h>
 #import <sqlite3.h>
 
 @interface RASqliteBinder : NSObject

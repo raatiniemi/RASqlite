@@ -7,6 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
+
+//! Project version number for RASqlite.
+FOUNDATION_EXPORT double RASqliteVersionNumber;
+
+//! Project version string for RASqlite.
+FOUNDATION_EXPORT const unsigned char RASqliteVersionString[];
+
+// In this header, you should import all the public headers of your framework using statements like #import <RASqlite/PublicHeader.h>
 #import <sqlite3.h>
 
 #import "RASqliteLog.h"

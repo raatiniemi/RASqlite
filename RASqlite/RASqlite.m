@@ -71,6 +71,17 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
  */
 - (BOOL)checkPath:(NSString *)path;
 
+#pragma mark - Database
+
+/**
+ Check whether a database connection is available or can be opened.
+
+ @return `YES` if connection is available or can be opened, otherwise `NO`.
+
+ @author Tobias Raatiniemi <raatiniemi@gmail.com>
+ */
+- (BOOL)isConnectionOpenOrCanBeOpened;
+
 #pragma mark - Query
 
 /**
@@ -330,6 +341,10 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     return error == nil;
 }
 
+- (BOOL)isConnectionOpenOrCanBeOpened {
+    return _database || [self open];
+}
+
 #pragma mark - Query
 
 - (BOOL)bindParameters:(NSArray *)parameters toStatement:(sqlite3_stmt **)statement {
@@ -347,8 +362,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     NSMutableArray __block *results;
 
     [_queue dispatchBlock:^{
-        // If we don't have a valid database instance we have attempt to open it.
-        if (_database || [self open]) {
+        if (self.isConnectionOpenOrCanBeOpened) {
             NSError __block *error;
 
             sqlite3_stmt *statement;
@@ -419,8 +433,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     NSDictionary __block *row;
 
     [_queue dispatchBlock:^{
-        // If we don't have a valid database instance we have attempt to open it.
-        if (_database || [self open]) {
+        if (self.isConnectionOpenOrCanBeOpened) {
             NSError *error;
 
             sqlite3_stmt *statement;
@@ -480,8 +493,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     BOOL __block success = NO;
 
     [_queue dispatchBlock:^{
-        // If we don't have a valid database instance we have attempt to open it.
-        if (_database || [self open]) {
+        if (self.isConnectionOpenOrCanBeOpened) {
             NSError *error;
 
             sqlite3_stmt *statement;
@@ -534,8 +546,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     BOOL __block success = NO;
 
     [_queue dispatchBlock:^{
-        // If we don't have a valid database instance we have attempt to open it.
-        if (_database || [self open]) {
+        if (self.isConnectionOpenOrCanBeOpened) {
             const char *sql;
             switch (type) {
                 case RASqliteTransactionExclusive:
@@ -618,9 +629,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         // Using the `sqlite3_get_autocommit` to check whether the database is
         // currently in a transaction.
         // http://sqlite.org/c3ref/get_autocommit.html
-        //
-        // If we don't have a valid database instance we have attempt to open it.
-        if (_database || [self open]) {
+        if (self.isConnectionOpenOrCanBeOpened) {
             inTransaction = sqlite3_get_autocommit(_database) == 0;
         }
     }];

@@ -334,7 +334,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 - (BOOL)bindParameters:(NSArray *)parameters toStatement:(sqlite3_stmt **)statement {
     NSError *error = [RASqliteBinder bindParameters:parameters toStatement:statement];
-    if ( error ) {
+    if (error) {
         [self setError:error];
     }
 

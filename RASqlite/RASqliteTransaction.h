@@ -17,14 +17,14 @@
  http://www.sqlite.org/lang_transaction.html
  */
 typedef NS_ENUM(short int, RASqliteTransaction) {
-    /// No locks are acquired on the database until the database is first accessed.
-    RASqliteTransactionDeferred,
+            /// No locks are acquired on the database until the database is first accessed.
+            RASqliteTransactionDeferred,
 
-    /// Reserved locks are acquired on all database, without waiting for database access.
-    RASqliteTransactionImmediate,
+            /// Reserved locks are acquired on all database, without waiting for database access.
+            RASqliteTransactionImmediate,
 
-    /// An exclusive transaction causes EXCLUSIVE locks to be acquired on all databases.
-    RASqliteTransactionExclusive
+            /// An exclusive transaction causes EXCLUSIVE locks to be acquired on all databases.
+            RASqliteTransactionExclusive
 };
 
 #endif /* RASqliteTransaction_h */

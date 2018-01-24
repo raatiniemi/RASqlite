@@ -11,17 +11,17 @@
 
 /// Definition of available log levels.
 typedef NS_ENUM(short int, RASqliteLogLevel) {
-    /// Debug-level messages.
-    RASqliteLogLevelDebug,
+            /// Debug-level messages.
+            RASqliteLogLevelDebug,
 
-    /// Informational-level messages.
-    RASqliteLogLevelInfo,
+            /// Informational-level messages.
+            RASqliteLogLevelInfo,
 
-    /// Warning-level messages.
-    RASqliteLogLevelWarning,
+            /// Warning-level messages.
+            RASqliteLogLevelWarning,
 
-    /// Error-level messages.
-    RASqliteLogLevelError
+            /// Error-level messages.
+            RASqliteLogLevelError
 };
 
 #if kRASqliteDebug

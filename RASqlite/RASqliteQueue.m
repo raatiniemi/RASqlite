@@ -10,8 +10,8 @@
 
 static RASqliteQueue *_sharedQueue = nil;
 
-static char * const RASqliteQueueNameKey = "me.raatiniemi.rasqlite.queue.name";
-static NSString * const RASqliteThreadFormat = @"me.raatiniemi.rasqlite.%@";
+static char *const RASqliteQueueNameKey = "me.raatiniemi.rasqlite.queue.name";
+static NSString *const RASqliteThreadFormat = @"me.raatiniemi.rasqlite.%@";
 
 @interface RASqliteQueue ()
 

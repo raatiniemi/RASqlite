@@ -10,7 +10,7 @@
 #import "RASqlite.h"
 #import "RASqlite+RASqliteTable.h"
 
-static NSString * const _databasePath = @"/tmp/rasqlite/binder";
+static NSString *const _databasePath = @"/tmp/rasqlite/binder";
 
 @interface RASqliteBinderTests : XCTestCase {
 @private

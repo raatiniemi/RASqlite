@@ -46,7 +46,7 @@ typedef BOOL (*isClass)(id, SEL, Class);
 }
 
 - (instancetype)initWithParameters:(NSArray *)parameters andStatement:(sqlite3_stmt **)statement {
-    if ( self = [super init] ) {
+    if (self = [super init]) {
         _parameters = parameters;
         _statement = statement;
 

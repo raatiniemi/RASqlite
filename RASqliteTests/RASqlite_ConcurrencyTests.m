@@ -10,7 +10,7 @@
 #import "RASqlite.h"
 #import "RASqlite+RASqliteTable.h"
 
-static NSString * const _databasePath = @"/tmp/rasqlite/concurrency";
+static NSString *const _databasePath = @"/tmp/rasqlite/concurrency";
 
 @interface RASqlite_ConcurrencyTests : XCTestCase {
 @private

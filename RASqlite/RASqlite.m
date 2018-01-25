@@ -292,6 +292,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         // `sqlite3_close` will close the database even if a transaction
         // lock have been acquired.
         if ([self inTransaction]) {
+            // TODO: We should not return `YES` if we did not close the database.
             return;
         }
 

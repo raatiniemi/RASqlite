@@ -309,6 +309,12 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             retry = NO;
             code = sqlite3_close(_database);
 
+            if (SQLITE_OK == code) {
+                _database = nil;
+                RASqliteInfoLog(@"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
+                return;
+            }
+
             // Check whether the database is busy or locked.
             // By default, sqlite3 do not check if a transaction is
             // active this has to be manually checked.
@@ -324,7 +330,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                     RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
                     retry = NO;
                 }
-            } else if (code != SQLITE_OK) {
+            } else {
                 // Something went wrong...
                 const char *errmsg = sqlite3_errmsg(_database);
                 NSString *message = RASqliteSF(@"Unable to close database: %s", errmsg);
@@ -332,9 +338,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
                 error = [NSError code:RASqliteErrorClose message:message];
                 [self setError:error];
-            } else {
-                _database = nil;
-                RASqliteInfoLog(@"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
             }
         } while (retry);
     }];

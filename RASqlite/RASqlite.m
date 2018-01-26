@@ -483,6 +483,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 [self setError:error];
             }
         }
+        sqlite3_finalize(statement);
     }];
 
     return row;

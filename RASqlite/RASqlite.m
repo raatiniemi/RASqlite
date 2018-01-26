@@ -510,40 +510,42 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     BOOL __block success = NO;
 
     [_queue dispatchBlock:^{
-        if (self.isConnectionOpenOrCanBeOpened) {
-            NSError *error;
-
-            sqlite3_stmt *statement;
-            int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
-
-            if (code == SQLITE_OK) {
-                // If we have parameters, we need to bind them to the statement.
-                if (!params || [self bindParameters:params toStatement:&statement]) {
-                    code = sqlite3_step(statement);
-                    if (code == SQLITE_DONE) {
-                        // Statement have been successfully executed.
-                        success = YES;
-                    } else {
-                        // Something went wrong...
-                        const char *errmsg = sqlite3_errmsg(_database);
-                        NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
-                        RASqliteErrorLog(@"%@", message);
-
-                        error = [NSError code:RASqliteErrorQuery message:message];
-                        [self setError:error];
-                    }
-                }
-            } else {
-                // Something went wrong...
-                const char *errmsg = sqlite3_errmsg(_database);
-                NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-                RASqliteErrorLog(@"%@", message);
-
-                error = [NSError code:RASqliteErrorQuery message:message];
-                [self setError:error];
-            }
-            sqlite3_finalize(statement);
+        if (!self.isConnectionOpenOrCanBeOpened) {
+            return;
         }
+
+        NSError *error;
+
+        sqlite3_stmt *statement;
+        int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
+
+        if (code == SQLITE_OK) {
+            // If we have parameters, we need to bind them to the statement.
+            if (!params || [self bindParameters:params toStatement:&statement]) {
+                code = sqlite3_step(statement);
+                if (code == SQLITE_DONE) {
+                    // Statement have been successfully executed.
+                    success = YES;
+                } else {
+                    // Something went wrong...
+                    const char *errmsg = sqlite3_errmsg(_database);
+                    NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
+                    RASqliteErrorLog(@"%@", message);
+
+                    error = [NSError code:RASqliteErrorQuery message:message];
+                    [self setError:error];
+                }
+            }
+        } else {
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
+        }
+        sqlite3_finalize(statement);
     }];
 
     return success;

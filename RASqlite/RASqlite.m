@@ -405,19 +405,21 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             if (code == SQLITE_ROW) {
                 row = fetchColumns(self, selector, &statement);
                 [results addObject:row];
-            } else {
-                // Something has gone wrong, leave the loop.
-                const char *errmsg = sqlite3_errmsg(_database);
-                NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
-                RASqliteErrorLog(@"%@", message);
 
-                error = [NSError code:RASqliteErrorQuery message:message];
-                [self setError:error];
-
-                // Since an error has occurred we need to reset the results.
-                results = nil;
+                continue;
             }
-        } while (!error);
+
+            // Something has gone wrong, leave the loop.
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
+
+            // Since an error has occurred we need to reset the results.
+            results = nil;
+        } while (NO);
 
         sqlite3_finalize(statement);
     }];

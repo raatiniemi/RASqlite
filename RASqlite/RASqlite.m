@@ -179,7 +179,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         _queue = [RASqliteQueue sharedQueue];
 
         // Set the number of retry attempts before a timeout is triggered.
-        [self setMaxNumberOfRetriesBeforeTimeout:0];
+        self.maxNumberOfRetriesBeforeTimeout = 0;
     }
     return self;
 }
@@ -322,7 +322,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 retry = YES;
 
                 // Check if the retry timeout have been reached.
-                if (attempt++ > [self maxNumberOfRetriesBeforeTimeout]) {
+                if (attempt++ > self.maxNumberOfRetriesBeforeTimeout) {
                     RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
                     retry = NO;
                 }

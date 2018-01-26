@@ -398,13 +398,13 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         // the query is done.
         do {
             code = sqlite3_step(statement);
+            if (code == SQLITE_DONE) {
+                break;
+            }
 
             if (code == SQLITE_ROW) {
                 row = fetchColumns(self, selector, &statement);
                 [results addObject:row];
-            } else if (code == SQLITE_DONE) {
-                // Results have been fetch, leave the loop.
-                break;
             } else {
                 // Something has gone wrong, leave the loop.
                 const char *errmsg = sqlite3_errmsg(_database);

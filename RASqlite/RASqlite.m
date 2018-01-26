@@ -292,7 +292,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             return;
         }
 
-        BOOL retry;
         int code;
 
         // Checks of number of attempts, will prevent infinite loops.
@@ -301,10 +300,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         // Repeat the close process until the database is closed, an error
         // occurs, or the retry attempts have been depleted.
         do {
-            // Reset the retry control and attempt to close the database.
-            retry = NO;
             code = sqlite3_close(_database);
-
             if (SQLITE_OK == code) {
                 _database = nil;
                 RASqliteInfoLog(@"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
@@ -315,17 +311,17 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             // By default, sqlite3 do not check if a transaction is
             // active this has to be manually checked.
             if (code == SQLITE_BUSY || code == SQLITE_LOCKED) {
+                // Check if the retry timeout have been reached.
+                if (attempt++ > self.maxNumberOfRetriesBeforeTimeout) {
+                    RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
+                    break;
+                }
+
                 // Since every query against the same database is executed
                 // on the same queue it is highly unlikely that the database
                 // would be busy or locked, but better to be safe.
                 RASqliteInfoLog(@"Database is busy/locked, retrying to close.");
-                retry = YES;
-
-                // Check if the retry timeout have been reached.
-                if (attempt++ > self.maxNumberOfRetriesBeforeTimeout) {
-                    RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
-                    retry = NO;
-                }
+                continue;
             } else {
                 // Something went wrong...
                 const char *errmsg = sqlite3_errmsg(_database);
@@ -335,7 +331,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 error = [NSError code:RASqliteErrorClose message:message];
                 [self setError:error];
             }
-        } while (retry);
+        } while (NO);
     }];
 
     return error == nil;

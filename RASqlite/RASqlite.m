@@ -44,8 +44,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     RASqliteQueue *_queue;
 
     NSString *_path;
-
-    NSUInteger _maxNumberOfRetriesBeforeTimeout;
 }
 
 /// Stores the path for the database file.
@@ -148,8 +146,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 @implementation RASqlite
 
 @synthesize path = _path;
-
-@synthesize maxNumberOfRetriesBeforeTimeout = _maxNumberOfRetriesBeforeTimeout;
 
 @synthesize error = _error;
 

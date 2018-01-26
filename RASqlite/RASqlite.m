@@ -519,24 +519,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         sqlite3_stmt *statement;
         int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
 
-        if (code == SQLITE_OK) {
-            // If we have parameters, we need to bind them to the statement.
-            if (!params || [self bindParameters:params toStatement:&statement]) {
-                code = sqlite3_step(statement);
-                if (code == SQLITE_DONE) {
-                    // Statement have been successfully executed.
-                    success = YES;
-                } else {
-                    // Something went wrong...
-                    const char *errmsg = sqlite3_errmsg(_database);
-                    NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
-                    RASqliteErrorLog(@"%@", message);
-
-                    error = [NSError code:RASqliteErrorQuery message:message];
-                    [self setError:error];
-                }
-            }
-        } else {
+        if (code != SQLITE_OK) {
             // Something went wrong...
             const char *errmsg = sqlite3_errmsg(_database);
             NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
@@ -544,6 +527,24 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
             error = [NSError code:RASqliteErrorQuery message:message];
             [self setError:error];
+            sqlite3_finalize(statement);
+        }
+
+        // If we have parameters, we need to bind them to the statement.
+        if (!params || [self bindParameters:params toStatement:&statement]) {
+            code = sqlite3_step(statement);
+            if (code == SQLITE_DONE) {
+                // Statement have been successfully executed.
+                success = YES;
+            } else {
+                // Something went wrong...
+                const char *errmsg = sqlite3_errmsg(_database);
+                NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
+                RASqliteErrorLog(@"%@", message);
+
+                error = [NSError code:RASqliteErrorQuery message:message];
+                [self setError:error];
+            }
         }
         sqlite3_finalize(statement);
     }];

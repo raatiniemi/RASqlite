@@ -368,44 +368,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         sqlite3_stmt *statement;
         int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
 
-        if (code == SQLITE_OK) {
-            // If we have parameters, we need to bind them to the statement.
-            if (!params || [self bindParameters:params toStatement:&statement]) {
-                // Get the pointer for the method, performance improvement.
-                SEL selector = @selector(fetchColumns:);
-
-                typedef NSDictionary *(*fetch)(id, SEL, sqlite3_stmt **);
-                fetch fetchColumns = (fetch) [[RASqliteMapper class] methodForSelector:selector];
-
-                NSDictionary *row;
-                results = [[NSMutableArray alloc] init];
-
-                // Looping through the results, until an error occurs or
-                // the query is done.
-                do {
-                    code = sqlite3_step(statement);
-
-                    if (code == SQLITE_ROW) {
-                        row = fetchColumns(self, selector, &statement);
-                        [results addObject:row];
-                    } else if (code == SQLITE_DONE) {
-                        // Results have been fetch, leave the loop.
-                        break;
-                    } else {
-                        // Something has gone wrong, leave the loop.
-                        const char *errmsg = sqlite3_errmsg(_database);
-                        NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
-                        RASqliteErrorLog(@"%@", message);
-
-                        error = [NSError code:RASqliteErrorQuery message:message];
-                        [self setError:error];
-
-                        // Since an error has occurred we need to reset the results.
-                        results = nil;
-                    }
-                } while (!error);
-            }
-        } else {
+        if (code != SQLITE_OK) {
             // Something went wrong...
             const char *errmsg = sqlite3_errmsg(_database);
             NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
@@ -413,6 +376,45 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
             error = [NSError code:RASqliteErrorQuery message:message];
             [self setError:error];
+            sqlite3_finalize(statement);
+            return;
+        }
+
+        // If we have parameters, we need to bind them to the statement.
+        if (!params || [self bindParameters:params toStatement:&statement]) {
+            // Get the pointer for the method, performance improvement.
+            SEL selector = @selector(fetchColumns:);
+
+            typedef NSDictionary *(*fetch)(id, SEL, sqlite3_stmt **);
+            fetch fetchColumns = (fetch) [[RASqliteMapper class] methodForSelector:selector];
+
+            NSDictionary *row;
+            results = [[NSMutableArray alloc] init];
+
+            // Looping through the results, until an error occurs or
+            // the query is done.
+            do {
+                code = sqlite3_step(statement);
+
+                if (code == SQLITE_ROW) {
+                    row = fetchColumns(self, selector, &statement);
+                    [results addObject:row];
+                } else if (code == SQLITE_DONE) {
+                    // Results have been fetch, leave the loop.
+                    break;
+                } else {
+                    // Something has gone wrong, leave the loop.
+                    const char *errmsg = sqlite3_errmsg(_database);
+                    NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
+                    RASqliteErrorLog(@"%@", message);
+
+                    error = [NSError code:RASqliteErrorQuery message:message];
+                    [self setError:error];
+
+                    // Since an error has occurred we need to reset the results.
+                    results = nil;
+                }
+            } while (!error);
         }
         sqlite3_finalize(statement);
     }];

@@ -475,9 +475,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             if (code == SQLITE_ROW) {
                 row = [[RASqliteMapper class] fetchColumns:&statement];
 
-                // If the error variable have been populated, something
-                // has gone wrong and we need to reset the row variable.
-                if (error || [row count] == 0) {
+                if ([row count] == 0) {
                     row = nil;
                 }
                 break;

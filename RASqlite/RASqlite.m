@@ -531,21 +531,27 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         }
 
         // If we have parameters, we need to bind them to the statement.
-        if (!params || [self bindParameters:params toStatement:&statement]) {
+        if (params) {
+            [self bindParameters:params toStatement:&statement];
+        }
+
+        do {
             code = sqlite3_step(statement);
             if (code == SQLITE_DONE) {
                 // Statement have been successfully executed.
                 success = YES;
-            } else {
-                // Something went wrong...
-                const char *errmsg = sqlite3_errmsg(_database);
-                NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
-                RASqliteErrorLog(@"%@", message);
-
-                error = [NSError code:RASqliteErrorQuery message:message];
-                [self setError:error];
+                break;
             }
-        }
+
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
+        } while (NO);
+
         sqlite3_finalize(statement);
     }];
 

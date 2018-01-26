@@ -620,13 +620,15 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         int code = sqlite3_exec(_database, "ROLLBACK TRANSACTION", 0, 0, &errmsg);
 
         success = (code == SQLITE_OK);
-        if (!success) {
-            NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-            RASqliteErrorLog(@"Unable to rollback transaction: %@", message);
-
-            NSError *error = [NSError code:RASqliteErrorTransaction message:message];
-            [self setError:error];
+        if (success) {
+            return;
         }
+
+        NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+        RASqliteErrorLog(@"Unable to rollback transaction: %@", message);
+
+        NSError *error = [NSError code:RASqliteErrorTransaction message:message];
+        [self setError:error];
     }];
 
     return success;

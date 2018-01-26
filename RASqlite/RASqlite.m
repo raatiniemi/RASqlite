@@ -448,31 +448,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         sqlite3_stmt *statement;
         int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
 
-        if (code == SQLITE_OK) {
-            // If we have parameters, we need to bind them to the statement.
-            if (!params || [self bindParameters:params toStatement:&statement]) {
-                code = sqlite3_step(statement);
-                if (code == SQLITE_ROW) {
-                    row = [[RASqliteMapper class] fetchColumns:&statement];
-
-                    // If the error variable have been populated, something
-                    // has gone wrong and we need to reset the row variable.
-                    if (error || [row count] == 0) {
-                        row = nil;
-                    }
-                } else if (code == SQLITE_DONE) {
-                    RASqliteDebugLog(@"No rows were found with query: %@", sql);
-                } else {
-                    // Something went wrong...
-                    const char *errmsg = sqlite3_errmsg(_database);
-                    NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
-                    RASqliteErrorLog(@"%@", message);
-
-                    error = [NSError code:RASqliteErrorQuery message:message];
-                    [self setError:error];
-                }
-            }
-        } else {
+        if (code != SQLITE_OK) {
             // Something went wrong...
             const char *errmsg = sqlite3_errmsg(_database);
             NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
@@ -480,8 +456,33 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
             error = [NSError code:RASqliteErrorQuery message:message];
             [self setError:error];
+            sqlite3_finalize(statement);
+            return;
         }
-        sqlite3_finalize(statement);
+
+        // If we have parameters, we need to bind them to the statement.
+        if (!params || [self bindParameters:params toStatement:&statement]) {
+            code = sqlite3_step(statement);
+            if (code == SQLITE_ROW) {
+                row = [[RASqliteMapper class] fetchColumns:&statement];
+
+                // If the error variable have been populated, something
+                // has gone wrong and we need to reset the row variable.
+                if (error || [row count] == 0) {
+                    row = nil;
+                }
+            } else if (code == SQLITE_DONE) {
+                RASqliteDebugLog(@"No rows were found with query: %@", sql);
+            } else {
+                // Something went wrong...
+                const char *errmsg = sqlite3_errmsg(_database);
+                NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
+                RASqliteErrorLog(@"%@", message);
+
+                error = [NSError code:RASqliteErrorQuery message:message];
+                [self setError:error];
+            }
+        }
     }];
 
     return row;

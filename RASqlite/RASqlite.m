@@ -45,14 +45,14 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
     NSString *_path;
 
-    NSUInteger _retryTimeout;
+    NSUInteger _maxNumberOfRetriesBeforeTimeout;
 }
 
 /// Stores the path for the database file.
 @property(strong, atomic) NSString *path;
 
 /// Number of attempts before the retry timeout is reached.
-@property(atomic) NSUInteger retryTimeout;
+@property(atomic) NSUInteger maxNumberOfRetriesBeforeTimeout;
 
 #pragma mark - Path
 
@@ -149,7 +149,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 @synthesize path = _path;
 
-@synthesize retryTimeout = _retryTimeout;
+@synthesize maxNumberOfRetriesBeforeTimeout = _maxNumberOfRetriesBeforeTimeout;
 
 @synthesize error = _error;
 
@@ -183,7 +183,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         _queue = [RASqliteQueue sharedQueue];
 
         // Set the number of retry attempts before a timeout is triggered.
-        [self setRetryTimeout:0];
+        [self setMaxNumberOfRetriesBeforeTimeout:0];
     }
     return self;
 }
@@ -326,7 +326,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 retry = YES;
 
                 // Check if the retry timeout have been reached.
-                if (attempt++ > [self retryTimeout]) {
+                if (attempt++ > [self maxNumberOfRetriesBeforeTimeout]) {
                     RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
                     retry = NO;
                 }

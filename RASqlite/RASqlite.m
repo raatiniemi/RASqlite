@@ -311,8 +311,9 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
             // By default, sqlite3 do not check if a transaction is
             // active this has to be manually checked.
             if (code == SQLITE_BUSY || code == SQLITE_LOCKED) {
-                // Check if the retry timeout have been reached.
-                if (attempt++ > self.maxNumberOfRetriesBeforeTimeout) {
+                attempt++;
+
+                if (attempt > self.maxNumberOfRetriesBeforeTimeout) {
                     RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
                     break;
                 }

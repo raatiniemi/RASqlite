@@ -323,15 +323,15 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
                 // would be busy or locked, but better to be safe.
                 RASqliteInfoLog(@"Database is busy/locked, retrying to close.");
                 continue;
-            } else {
-                // Something went wrong...
-                const char *errmsg = sqlite3_errmsg(_database);
-                NSString *message = RASqliteSF(@"Unable to close database: %s", errmsg);
-                RASqliteErrorLog(@"%@", message);
-
-                error = [NSError code:RASqliteErrorClose message:message];
-                [self setError:error];
             }
+
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Unable to close database: %s", errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorClose message:message];
+            [self setError:error];
         } while (NO);
     }];
 

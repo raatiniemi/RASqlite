@@ -44,15 +44,13 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     RASqliteQueue *_queue;
 
     NSString *_path;
-
-    NSUInteger _retryTimeout;
 }
 
 /// Stores the path for the database file.
 @property(strong, atomic) NSString *path;
 
 /// Number of attempts before the retry timeout is reached.
-@property(atomic) NSUInteger retryTimeout;
+@property(atomic) NSUInteger maxNumberOfRetriesBeforeTimeout;
 
 #pragma mark - Path
 
@@ -149,8 +147,6 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
 
 @synthesize path = _path;
 
-@synthesize retryTimeout = _retryTimeout;
-
 @synthesize error = _error;
 
 #pragma mark - Initialization
@@ -183,7 +179,7 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         _queue = [RASqliteQueue sharedQueue];
 
         // Set the number of retry attempts before a timeout is triggered.
-        [self setRetryTimeout:0];
+        self.maxNumberOfRetriesBeforeTimeout = 0;
     }
     return self;
 }
@@ -283,59 +279,60 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     NSError __block *error;
 
     [_queue dispatchBlock:^{
-        // Check if we have an active database instance, no need to attempt
-        // a close if we don't.
         if (_database) {
-            // We have to check whether we have an active transaction. The
-            // `sqlite3_close` will close the database even if a transaction
-            // lock have been acquired.
-            if (![self inTransaction]) {
-                BOOL retry;
-                int code;
-
-                // Checks of number of attempts, will prevent infinite loops.
-                NSInteger attempt = 0;
-
-                // Repeat the close process until the database is closed, an error
-                // occurs, or the retry attempts have been depleted.
-                do {
-                    // Reset the retry control and attempt to close the database.
-                    retry = NO;
-                    code = sqlite3_close(_database);
-
-                    // Check whether the database is busy or locked.
-                    // By default, sqlite3 do not check if a transaction is
-                    // active this has to be manually checked.
-                    if (code == SQLITE_BUSY || code == SQLITE_LOCKED) {
-                        // Since every query against the same database is executed
-                        // on the same queue it is highly unlikely that the database
-                        // would be busy or locked, but better to be safe.
-                        RASqliteInfoLog(@"Database is busy/locked, retrying to close.");
-                        retry = YES;
-
-                        // Check if the retry timeout have been reached.
-                        if (attempt++ > [self retryTimeout]) {
-                            RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
-                            retry = NO;
-                        }
-                    } else if (code != SQLITE_OK) {
-                        // Something went wrong...
-                        const char *errmsg = sqlite3_errmsg(_database);
-                        NSString *message = RASqliteSF(@"Unable to close database: %s", errmsg);
-                        RASqliteErrorLog(@"%@", message);
-
-                        error = [NSError code:RASqliteErrorClose message:message];
-                        [self setError:error];
-                    } else {
-                        _database = nil;
-                        RASqliteInfoLog(@"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
-                    }
-                } while (retry);
-            }
-        } else {
-            // No need to close, it is already closed.
             RASqliteDebugLog(@"Database is already closed.");
+            return;
         }
+
+        // We have to check whether we have an active transaction. The
+        // `sqlite3_close` will close the database even if a transaction
+        // lock have been acquired.
+        if ([self inTransaction]) {
+            // TODO: We should not return `YES` if we did not close the database.
+            return;
+        }
+
+        int code;
+
+        // Checks of number of attempts, will prevent infinite loops.
+        NSInteger attempt = 0;
+
+        // Repeat the close process until the database is closed, an error
+        // occurs, or the retry attempts have been depleted.
+        do {
+            code = sqlite3_close(_database);
+            if (SQLITE_OK == code) {
+                _database = nil;
+                RASqliteInfoLog(@"Database `%@` have successfully been closed.", [[self path] lastPathComponent]);
+                return;
+            }
+
+            // Check whether the database is busy or locked.
+            // By default, sqlite3 do not check if a transaction is
+            // active this has to be manually checked.
+            if (code == SQLITE_BUSY || code == SQLITE_LOCKED) {
+                attempt++;
+
+                if (attempt > self.maxNumberOfRetriesBeforeTimeout) {
+                    RASqliteInfoLog(@"Retry timeout have been reached, unable to close database.");
+                    break;
+                }
+
+                // Since every query against the same database is executed
+                // on the same queue it is highly unlikely that the database
+                // would be busy or locked, but better to be safe.
+                RASqliteInfoLog(@"Database is busy/locked, retrying to close.");
+                continue;
+            }
+
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Unable to close database: %s", errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorClose message:message];
+            [self setError:error];
+        } while (NO);
     }];
 
     return error == nil;
@@ -362,60 +359,69 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     NSMutableArray __block *results;
 
     [_queue dispatchBlock:^{
-        if (self.isConnectionOpenOrCanBeOpened) {
-            NSError __block *error;
-
-            sqlite3_stmt *statement;
-            int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
-
-            if (code == SQLITE_OK) {
-                // If we have parameters, we need to bind them to the statement.
-                if (!params || [self bindParameters:params toStatement:&statement]) {
-                    // Get the pointer for the method, performance improvement.
-                    SEL selector = @selector(fetchColumns:);
-
-                    typedef NSDictionary *(*fetch)(id, SEL, sqlite3_stmt **);
-                    fetch fetchColumns = (fetch) [[RASqliteMapper class] methodForSelector:selector];
-
-                    NSDictionary *row;
-                    results = [[NSMutableArray alloc] init];
-
-                    // Looping through the results, until an error occurs or
-                    // the query is done.
-                    do {
-                        code = sqlite3_step(statement);
-
-                        if (code == SQLITE_ROW) {
-                            row = fetchColumns(self, selector, &statement);
-                            [results addObject:row];
-                        } else if (code == SQLITE_DONE) {
-                            // Results have been fetch, leave the loop.
-                            break;
-                        } else {
-                            // Something has gone wrong, leave the loop.
-                            const char *errmsg = sqlite3_errmsg(_database);
-                            NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
-                            RASqliteErrorLog(@"%@", message);
-
-                            error = [NSError code:RASqliteErrorQuery message:message];
-                            [self setError:error];
-
-                            // Since an error has occurred we need to reset the results.
-                            results = nil;
-                        }
-                    } while (!error);
-                }
-            } else {
-                // Something went wrong...
-                const char *errmsg = sqlite3_errmsg(_database);
-                NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-                RASqliteErrorLog(@"%@", message);
-
-                error = [NSError code:RASqliteErrorQuery message:message];
-                [self setError:error];
-            }
-            sqlite3_finalize(statement);
+        if (!self.isConnectionOpenOrCanBeOpened) {
+            return;
         }
+
+        NSError __block *error;
+
+        sqlite3_stmt *statement;
+        int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
+
+        if (code != SQLITE_OK) {
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
+            sqlite3_finalize(statement);
+            return;
+        }
+
+        // If we have parameters, we need to bind them to the statement.
+        if (params) {
+            [self bindParameters:params toStatement:&statement];
+        }
+
+        // Get the pointer for the method, performance improvement.
+        SEL selector = @selector(fetchColumns:);
+
+        typedef NSDictionary *(*fetch)(id, SEL, sqlite3_stmt **);
+        fetch fetchColumns = (fetch) [[RASqliteMapper class] methodForSelector:selector];
+
+        NSDictionary *row;
+        results = [[NSMutableArray alloc] init];
+
+        // Looping through the results, until an error occurs or
+        // the query is done.
+        do {
+            code = sqlite3_step(statement);
+            if (code == SQLITE_DONE) {
+                break;
+            }
+
+            if (code == SQLITE_ROW) {
+                row = fetchColumns(self, selector, &statement);
+                [results addObject:row];
+
+                continue;
+            }
+
+            // Something has gone wrong, leave the loop.
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Unable to fetch row: %s", errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
+
+            // Since an error has occurred we need to reset the results.
+            results = nil;
+        } while (NO);
+
+        sqlite3_finalize(statement);
     }];
 
     return results;
@@ -433,47 +439,58 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     NSDictionary __block *row;
 
     [_queue dispatchBlock:^{
-        if (self.isConnectionOpenOrCanBeOpened) {
-            NSError *error;
-
-            sqlite3_stmt *statement;
-            int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
-
-            if (code == SQLITE_OK) {
-                // If we have parameters, we need to bind them to the statement.
-                if (!params || [self bindParameters:params toStatement:&statement]) {
-                    code = sqlite3_step(statement);
-                    if (code == SQLITE_ROW) {
-                        row = [[RASqliteMapper class] fetchColumns:&statement];
-
-                        // If the error variable have been populated, something
-                        // has gone wrong and we need to reset the row variable.
-                        if (error || [row count] == 0) {
-                            row = nil;
-                        }
-                    } else if (code == SQLITE_DONE) {
-                        RASqliteDebugLog(@"No rows were found with query: %@", sql);
-                    } else {
-                        // Something went wrong...
-                        const char *errmsg = sqlite3_errmsg(_database);
-                        NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
-                        RASqliteErrorLog(@"%@", message);
-
-                        error = [NSError code:RASqliteErrorQuery message:message];
-                        [self setError:error];
-                    }
-                }
-            } else {
-                // Something went wrong...
-                const char *errmsg = sqlite3_errmsg(_database);
-                NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-                RASqliteErrorLog(@"%@", message);
-
-                error = [NSError code:RASqliteErrorQuery message:message];
-                [self setError:error];
-            }
-            sqlite3_finalize(statement);
+        if (!self.isConnectionOpenOrCanBeOpened) {
+            return;
         }
+
+        NSError *error;
+
+        sqlite3_stmt *statement;
+        int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
+
+        if (code != SQLITE_OK) {
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
+            sqlite3_finalize(statement);
+            return;
+        }
+
+        // If we have parameters, we need to bind them to the statement.
+        if (params) {
+            [self bindParameters:params toStatement:&statement];
+        }
+
+        do {
+            code = sqlite3_step(statement);
+            if (code == SQLITE_DONE) {
+                RASqliteDebugLog(@"No rows were found with query: %@", sql);
+                break;
+            }
+
+            if (code == SQLITE_ROW) {
+                row = [[RASqliteMapper class] fetchColumns:&statement];
+
+                if ([row count] == 0) {
+                    row = nil;
+                }
+                break;
+            }
+
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Failed to retrieve result: %s", errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
+        } while (NO);
+
+        sqlite3_finalize(statement);
     }];
 
     return row;
@@ -493,40 +510,49 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     BOOL __block success = NO;
 
     [_queue dispatchBlock:^{
-        if (self.isConnectionOpenOrCanBeOpened) {
-            NSError *error;
+        if (!self.isConnectionOpenOrCanBeOpened) {
+            return;
+        }
 
-            sqlite3_stmt *statement;
-            int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
+        NSError *error;
 
-            if (code == SQLITE_OK) {
-                // If we have parameters, we need to bind them to the statement.
-                if (!params || [self bindParameters:params toStatement:&statement]) {
-                    code = sqlite3_step(statement);
-                    if (code == SQLITE_DONE) {
-                        // Statement have been successfully executed.
-                        success = YES;
-                    } else {
-                        // Something went wrong...
-                        const char *errmsg = sqlite3_errmsg(_database);
-                        NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
-                        RASqliteErrorLog(@"%@", message);
+        sqlite3_stmt *statement;
+        int code = sqlite3_prepare_v2(_database, [sql UTF8String], -1, &statement, NULL);
 
-                        error = [NSError code:RASqliteErrorQuery message:message];
-                        [self setError:error];
-                    }
-                }
-            } else {
-                // Something went wrong...
-                const char *errmsg = sqlite3_errmsg(_database);
-                NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
-                RASqliteErrorLog(@"%@", message);
+        if (code != SQLITE_OK) {
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Failed to prepare statement `%@`: %s", sql, errmsg);
+            RASqliteErrorLog(@"%@", message);
 
-                error = [NSError code:RASqliteErrorQuery message:message];
-                [self setError:error];
-            }
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
             sqlite3_finalize(statement);
         }
+
+        // If we have parameters, we need to bind them to the statement.
+        if (params) {
+            [self bindParameters:params toStatement:&statement];
+        }
+
+        do {
+            code = sqlite3_step(statement);
+            if (code == SQLITE_DONE) {
+                // Statement have been successfully executed.
+                success = YES;
+                break;
+            }
+
+            // Something went wrong...
+            const char *errmsg = sqlite3_errmsg(_database);
+            NSString *message = RASqliteSF(@"Failed to execute query: %s", errmsg);
+            RASqliteErrorLog(@"%@", message);
+
+            error = [NSError code:RASqliteErrorQuery message:message];
+            [self setError:error];
+        } while (NO);
+
+        sqlite3_finalize(statement);
     }];
 
     return success;
@@ -546,33 +572,37 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     BOOL __block success = NO;
 
     [_queue dispatchBlock:^{
-        if (self.isConnectionOpenOrCanBeOpened) {
-            const char *sql;
-            switch (type) {
-                case RASqliteTransactionExclusive:
-                    sql = "BEGIN EXCLUSIVE TRANSACTION";
-                    break;
-                case RASqliteTransactionImmediate:
-                    sql = "BEGIN IMMEDIATE TRANSACTION";
-                    break;
-                case RASqliteTransactionDeferred:
-                default:
-                    sql = "BEGIN DEFERRED TRANSACTION";
-                    break;
-            }
-
-            char *errmsg;
-            int code = sqlite3_exec(_database, sql, 0, 0, &errmsg);
-
-            success = (code == SQLITE_OK);
-            if (!success) {
-                NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-                RASqliteErrorLog(@"Unable to begin transaction: %@", message);
-
-                NSError *error = [NSError code:RASqliteErrorTransaction message:message];
-                [self setError:error];
-            }
+        if (!self.isConnectionOpenOrCanBeOpened) {
+            return;
         }
+
+        const char *sql;
+        switch (type) {
+            case RASqliteTransactionExclusive:
+                sql = "BEGIN EXCLUSIVE TRANSACTION";
+                break;
+            case RASqliteTransactionImmediate:
+                sql = "BEGIN IMMEDIATE TRANSACTION";
+                break;
+            case RASqliteTransactionDeferred:
+            default:
+                sql = "BEGIN DEFERRED TRANSACTION";
+                break;
+        }
+
+        char *errmsg;
+        int code = sqlite3_exec(_database, sql, 0, 0, &errmsg);
+
+        success = (code == SQLITE_OK);
+        if (success) {
+            return;
+        }
+
+        NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+        RASqliteErrorLog(@"Unable to begin transaction: %@", message);
+
+        NSError *error = [NSError code:RASqliteErrorTransaction message:message];
+        [self setError:error];
     }];
 
     return success;
@@ -590,13 +620,15 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         int code = sqlite3_exec(_database, "ROLLBACK TRANSACTION", 0, 0, &errmsg);
 
         success = (code == SQLITE_OK);
-        if (!success) {
-            NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-            RASqliteErrorLog(@"Unable to rollback transaction: %@", message);
-
-            NSError *error = [NSError code:RASqliteErrorTransaction message:message];
-            [self setError:error];
+        if (success) {
+            return;
         }
+
+        NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+        RASqliteErrorLog(@"Unable to rollback transaction: %@", message);
+
+        NSError *error = [NSError code:RASqliteErrorTransaction message:message];
+        [self setError:error];
     }];
 
     return success;
@@ -610,13 +642,15 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
         int code = sqlite3_exec(_database, "COMMIT TRANSACTION", 0, 0, &errmsg);
 
         success = (code == SQLITE_OK);
-        if (!success) {
-            NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-            RASqliteErrorLog(@"Unable to commit transaction: %@", message);
-
-            NSError *error = [NSError code:RASqliteErrorTransaction message:message];
-            [self setError:error];
+        if (success) {
+            return;
         }
+
+        NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+        RASqliteErrorLog(@"Unable to commit transaction: %@", message);
+
+        NSError *error = [NSError code:RASqliteErrorTransaction message:message];
+        [self setError:error];
     }];
 
     return success;

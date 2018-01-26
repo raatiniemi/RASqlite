@@ -572,32 +572,34 @@ static NSString *RASqliteNestedTransactionException = @"Nested transactions";
     BOOL __block success = NO;
 
     [_queue dispatchBlock:^{
-        if (self.isConnectionOpenOrCanBeOpened) {
-            const char *sql;
-            switch (type) {
-                case RASqliteTransactionExclusive:
-                    sql = "BEGIN EXCLUSIVE TRANSACTION";
-                    break;
-                case RASqliteTransactionImmediate:
-                    sql = "BEGIN IMMEDIATE TRANSACTION";
-                    break;
-                case RASqliteTransactionDeferred:
-                default:
-                    sql = "BEGIN DEFERRED TRANSACTION";
-                    break;
-            }
+        if (!self.isConnectionOpenOrCanBeOpened) {
+            return;
+        }
 
-            char *errmsg;
-            int code = sqlite3_exec(_database, sql, 0, 0, &errmsg);
+        const char *sql;
+        switch (type) {
+            case RASqliteTransactionExclusive:
+                sql = "BEGIN EXCLUSIVE TRANSACTION";
+                break;
+            case RASqliteTransactionImmediate:
+                sql = "BEGIN IMMEDIATE TRANSACTION";
+                break;
+            case RASqliteTransactionDeferred:
+            default:
+                sql = "BEGIN DEFERRED TRANSACTION";
+                break;
+        }
 
-            success = (code == SQLITE_OK);
-            if (!success) {
-                NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
-                RASqliteErrorLog(@"Unable to begin transaction: %@", message);
+        char *errmsg;
+        int code = sqlite3_exec(_database, sql, 0, 0, &errmsg);
 
-                NSError *error = [NSError code:RASqliteErrorTransaction message:message];
-                [self setError:error];
-            }
+        success = (code == SQLITE_OK);
+        if (!success) {
+            NSString *message = [NSString stringWithCString:errmsg encoding:NSUTF8StringEncoding];
+            RASqliteErrorLog(@"Unable to begin transaction: %@", message);
+
+            NSError *error = [NSError code:RASqliteErrorTransaction message:message];
+            [self setError:error];
         }
     }];
 

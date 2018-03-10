@@ -1,5 +1,6 @@
 default_platform(:ios)
 
+project_scheme = 'RASqlite'
 compile_commands_path = 'build/reports/compile_commands.json'
 
 platform :ios do
@@ -22,13 +23,19 @@ platform :ios do
   desc 'Build a release version of the framework'
   lane :clean_release_build do
     xcodebuild(
-      scheme: 'RASqlite',
+      scheme: project_scheme,
       configuration: 'Release',
       clean: true,
       build: true,
       build_settings: [['ONLY_ACTIVE_ARCH', 'NO']],
       buildlog_path: 'build',
       xcpretty_output: "simple -r json-compilation-database -o #{compile_commands_path}"
+    )
+  end
+
+  lane :test do
+    scan(
+      scheme: project_scheme
     )
   end
 end

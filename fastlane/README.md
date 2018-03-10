@@ -26,6 +26,11 @@ Lint project files
 fastlane ios clean_release_build
 ```
 Build a release version of the framework
+### ios test
+```
+fastlane ios test
+```
+
 
 ----
 

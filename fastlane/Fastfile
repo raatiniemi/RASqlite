@@ -1,6 +1,24 @@
 default_platform(:ios)
 
+compile_commands_path = 'build/reports/compile_commands.json'
+
 platform :ios do
+  desc 'Lint project files'
+  lane :lint do |options|
+    oclint_report_type = options[:oclint_report_type] || 'xml'
+
+    clean_release_build
+    oclint(
+      compile_commands: compile_commands_path,
+      report_path: "build/reports/oclint.#{oclint_report_type}",
+      report_type: oclint_report_type,
+      max_priority_1: 0,
+      max_priority_2: 41,
+      max_priority_3: 58,
+      exclude_regex: /_vers.c/
+    )
+  end
+
   desc 'Build a release version of the framework'
   lane :clean_release_build do
     xcodebuild(
@@ -8,7 +26,9 @@ platform :ios do
       configuration: 'Release',
       clean: true,
       build: true,
-      build_settings: [['ONLY_ACTIVE_ARCH', 'NO']]
+      build_settings: [['ONLY_ACTIVE_ARCH', 'NO']],
+      buildlog_path: 'build',
+      xcpretty_output: "simple -r json-compilation-database -o #{compile_commands_path}"
     )
   end
 end

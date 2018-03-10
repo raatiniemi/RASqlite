@@ -16,6 +16,11 @@ or alternatively using `brew cask install fastlane`
 
 # Available Actions
 ## iOS
+### ios lint
+```
+fastlane ios lint
+```
+Lint project files
 ### ios clean_release_build
 ```
 fastlane ios clean_release_build

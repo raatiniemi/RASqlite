@@ -30,7 +30,7 @@ Build a release version of the framework
 ```
 fastlane ios test
 ```
-
+Run tests and generate coverage reports
 
 ----
 

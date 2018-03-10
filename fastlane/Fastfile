@@ -33,9 +33,20 @@ platform :ios do
     )
   end
 
+  desc 'Run tests and generate coverage reports'
   lane :test do
     scan(
-      scheme: project_scheme
+      scheme: project_scheme,
+      code_coverage: true,
+      output_directory: 'build/reports',
+      output_types: 'junit'
+    )
+    xcov(
+      project: 'RASqlite.xcodeproj',
+      scheme: project_scheme,
+      output_directory: 'build/reports',
+      html_report: false,
+      json_report: true
     )
   end
 end

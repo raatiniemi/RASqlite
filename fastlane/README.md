@@ -16,9 +16,9 @@ or alternatively using `brew cask install fastlane`
 
 # Available Actions
 ## iOS
-### ios release_build
+### ios clean_release_build
 ```
-fastlane ios release_build
+fastlane ios clean_release_build
 ```
 Build a release version of the framework
 

@@ -35,7 +35,9 @@ platform :ios do
   end
 
   desc 'Run tests and generate coverage reports'
-  lane :test do
+  lane :test do |options|
+    xcov_report_type = options[:xcov_report_type] || 'json'
+
     scan(
       scheme: project_scheme,
       code_coverage: true,
@@ -46,8 +48,9 @@ platform :ios do
       project: 'RASqlite.xcodeproj',
       scheme: project_scheme,
       output_directory: reports_directory_path,
-      html_report: false,
-      json_report: true
+      html_report: xcov_report_type =~ /html/i,
+      json_report: xcov_report_type =~ /json/i,
+      markdown_report: xcov_report_type =~ /markdown/i
     )
   end
 end

@@ -1,0 +1,56 @@
+default_platform(:ios)
+
+project_scheme = 'RASqlite'
+reports_directory_path = 'build/reports'
+compile_commands_path = "#{reports_directory_path}/compile_commands.json"
+
+platform :ios do
+  desc 'Lint project files'
+  lane :lint do |options|
+    oclint_report_type = options[:oclint_report_type] || 'xml'
+
+    clean_release_build
+    oclint(
+      compile_commands: compile_commands_path,
+      report_path: "#{reports_directory_path}/oclint.#{oclint_report_type}",
+      report_type: oclint_report_type,
+      max_priority_1: 0,
+      max_priority_2: 41,
+      max_priority_3: 58,
+      exclude_regex: /_vers.c/
+    )
+  end
+
+  desc 'Build a release version of the framework'
+  lane :clean_release_build do
+    xcodebuild(
+      scheme: project_scheme,
+      configuration: 'Release',
+      clean: true,
+      build: true,
+      build_settings: [['ONLY_ACTIVE_ARCH', 'NO']],
+      buildlog_path: 'build',
+      xcpretty_output: "simple -r json-compilation-database -o #{compile_commands_path}"
+    )
+  end
+
+  desc 'Run tests and generate coverage reports'
+  lane :test do |options|
+    xcov_report_type = options[:xcov_report_type] || 'json'
+
+    scan(
+      scheme: project_scheme,
+      code_coverage: true,
+      output_directory: reports_directory_path,
+      output_types: 'junit'
+    )
+    xcov(
+      project: 'RASqlite.xcodeproj',
+      scheme: project_scheme,
+      output_directory: reports_directory_path,
+      html_report: xcov_report_type =~ /html/i,
+      json_report: xcov_report_type =~ /json/i,
+      markdown_report: xcov_report_type =~ /markdown/i
+    )
+  end
+end

@@ -44,7 +44,8 @@ platform :ios do
       scheme: scheme_default,
       code_coverage: true,
       output_directory: path_to_reports_directory,
-      output_types: 'junit'
+      output_types: 'junit',
+      output_files: 'TEST-report.xml'
     )
     xcov(
       project: project,

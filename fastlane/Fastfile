@@ -9,7 +9,7 @@ path_to_compile_commands = "#{path_to_reports_directory}/compile_commands.json"
 
 platform :ios do
   desc 'Lint project files'
-  lane :lint do |options|
+  lane :run_lint do |options|
     oclint_report_type = options[:oclint_report_type] || 'xml'
 
     clean_release_build
@@ -39,7 +39,7 @@ platform :ios do
   end
 
   desc 'Run tests and generate coverage reports'
-  lane :test do |options|
+  lane :run_unit_tests do |options|
     xcov_report_type = options[:xcov_report_type] || 'json'
 
     scan(
@@ -80,8 +80,8 @@ platform :ios do
       UI.user_error!("No host URL have been supplied via environment variable `SONAR_HOST_URL`")
     end
 
-    lint
-    test
+    run_lint
+    run_unit_tests
     sonar(
       sonar_login: login,
       sonar_runner_args: "-Dsonar.host.url=#{host_url}"

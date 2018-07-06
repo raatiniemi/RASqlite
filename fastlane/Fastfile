@@ -1,18 +1,21 @@
 default_platform(:ios)
 
-project_scheme = 'RASqlite'
-reports_directory_path = 'build/reports'
-compile_commands_path = "#{reports_directory_path}/compile_commands.json"
+project = 'RASqlite.xcodeproj'
+scheme_default = 'RASqlite'
+
+path_to_build_directory = 'build'
+path_to_reports_directory = "#{path_to_build_directory}/reports"
+path_to_compile_commands = "#{path_to_reports_directory}/compile_commands.json"
 
 platform :ios do
   desc 'Lint project files'
-  lane :lint do |options|
+  lane :run_lint do |options|
     oclint_report_type = options[:oclint_report_type] || 'xml'
 
     clean_release_build
     oclint(
-      compile_commands: compile_commands_path,
-      report_path: "#{reports_directory_path}/oclint.#{oclint_report_type}",
+      compile_commands: path_to_compile_commands,
+      report_path: "#{path_to_reports_directory}/oclint.#{oclint_report_type}",
       report_type: oclint_report_type,
       max_priority_1: 0,
       max_priority_2: 41,
@@ -24,33 +27,64 @@ platform :ios do
   desc 'Build a release version of the framework'
   lane :clean_release_build do
     xcodebuild(
-      scheme: project_scheme,
+      scheme: scheme_default,
+      derivedDataPath: path_to_build_directory,
       configuration: 'Release',
       clean: true,
       build: true,
       build_settings: [['ONLY_ACTIVE_ARCH', 'NO']],
       buildlog_path: 'build',
-      xcpretty_output: "simple -r json-compilation-database -o #{compile_commands_path}"
+      xcpretty_output: "simple -r json-compilation-database -o #{path_to_compile_commands}"
     )
   end
 
   desc 'Run tests and generate coverage reports'
-  lane :test do |options|
+  lane :run_unit_tests do |options|
     xcov_report_type = options[:xcov_report_type] || 'json'
 
     scan(
-      scheme: project_scheme,
+      scheme: scheme_default,
+      derived_data_path: path_to_build_directory,
       code_coverage: true,
-      output_directory: reports_directory_path,
-      output_types: 'junit'
+      output_directory: path_to_reports_directory,
+      output_types: 'junit',
+      output_files: 'TEST-report.xml'
+    )
+    slather(
+      build_directory: path_to_build_directory,
+      proj: project,
+      scheme: scheme_default,
+      output_directory: path_to_reports_directory,
+      cobertura_xml: true,
+      source_directory: 'RASqlite'
     )
     xcov(
-      project: 'RASqlite.xcodeproj',
-      scheme: project_scheme,
-      output_directory: reports_directory_path,
+      project: project,
+      scheme: scheme_default,
+      output_directory: path_to_reports_directory,
       html_report: xcov_report_type =~ /html/i,
       json_report: xcov_report_type =~ /json/i,
       markdown_report: xcov_report_type =~ /markdown/i
+    )
+  end
+
+  desc 'Collect metrics and send it to SonarQube for analysis'
+  lane :metrics do |options|
+    login = ENV["SONAR_LOGIN"]
+    if login.nil? || login.empty?
+      UI.user_error!("No login credentials have been supplied via environment variable `SONAR_LOGIN`")
+    end
+
+    host_url = ENV["SONAR_HOST_URL"]
+    if host_url.nil? || host_url.empty?
+      UI.user_error!("No host URL have been supplied via environment variable `SONAR_HOST_URL`")
+    end
+
+    run_lint
+    run_unit_tests
+    sonar(
+      sonar_login: login,
+      sonar_runner_args: "-Dsonar.host.url=#{host_url}"
     )
   end
 end

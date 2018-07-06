@@ -3,7 +3,8 @@ default_platform(:ios)
 project = 'RASqlite.xcodeproj'
 scheme_default = 'RASqlite'
 
-path_to_reports_directory = 'build/reports'
+path_to_build_directory = 'build'
+path_to_reports_directory = "#{path_to_build_directory}/reports"
 path_to_compile_commands = "#{path_to_reports_directory}/compile_commands.json"
 
 platform :ios do
@@ -27,6 +28,7 @@ platform :ios do
   lane :clean_release_build do
     xcodebuild(
       scheme: scheme_default,
+      derivedDataPath: path_to_build_directory,
       configuration: 'Release',
       clean: true,
       build: true,
@@ -42,6 +44,7 @@ platform :ios do
 
     scan(
       scheme: scheme_default,
+      derived_data_path: path_to_build_directory,
       code_coverage: true,
       output_directory: path_to_reports_directory,
       output_types: 'junit',

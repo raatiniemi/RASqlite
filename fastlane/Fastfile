@@ -3,8 +3,8 @@ default_platform(:ios)
 project = 'RASqlite.xcodeproj'
 scheme_default = 'RASqlite'
 
-reports_directory_path = 'build/reports'
-compile_commands_path = "#{reports_directory_path}/compile_commands.json"
+path_to_reports_directory = 'build/reports'
+path_to_compile_commands = "#{path_to_reports_directory}/compile_commands.json"
 
 platform :ios do
   desc 'Lint project files'
@@ -13,8 +13,8 @@ platform :ios do
 
     clean_release_build
     oclint(
-      compile_commands: compile_commands_path,
-      report_path: "#{reports_directory_path}/oclint.#{oclint_report_type}",
+      compile_commands: path_to_compile_commands,
+      report_path: "#{path_to_reports_directory}/oclint.#{oclint_report_type}",
       report_type: oclint_report_type,
       max_priority_1: 0,
       max_priority_2: 41,
@@ -32,7 +32,7 @@ platform :ios do
       build: true,
       build_settings: [['ONLY_ACTIVE_ARCH', 'NO']],
       buildlog_path: 'build',
-      xcpretty_output: "simple -r json-compilation-database -o #{compile_commands_path}"
+      xcpretty_output: "simple -r json-compilation-database -o #{path_to_compile_commands}"
     )
   end
 
@@ -43,13 +43,13 @@ platform :ios do
     scan(
       scheme: scheme_default,
       code_coverage: true,
-      output_directory: reports_directory_path,
+      output_directory: path_to_reports_directory,
       output_types: 'junit'
     )
     xcov(
       project: project,
       scheme: scheme_default,
-      output_directory: reports_directory_path,
+      output_directory: path_to_reports_directory,
       html_report: xcov_report_type =~ /html/i,
       json_report: xcov_report_type =~ /json/i,
       markdown_report: xcov_report_type =~ /markdown/i

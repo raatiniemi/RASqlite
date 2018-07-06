@@ -1,4 +1,4 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
-gem "fastlane", "2.97.0"
-gem "xcov", "1.4.2"
+gem 'fastlane', '2.97.0'
+gem 'xcov', '1.4.2'

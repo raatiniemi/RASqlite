@@ -56,4 +56,24 @@ platform :ios do
       markdown_report: xcov_report_type =~ /markdown/i
     )
   end
+
+  desc 'Collect metrics and send it to SonarQube for analysis'
+  lane :metrics do |options|
+    login = ENV["SONAR_LOGIN"]
+    if login.nil? || login.empty?
+      UI.user_error!("No login credentials have been supplied via environment variable `SONAR_LOGIN`")
+    end
+
+    host_url = ENV["SONAR_HOST_URL"]
+    if host_url.nil? || host_url.empty?
+      UI.user_error!("No host URL have been supplied via environment variable `SONAR_HOST_URL`")
+    end
+
+    lint
+    test
+    sonar(
+      sonar_login: login,
+      sonar_runner_args: "-Dsonar.host.url=#{host_url}"
+    )
+  end
 end

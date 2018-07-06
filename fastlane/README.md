@@ -31,6 +31,11 @@ Build a release version of the framework
 fastlane ios test
 ```
 Run tests and generate coverage reports
+### ios metrics
+```
+fastlane ios metrics
+```
+Collect metrics and send it to SonarQube for analysis
 
 ----
 

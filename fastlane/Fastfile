@@ -1,5 +1,6 @@
 default_platform(:ios)
 
+project = 'RASqlite.xcodeproj'
 project_scheme = 'RASqlite'
 reports_directory_path = 'build/reports'
 compile_commands_path = "#{reports_directory_path}/compile_commands.json"
@@ -45,7 +46,7 @@ platform :ios do
       output_types: 'junit'
     )
     xcov(
-      project: 'RASqlite.xcodeproj',
+      project: project,
       scheme: project_scheme,
       output_directory: reports_directory_path,
       html_report: xcov_report_type =~ /html/i,

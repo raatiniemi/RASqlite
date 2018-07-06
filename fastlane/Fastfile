@@ -1,7 +1,8 @@
 default_platform(:ios)
 
 project = 'RASqlite.xcodeproj'
-project_scheme = 'RASqlite'
+scheme_default = 'RASqlite'
+
 reports_directory_path = 'build/reports'
 compile_commands_path = "#{reports_directory_path}/compile_commands.json"
 
@@ -25,7 +26,7 @@ platform :ios do
   desc 'Build a release version of the framework'
   lane :clean_release_build do
     xcodebuild(
-      scheme: project_scheme,
+      scheme: scheme_default,
       configuration: 'Release',
       clean: true,
       build: true,
@@ -40,14 +41,14 @@ platform :ios do
     xcov_report_type = options[:xcov_report_type] || 'json'
 
     scan(
-      scheme: project_scheme,
+      scheme: scheme_default,
       code_coverage: true,
       output_directory: reports_directory_path,
       output_types: 'junit'
     )
     xcov(
       project: project,
-      scheme: project_scheme,
+      scheme: scheme_default,
       output_directory: reports_directory_path,
       html_report: xcov_report_type =~ /html/i,
       json_report: xcov_report_type =~ /json/i,

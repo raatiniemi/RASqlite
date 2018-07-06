@@ -50,6 +50,14 @@ platform :ios do
       output_types: 'junit',
       output_files: 'TEST-report.xml'
     )
+    slather(
+      build_directory: path_to_build_directory,
+      proj: project,
+      scheme: scheme_default,
+      output_directory: path_to_reports_directory,
+      cobertura_xml: true,
+      source_directory: 'RASqlite'
+    )
     xcov(
       project: project,
       scheme: scheme_default,

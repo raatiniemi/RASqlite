@@ -1,8 +1,9 @@
 default_platform(:ios)
 
-project = 'RASqlite.xcodeproj'
-scheme_default = 'RASqlite'
-source_directory = 'RASqlite'
+project_name = 'RASqlite'
+project = "#{project_name}.xcodeproj"
+scheme_default = project_name
+source_directory = project_name
 
 path_to_build_directory = 'build'
 path_to_reports_directory = "#{path_to_build_directory}/reports"

@@ -86,6 +86,7 @@ platform :ios do
     run_unit_tests
     run_lizard
     sonar(
+      project_version: get_version_number(target: project_name),
       sonar_login: login,
       sonar_runner_args: "-Dsonar.host.url=#{host_url}"
     )

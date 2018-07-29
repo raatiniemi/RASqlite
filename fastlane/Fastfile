@@ -2,6 +2,7 @@ default_platform(:ios)
 
 project = 'RASqlite.xcodeproj'
 scheme_default = 'RASqlite'
+source_directory = 'RASqlite'
 
 path_to_build_directory = 'build'
 path_to_reports_directory = "#{path_to_build_directory}/reports"
@@ -56,7 +57,7 @@ platform :ios do
       scheme: scheme_default,
       output_directory: path_to_reports_directory,
       cobertura_xml: true,
-      source_directory: 'RASqlite'
+      source_directory: source_directory
     )
     xcov(
       project: project,

@@ -84,9 +84,21 @@ platform :ios do
 
     run_lint
     run_unit_tests
+    run_lizard
     sonar(
       sonar_login: login,
       sonar_runner_args: "-Dsonar.host.url=#{host_url}"
+    )
+  end
+
+  desc 'Generate complexity report using Lizard'
+  private_lane :run_lizard do
+    lizard(
+      source_folder: source_directory,
+      language: 'objectivec',
+      export_type: 'xml',
+      report_file: "#{path_to_reports_directory}/lizard.xml",
+      executable: "#{ENV["HOME"]}/Library/Python/2.7/bin/lizard"
     )
   end
 end

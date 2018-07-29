@@ -71,7 +71,15 @@ platform :ios do
   end
 
   desc 'Collect metrics and send it to SonarQube for analysis'
-  lane :metrics do |options|
+  lane :metrics do
+    run_lint
+    run_unit_tests
+    run_lizard
+    run_sonarqube_analyse
+  end
+
+  desc 'Send collected metrics to SonarQube for analysis'
+  private_lane :run_sonarqube_analyse do
     login = ENV["SONAR_LOGIN"]
     if login.nil? || login.empty?
       UI.user_error!("No login credentials have been supplied via environment variable `SONAR_LOGIN`")
@@ -82,9 +90,6 @@ platform :ios do
       UI.user_error!("No host URL have been supplied via environment variable `SONAR_HOST_URL`")
     end
 
-    run_lint
-    run_unit_tests
-    run_lizard
     sonar(
       project_version: get_version_number(target: project_name),
       sonar_login: login,

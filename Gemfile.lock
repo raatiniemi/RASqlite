@@ -140,7 +140,7 @@ GEM
       CFPropertyList
       naturally
     slack-notifier (2.3.2)
-    slather (2.4.5)
+    slather (2.4.6)
       CFPropertyList (~> 2.2)
       activesupport (>= 4.0.2)
       clamp (~> 0.6)
@@ -185,7 +185,7 @@ PLATFORMS
 DEPENDENCIES
   fastlane (= 2.100.1)
   fastlane-plugin-lizard (= 1.1.1)
-  slather (= 2.4.5)
+  slather (= 2.4.6)
   xcov (= 1.4.3)
 
 BUNDLED WITH

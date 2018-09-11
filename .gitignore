@@ -155,3 +155,4 @@ fabric.properties
 # SonarQube
 
 .scannerwork
+sonar-reports

@@ -2,35 +2,31 @@ default_platform(:ios)
 
 project_name = 'RASqlite'
 project = "#{project_name}.xcodeproj"
+target_name = project_name
 scheme_default = project_name
 source_directory = project_name
 
-path_to_build_directory = 'build'
-path_to_reports_directory = "#{path_to_build_directory}/reports"
+path_to_reports_directory = 'sonar-reports'
 path_to_compile_commands = "#{path_to_reports_directory}/compile_commands.json"
+path_to_oclint_report = "#{path_to_reports_directory}/oclint.xml"
+path_to_lizard_report = "#{path_to_reports_directory}/lizard.xml"
+
+environment_sonar_login = 'SONAR_LOGIN'
+environment_sonar_host_url = 'SONAR_HOST_URL'
 
 platform :ios do
-  desc 'Lint project files'
-  lane :run_lint do |options|
-    oclint_report_type = options[:oclint_report_type] || 'xml'
+  lane :metrics do
+    generate_oclint_report
+    generate_lizard_report
+    generate_surefire_report
+    generate_cobertura_report
 
-    clean_release_build
-    oclint(
-      compile_commands: path_to_compile_commands,
-      report_path: "#{path_to_reports_directory}/oclint.#{oclint_report_type}",
-      report_type: oclint_report_type,
-      max_priority_1: 0,
-      max_priority_2: 41,
-      max_priority_3: 58,
-      exclude_regex: /_vers.c/
-    )
+    send_generated_reports_to_sonarqube
   end
 
-  desc 'Build a release version of the framework'
-  lane :clean_release_build do
+  private_lane :generate_compile_commands_for_oclint do
     xcodebuild(
       scheme: scheme_default,
-      derivedDataPath: path_to_build_directory,
       configuration: 'Release',
       clean: true,
       build: true,
@@ -40,71 +36,64 @@ platform :ios do
     )
   end
 
-  desc 'Run tests and generate coverage reports'
-  lane :run_unit_tests do |options|
-    xcov_report_type = options[:xcov_report_type] || 'json'
+  private_lane :generate_oclint_report do
+    generate_compile_commands_for_oclint
+    oclint(
+      compile_commands: path_to_compile_commands,
+      report_path: path_to_oclint_report,
+      report_type: 'xml',
+      max_priority_1: 0,
+      max_priority_2: 43,
+      max_priority_3: 58,
+      exclude_regex: /_vers.c/
+    )
+  end
 
+  private_lane :generate_lizard_report do
+    lizard(
+      source_folder: source_directory,
+      language: 'objectivec',
+      export_type: 'xml',
+      report_file: path_to_lizard_report,
+      executable: "#{ENV["HOME"]}/Library/Python/2.7/bin/lizard"
+    )
+  end
+
+  private_lane :generate_surefire_report do
     scan(
       scheme: scheme_default,
-      derived_data_path: path_to_build_directory,
       code_coverage: true,
       output_directory: path_to_reports_directory,
       output_types: 'junit',
       output_files: 'TEST-report.xml'
     )
+  end
+
+  private_lane :generate_cobertura_report do
     slather(
-      build_directory: path_to_build_directory,
       proj: project,
       scheme: scheme_default,
       output_directory: path_to_reports_directory,
       cobertura_xml: true,
       source_directory: source_directory
     )
-    xcov(
-      project: project,
-      scheme: scheme_default,
-      output_directory: path_to_reports_directory,
-      html_report: xcov_report_type =~ /html/i,
-      json_report: xcov_report_type =~ /json/i,
-      markdown_report: xcov_report_type =~ /markdown/i
-    )
   end
 
-  desc 'Collect metrics and send it to SonarQube for analysis'
-  lane :metrics do
-    run_lint
-    run_unit_tests
-    run_lizard
-    run_sonarqube_analyse
-  end
-
-  desc 'Send collected metrics to SonarQube for analysis'
-  private_lane :run_sonarqube_analyse do
-    login = ENV["SONAR_LOGIN"]
+  private_lane :send_generated_reports_to_sonarqube do
+    login = ENV[environment_sonar_login]
     if login.nil? || login.empty?
-      UI.user_error!("No login credentials have been supplied via environment variable `SONAR_LOGIN`")
+      UI.user_error!("No login credentials have been supplied via environment variable `#{environment_sonar_login}`")
     end
 
-    host_url = ENV["SONAR_HOST_URL"]
+    host_url = ENV[environment_sonar_host_url]
     if host_url.nil? || host_url.empty?
-      UI.user_error!("No host URL have been supplied via environment variable `SONAR_HOST_URL`")
+      UI.user_error!("No host URL have been supplied via environment variable `#{environment_sonar_host_url}`")
     end
 
     sonar(
-      project_version: get_version_number(target: project_name),
+      project_version: get_version_number(target: target_name),
       sonar_login: login,
       sonar_runner_args: "-Dsonar.host.url=#{host_url}"
-    )
-  end
-
-  desc 'Generate complexity report using Lizard'
-  private_lane :run_lizard do
-    lizard(
-      source_folder: source_directory,
-      language: 'objectivec',
-      export_type: 'xml',
-      report_file: "#{path_to_reports_directory}/lizard.xml",
-      executable: "#{ENV["HOME"]}/Library/Python/2.7/bin/lizard"
     )
   end
 end

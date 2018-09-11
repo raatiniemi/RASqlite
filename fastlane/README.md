@@ -16,26 +16,11 @@ or alternatively using `brew cask install fastlane`
 
 # Available Actions
 ## iOS
-### ios run_lint
-```
-fastlane ios run_lint
-```
-Lint project files
-### ios clean_release_build
-```
-fastlane ios clean_release_build
-```
-Build a release version of the framework
-### ios run_unit_tests
-```
-fastlane ios run_unit_tests
-```
-Run tests and generate coverage reports
 ### ios metrics
 ```
 fastlane ios metrics
 ```
-Collect metrics and send it to SonarQube for analysis
+
 
 ----
 
